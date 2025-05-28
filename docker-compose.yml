@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  finance-service:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: finance-service
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Für zukünftige Erweiterungen - auskommentiert
+  # load-balancer:
+  #   image: nginx:latest
+  #   container_name: finance-lb
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf
+  #   depends_on:
+  #     - finance-service
+  #   restart: unless-stopped
+
+networks:
+  default:
+    name: finance-network 
