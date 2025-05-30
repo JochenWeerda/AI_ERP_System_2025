@@ -356,3 +356,74 @@ npm run theme-demo
   - Anomalieerkennung in Artikeldaten
 - Mehrseitiger Editor für verschiedene Stammdatenbereiche
 - Integration mit bestehenden Artikeldaten
+
+# KI-gesteuertes ERP-System
+
+Ein modernes, KI-gesteuertes ERP-System mit asynchroner Aufgabenverarbeitung durch Redis und Celery.
+
+## Hauptkomponenten
+
+### Backend
+
+- **FastAPI Server**: RESTful API für Geschäftsprozesse und Datenoperationen
+- **Redis & Celery**: Asynchrone Aufgabenverarbeitung für rechenintensive Operationen
+- **SQLAlchemy**: ORM für Datenbankoperationen
+- **Prometheus**: Monitoring und Metriken
+
+### Frontend
+
+- **React**: UI-Framework für das Frontend
+- **Material-UI**: Komponenten-Bibliothek für ein modernes Design
+- **TypeScript**: Statisch typisiertes JavaScript für robusteren Code
+
+## Neue Funktionen: Redis und Celery Integration
+
+Die Integration von Redis und Celery ermöglicht die asynchrone Verarbeitung von rechenintensiven Aufgaben im ERP-System. Die Implementierung umfasst:
+
+1. **Redis** als Message Broker und Result Backend für Celery
+2. **Celery** für die asynchrone Verarbeitung von Tasks
+3. **Flower** für das Monitoring von Celery-Tasks
+4. **API-Endpunkte** zur Interaktion mit Celery-Tasks
+5. **PowerShell-Skripte** zum Starten aller Komponenten
+
+### Systemarchitektur
+
+- **Redis (Port 6379)**: Message Broker und Result Backend
+- **Celery Worker**: Verarbeitet Tasks aus verschiedenen Queues (default, reports, imports, exports, optimization)
+- **Flower (Port 5555)**: Monitoring-Web-Interface für Celery
+- **Demo-Server (Port 8003)**: Einfacher Server mit Celery-Integration
+
+### Installation und Start
+
+#### Redis-Installation (Windows)
+1. Redis für Windows von https://github.com/microsoftarchive/redis/releases herunterladen
+2. Dateien in das Verzeichnis `redis` im Projektverzeichnis extrahieren
+3. Redis mit `redis\redis-server.exe` starten
+
+#### Python-Abhängigkeiten
+```bash
+python scripts/python_deps_install.py
+```
+
+#### Starten des Systems
+```powershell
+.\scripts\start_system_improved.ps1
+```
+
+### API-Dokumentation
+
+Nach dem Start des Servers kann die Swagger-Dokumentation unter http://localhost:8003/docs aufgerufen werden.
+
+## Detaillierte Dokumentation
+
+- [Redis und Celery Integration](memory-bank/archive/redis_celery_implementation.md)
+- [Projektfortschritt](memory-bank/progress.md)
+- [Aktive Aufgaben](memory-bank/tasks.md)
+
+## Nächste Schritte
+
+1. Robuste Fehlerbehandlung für Tasks implementieren
+2. Erweiterung um weitere Task-Typen (Import/Export, Optimierung)
+3. Persistente Redis-Konfiguration für Produktionsumgebungen
+4. Implementierung von Sicherheitsfeatures
+5. Docker-Compose-Setup für die Entwicklungsumgebung

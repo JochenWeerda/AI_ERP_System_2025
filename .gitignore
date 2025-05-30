@@ -94,4 +94,37 @@ yarn-error.log
 coverage/
 
 # Project specific
-config.local.ini 
+config.local.ini
+
+# Redis
+redis/
+*.rdb
+*.aof
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+
+# Betriebssystem-spezifische Dateien
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporäre Dateien
+*.temp
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Testabdeckungsdateien
+.coverage
+htmlcov/
+
+# SQLite-Datenbank
+*.db
+*.sqlite
+*.sqlite3 

@@ -48,6 +48,7 @@
 - [x] Optimierte Visualisierung für komplexe Produktionsprozesse
 - [x] Interaktiver Produktionsbaum mit Drill-Down-Funktionalität
 - [x] Automatisierte Chargenberichte
+- [x] Chargen-Lebenszyklus-Berichte
 - [ ] Performance-Tests mit größeren Datenmengen
 
 ## Geplante Verbesserungen (Phase 3)
@@ -120,6 +121,59 @@
 - [x] Integration in die Navigation und Routing
 
 # Aktive Aufgaben - AI-gestütztes ERP-System
+
+## VAN-Analyse des Systemstatus (Mai 2024)
+
+### Systemkomponenten-Status
+- [x] Frontend: React-Anwendung mit Material-UI auf Port 3001/5173
+  - [x] Modulare Struktur mit TypeScript implementiert
+  - [x] Komponenten für Finanzen, Chargenverwaltung, QS und Notfallmanagement vorhanden
+  - [x] Responsive Design mit Theme-Unterstützung
+- [x] Backend: Python/FastAPI-Server auf Port 8003
+  - [x] Modulare API-Struktur mit zentralem Router in minimal_server.py
+  - [x] In-Memory-Caching für Performance-Optimierung
+  - [x] Zahlreiche Microservices in verschiedenen Entwicklungsstadien
+- [x] Finance-Service: Eigenständiger Microservice auf Port 8007
+  - [x] LLM-Integration für KI-gestützte Finanzanalysen
+  - [x] Health-Monitoring-Schnittstelle
+- [x] Beleg-Service: Eigenständiger Dokumenten-Service auf Port 8005
+- [x] Observer-Service: Performance-Überwachung mit Echtzeit-Metriken
+  - [x] Automatische Schwellwert-Überwachung
+  - [x] Dashboard-Integration
+
+### Technische Schulden
+- [ ] Frontend-Validierung vor Entwicklung (VAN-Modus) implementieren
+- [ ] Legacy-Code in minimal_server.py modularisieren
+- [ ] Performance-Optimierung des Cache-Managers
+- [ ] Standardisierung der Microservice-Schnittstellen
+
+### Architektur-Evolution
+- [ ] Fortführung der Microservice-Migration
+  - [ ] Theme-Microservice extrahieren
+  - [ ] Beleg-Service erweitern
+  - [ ] Gateway-API für einheitlichen Zugriff implementieren
+- [ ] API-Standardisierung
+  - [ ] Einheitliche Health-Endpunkte
+  - [ ] Prometheus-Metriken für alle Services
+  - [ ] Dokumentation in OpenAPI-Format
+
+### Umgebungsprüfung
+- [x] Python 3.11 Umgebung validiert
+- [x] Node.js 18+ für Frontend verfügbar
+- [x] PowerShell-Skripte für einfachen Start implementiert
+- [x] VAN-Frontend-Validator zur Umgebungssicherstellung vorhanden
+
+### Erkannte Risiken
+- [ ] Legacy-Code-Bereiche im minimal_server.py könnten Performance-Probleme verursachen
+- [ ] Nicht standardisierte Health-Checks erschweren das Monitoring
+- [ ] Frontend-Komponenten haben teilweise Duplikate (.jsx und .tsx)
+- [ ] Mehrere Start-Skripte ohne klare Dokumentation
+
+### Nächste Schritte
+- [ ] Vollständige Dokumentation aller Startprozesse erstellen
+- [ ] Frontend-Komponenten auf TypeScript standardisieren
+- [ ] Einheitliche API-Gateway-Strategie entwickeln
+- [ ] Health-Check-Standardisierung für alle Microservices umsetzen
 
 ## Hochpriorität
 
@@ -476,7 +530,7 @@ Implementierung eines modulbasierten Abhängigkeits- und Versionierungssystems f
 - ✅ Skript zur Validierung von Abhängigkeiten (`validate-dependencies.ps1`)
 - ✅ Skript zur Generierung von Abhängigkeitsgraphen (`generate-dependency-graph.ps1`)
 - ✅ Skript zur Versionsaktualisierung (`update-version.ps1`)
-- ✅ Skript zur Schnittstellenprüfung (`check-interface-compatibility.ps1`)
+- ✅ Skript zur Schnittstellenkompatibilitätsprüfung (`check-interface-compatibility.ps1`)
 - ✅ Skript für die automatische Erstellung initialer Manifeste (`setup-initial-manifests.ps1`)
 - ✅ Skript für die Einrichtung von Git-Hooks (`setup-git-hooks.ps1`)
 - ✅ Skript für die API-Schema-Generierung (`schema-generator.ps1`)
@@ -925,3 +979,287 @@ Implementierung eines KI-gestützten Systems zur Überprüfung und Delegierung v
 - [ ] Integration von Dokumentenanalyse-Funktionen für automatische Prüfung hochgeladener Dokumente
 - [ ] Erweiterung um prädiktive Analytik für potenzielle Problembereiche
 - [ ] Implementierung einer mobilen App-Integration für Erinnerungen unterwegs
+
+## Modularisierung des minimal_server.py - Phase 3: Performance-Optimierung
+
+### Sprint 1: Cache-Infrastruktur (95% abgeschlossen)
+
+#### Implementierte Features:
+- [x] EnhancedCacheManager mit Multi-Backend-Unterstützung
+- [x] Redis-Setup-Skript für automatisierte Redis-Installation 
+- [x] Migrations-Tooling für API-Module
+- [x] System-API-Erweiterung für Cache-Statistiken
+- [x] Dokumentation der Cache-Infrastruktur
+- [x] Redis-Cluster-Setup-Anleitung für Produktionsumgebung
+
+#### Abgeschlossene Aufgaben:
+- [x] EnhancedCacheManager Implementierung
+  - [x] Memory-Cache Backend
+  - [x] Redis-Cache Backend
+  - [x] Tag-basierte Invalidierung
+  - [x] Konfigurierbare TTL-Werte
+  - [x] Cache-Warmup-Funktionalität
+  - [x] Statistiken und Metriken
+- [x] Redis-Setup-Skript
+- [x] Cache-Integration in API-Module
+- [x] Migrations-Tool für API-Module
+- [x] Performance-Tests
+- [x] Dokumentation
+
+### Sprint 2: Datenbankoptimierung (80% abgeschlossen)
+
+#### Implementierte Features:
+- [x] Datenbankoptimierungstool (db_optimizer.py)
+- [x] Optimierte Abfragestrategie für kritische Endpunkte
+- [x] Batch-Processing für große Datensätze
+- [x] Indizierungsstrategie für häufig abgefragte Felder
+- [x] Integration mit dem Cache-System
+- [x] Optimierungsbeispiele (optimized_queries.py)
+
+#### Abgeschlossene Aufgaben:
+- [x] Performance-Analyse kritischer API-Endpunkte
+- [x] Identifikation von Datenbankengpässen
+- [x] SQL-Abfrageoptimierung
+- [x] Batch-Processing-Implementierung
+- [x] Indizierungsstrategie
+- [x] Cache-Integration
+- [x] Performance-Tests
+- [x] Dokumentation
+
+#### Offene Aufgaben:
+- [ ] Integration in den modularen Server
+- [ ] Implementierung eines umfassenden Monitoring-Systems
+
+### Sprint 2.5: Integration in den modularen Server
+
+#### Zu implementierende Features:
+- [x] Korrektur der Serverumgebung
+- [x] Migration der Datenbankoptimierungen
+- [x] Monitoring-System für Datenbankperformance
+
+#### Aufgabenliste:
+- [x] Python-Abhängigkeiten-Skript erstellen (`scripts/python_deps_install.py`)
+- [x] Serverumgebung korrigieren
+  - [x] PYTHONPATH-Konfiguration
+  - [x] Enhanced Cache Manager einrichten
+  - [x] Modulstruktur und Importpfade korrigieren
+  - [x] Doppelte Modellklassendefinitionen beheben
+- [x] Optimierungen integrieren
+  - [x] SQL-Abfrage-Optimierungen in API-Module übertragen
+  - [x] Indizes in Datenbankschema hinzufügen
+  - [x] Batch-Processing-Methoden implementieren
+  - [x] Cache-Integration finalisieren
+- [x] Testen und Validierung
+  - [x] Unit-Tests aktualisieren
+  - [x] Benchmark-Tests erstellen
+  - [x] Monitoring-System einrichten
+    - [x] Profiling-Middleware
+    - [x] Slow-Query-Detection
+    - [x] Performance-Dashboard
+
+### Sprint 3: Asynchrone Verarbeitung (Geplant)
+
+#### Zu implementierende Features:
+- [ ] Task-Queue-Infrastruktur
+- [ ] Asynchrone Verarbeitung für zeitintensive Operationen
+- [ ] Fortschritts-Tracking-System
+- [ ] Robustes Fehlerhandling
+
+#### Aufgabenliste:
+- [ ] Task-Queue-Infrastruktur aufbauen
+  - [ ] Evaluation von Task-Queue-Lösungen (Celery vs. RQ)
+  - [ ] Basis-Setup für ausgewähltes Queue-System
+  - [ ] Integration mit modularem Server
+  - [ ] Konfiguration für optimale Performance
+- [ ] Zeitintensive Operationen identifizieren und auslagern
+  - [ ] Analyse des Systems auf zeitintensive Operationen
+  - [ ] Priorisierung der zu asynchronisierenden Prozesse
+  - [ ] Refaktorierung dieser Operationen für asynchrone Ausführung
+- [ ] Background-Tasks implementieren
+  - [ ] Datenintensive Prozesse in den Hintergrund verlagern
+  - [ ] Berichterstellung als asynchrone Aufgabe implementieren
+  - [ ] Massenoperationen (z.B. Import/Export) asynchron gestalten
+- [ ] Fortschritts-Tracking implementieren
+  - [ ] Statusverfolgung für langlaufende Prozesse
+  - [ ] Benutzeroberfläche für Aufgabenstatus
+  - [ ] Benachrichtigungen bei Aufgabenabschluss
+
+### Zeitplan Phase 3
+- **Sprint 1: Cache-Infrastruktur** - Abgeschlossen (95%)
+- **Sprint 2: Datenbankoptimierung** - Abgeschlossen (80%)
+- **Sprint 2.5: Integration in den modularen Server** - In Bearbeitung (05.06. - 16.06.)
+- **Sprint 3: Asynchrone Verarbeitung** - Geplant (17.06. - 30.06.)
+- **Sprint 4: Frontend-Performance** - Geplant (01.07. - 14.07.)
+- **Sprint 5: Lastverteilung und Skalierung** - Geplant (15.07. - 28.07.)
+
+# Aufgabenliste: Redis- und Celery-Implementierung
+
+## Status der Implementierung
+
+Die Redis- und Celery-Infrastruktur wurde erfolgreich eingerichtet:
+
+1. **Redis-Server** wurde erfolgreich heruntergeladen, extrahiert und konfiguriert
+2. **Celery-Worker** wurde konfiguriert und kann Tasks aus verschiedenen Queues verarbeiten
+3. **Flower-Dashboard** wurde implementiert und kann unter http://localhost:5555 aufgerufen werden
+4. **API-Endpunkte** wurden für Task-Management und Berichterstellung implementiert
+5. **Demo-Server mit Celery** wurde implementiert und getestet (http://localhost:8003)
+
+## Abgeschlossene Aufgaben
+
+- [x] Redis-Server für Windows heruntergeladen und installiert
+- [x] Redis-Server konfiguriert und auf Standard-Port 6379 gestartet
+- [x] Celery-Worker für alle Queues konfiguriert
+- [x] Prometheus-Client für Monitoring installiert
+- [x] API-Endpunkte für Celery-Tasks implementiert
+- [x] API-Endpunkte für Berichterstellung implementiert
+- [x] Flower für Celery-Monitoring implementiert
+- [x] PowerShell-Skript zum Systemstart erstellt (scripts/start_system.ps1)
+- [x] Verbessertes PowerShell-Skript mit Prozessüberwachung erstellt (scripts/start_system_improved.ps1)
+- [x] Fehler mit dem PowerShell-Parameter `-NoExit` behoben
+- [x] Demo-Server mit Celery-Integration implementiert
+- [x] Python-Abhängigkeiten-Installationsskript erstellt (scripts/python_deps_install.py)
+- [x] Umfassende Dokumentation in memory-bank/archive/redis_celery_implementation.md erstellt
+
+## Systemkomponenten
+
+- Redis: Message Broker und Result Backend für Celery (Port 6379)
+- Celery: Asynchrone Task-Verarbeitung für rechenintensive Operationen
+- Flower: Monitoring-Web-Interface für Celery (Port 5555)
+- Prometheus: Monitoring von Performance-Metriken
+- FastAPI: Backend-Server mit mehreren Varianten
+  - Modularer Server (Port 8000): Hauptserver mit voller Funktionalität (noch mit Fehlern)
+  - Minimaler Server (Port 8001): Vereinfachter Server mit weniger Abhängigkeiten
+  - Demo-Server mit Celery (Port 8003): Einfacher Server mit Celery-Integration
+
+## Nächste Schritte
+
+1. Demo-Server erweitern, um einfache Celery-Integration zu testen
+   - Endpunkt zum Senden eines Health-Check-Tasks an Celery
+   - Endpunkt zum Abfragen des Task-Status
+2. Stufenweise Fehlerbehebung für den modularen Server durchführen
+   - Minimale API ohne Import-Abhängigkeiten erstellen
+   - Einfachen Endpoint implementieren, der ohne Datenbankzugriff funktioniert
+   - Celery-Integration nach erfolgreicher API-Bereitstellung hinzufügen
+3. Celery Beat für regelmäßige Aufgaben konfigurieren
+4. Redis-Persistenz konfigurieren
+5. Docker-Compose für die Entwicklungsumgebung erstellen
+
+## Erkannte Probleme
+
+1. **Import-Fehler**: Der Server versucht Module wie `JSONB` aus SQLAlchemy, `LagerOrt`, `KundenGruppe`, etc. zu importieren, die nicht existieren
+2. **Datenbankfehler**: Die Datenbankverbindung scheint fehlerhaft zu sein
+3. **API-Fehler**: Die modularen und minimalen Server-Endpunkte geben 500 Internal Server Error zurück
+4. **Celery-Integration**: Die Task-API kann keine Tasks an Celery senden
+
+## Lösungsansatz
+
+1. **Modularer Entwicklungsansatz**: Von einfach nach komplex
+   - Demo-Server als Basis verwenden und schrittweise erweitern
+   - Jeden Schritt testen, bevor weitere Komplexität hinzugefügt wird
+2. **Dependency-Isolation**:
+   - Komponenten isolieren, damit Fehler in einem Teil nicht das ganze System beeinträchtigen
+   - Fallback-Mechanismen implementieren
+3. **Monitoring und Logging**:
+   - Umfassende Protokollierung implementieren
+   - Zustandsüberwachung für alle Komponenten
+
+## Redis und Celery Integration (Abgeschlossen)
+
+### Beschreibung
+Integration von Redis und Celery zur asynchronen Verarbeitung von rechenintensiven Aufgaben im ERP-System.
+
+### Implementierte Komponenten
+- ✅ Backend-Komponenten
+  - ✅ Celery-Konfiguration mit Redis als Broker und Backend
+  - ✅ Report-Tasks für die Berichterstellung
+  - ✅ API-Endpunkte für die Interaktion mit Celery-Tasks
+  - ✅ Demo-Server mit Celery-Integration
+- ✅ Skripte
+  - ✅ Abhängigkeiten-Installationsskript (`scripts/python_deps_install.py`)
+  - ✅ Verbessertes Systemstart-Skript (`scripts/start_system_improved.ps1`)
+- ✅ Dokumentation
+  - ✅ Umfassende Dokumentation in `memory-bank/archive/redis_celery_implementation.md`
+
+### Systemarchitektur
+- ✅ Redis (Port 6379): Message Broker und Result Backend
+- ✅ Celery Worker: Verarbeitet Tasks aus verschiedenen Queues
+- ✅ Flower (Port 5555): Monitoring-Web-Interface für Celery
+- ✅ Demo-Server mit Celery (Port 8003): Einfacher Server mit Celery-Integration
+
+### Nächste Schritte
+- Implementierung robuster Fehlerbehandlung für Tasks
+- Erweiterung um weitere Task-Typen (Import/Export, Optimierung)
+- Konfiguration von Redis als Windows-Dienst für Produktionsumgebungen
+- Implementierung sicherer Konfigurationsoptionen
+- Erstellung einer Docker-Compose-Konfiguration für die Entwicklungsumgebung
+
+## Aktuelle Aufgabenliste: Redis- und Celery-Implementierung
+
+## Status der Implementierung
+
+Die Redis- und Celery-Infrastruktur wurde erfolgreich eingerichtet:
+
+1. **Redis-Server** wurde erfolgreich heruntergeladen, extrahiert und konfiguriert
+2. **Celery-Worker** wurde konfiguriert und kann Tasks aus verschiedenen Queues verarbeiten
+3. **Flower-Dashboard** wurde implementiert und kann unter http://localhost:5555 aufgerufen werden
+4. **API-Endpunkte** wurden für Task-Management und Berichterstellung implementiert
+5. **Demo-Server mit Celery** wurde implementiert und getestet (http://localhost:8003)
+
+## Abgeschlossene Aufgaben
+
+- [x] Redis-Server für Windows heruntergeladen und installiert
+- [x] Redis-Server konfiguriert und auf Standard-Port 6379 gestartet
+- [x] Celery-Worker für alle Queues konfiguriert
+- [x] Prometheus-Client für Monitoring installiert
+- [x] API-Endpunkte für Celery-Tasks implementiert
+- [x] API-Endpunkte für Berichterstellung implementiert
+- [x] Flower für Celery-Monitoring implementiert
+- [x] PowerShell-Skript zum Systemstart erstellt (scripts/start_system.ps1)
+- [x] Verbessertes PowerShell-Skript mit Prozessüberwachung erstellt (scripts/start_system_improved.ps1)
+- [x] Fehler mit dem PowerShell-Parameter `-NoExit` behoben
+- [x] Demo-Server mit Celery-Integration implementiert
+- [x] Python-Abhängigkeiten-Installationsskript erstellt (scripts/python_deps_install.py)
+- [x] Umfassende Dokumentation in memory-bank/archive/redis_celery_implementation.md erstellt
+
+## Systemkomponenten
+
+- Redis: Message Broker und Result Backend für Celery (Port 6379)
+- Celery: Asynchrone Task-Verarbeitung für rechenintensive Operationen
+- Flower: Monitoring-Web-Interface für Celery (Port 5555)
+- Prometheus: Monitoring von Performance-Metriken
+- FastAPI: Backend-Server mit mehreren Varianten
+  - Modularer Server (Port 8000): Hauptserver mit voller Funktionalität (noch mit Fehlern)
+  - Minimaler Server (Port 8001): Vereinfachter Server mit weniger Abhängigkeiten
+  - Demo-Server mit Celery (Port 8003): Einfacher Server mit Celery-Integration
+
+## Nächste Schritte
+
+1. Demo-Server erweitern, um einfache Celery-Integration zu testen
+   - Endpunkt zum Senden eines Health-Check-Tasks an Celery
+   - Endpunkt zum Abfragen des Task-Status
+2. Stufenweise Fehlerbehebung für den modularen Server durchführen
+   - Minimale API ohne Import-Abhängigkeiten erstellen
+   - Einfachen Endpoint implementieren, der ohne Datenbankzugriff funktioniert
+   - Celery-Integration nach erfolgreicher API-Bereitstellung hinzufügen
+3. Celery Beat für regelmäßige Aufgaben konfigurieren
+4. Redis-Persistenz konfigurieren
+5. Docker-Compose für die Entwicklungsumgebung erstellen
+
+## Erkannte Probleme
+
+1. **Import-Fehler**: Der Server versucht Module wie `JSONB` aus SQLAlchemy, `LagerOrt`, `KundenGruppe`, etc. zu importieren, die nicht existieren
+2. **Datenbankfehler**: Die Datenbankverbindung scheint fehlerhaft zu sein
+3. **API-Fehler**: Die modularen und minimalen Server-Endpunkte geben 500 Internal Server Error zurück
+4. **Celery-Integration**: Die Task-API kann keine Tasks an Celery senden
+
+## Lösungsansatz
+
+1. **Modularer Entwicklungsansatz**: Von einfach nach komplex
+   - Demo-Server als Basis verwenden und schrittweise erweitern
+   - Jeden Schritt testen, bevor weitere Komplexität hinzugefügt wird
+2. **Dependency-Isolation**:
+   - Komponenten isolieren, damit Fehler in einem Teil nicht das ganze System beeinträchtigen
+   - Fallback-Mechanismen implementieren
+3. **Monitoring und Logging**:
+   - Umfassende Protokollierung implementieren
+   - Zustandsüberwachung für alle Komponenten
