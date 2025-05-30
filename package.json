@@ -1,6 +1,6 @@
 {
-  "name": "erp-system-folkerts-landhandel",
-  "version": "1.0.0",
+  "name": "valeo-neuroerp",
+  "version": "1.0.1",
   "description": "KI-gestütztes ERP-System für Folkerts Landhandel",
   "main": "index.js",
   "scripts": {

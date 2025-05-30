@@ -1,6 +1,49 @@
-# Folkerts Landhandel ERP-System
+# VALEO - Die NeuroERP Version 1.01
 
-Ein umfassendes Enterprise Resource Planning System für Folkerts Landhandel, optimiert für die Verwaltung von Warenbeständen, Chargen und Kundeninformationen.
+Ein umfassendes ERP-System für Großhandel, hier als Kundenprojekt für einen Landhandel, das speziell auf die Anforderungen der Landwirtschaftsbranche zugeschnitten ist.
+
+## Projektübersicht
+
+Das ERP-System besteht aus mehreren Komponenten:
+
+- **Frontend**: React-basierte Single-Page-Application
+- **Backend**: FastAPI-basierte Microservices
+- **Finance-Service**: Eigenständiger Microservice für Finanzen und Buchhaltung
+- **Observer-Service**: Überwachungsdienst für Systemperformance
+
+## Starten der Anwendung
+
+### Frontend starten
+
+```powershell
+# PowerShell-Skript für einfachen Start
+.\start_frontend.ps1
+```
+
+oder manuell:
+
+```powershell
+cd frontend
+npm run dev
+```
+
+Das Frontend ist dann unter http://localhost:3001 verfügbar.
+
+### Finance-Service starten
+
+```powershell
+.\start_finance_311.ps1
+```
+
+Der Finance-Service ist dann unter http://localhost:8007 verfügbar.
+
+### Beleg-Service starten
+
+```powershell
+.\start_beleg_service_311.ps1
+```
+
+Der Beleg-Service ist dann unter http://localhost:8005 verfügbar.
 
 ## Projektstruktur
 
