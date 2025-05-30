@@ -1,41 +1,78 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+/**
+ * Vite-Konfiguration für das ERP-Frontend
+ * 
+ * Diese Konfiguration wurde nach den Frontend-Development-Setup-Mustern optimiert,
+ * um eine konsistente Entwicklungsumgebung zu gewährleisten und typische Probleme zu vermeiden.
+ */
 
-// https://vite.dev/config/
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
 export default defineConfig({
   plugins: [react()],
-  server: {
-    host: true, // Hört auf alle verfügbaren Netzwerkschnittstellen
-    https: false, // auf false setzen, wenn keine Zertifikate vorhanden sind
-    port: 3001,
-    strictPort: false, // Auf false gesetzt, damit ein alternativer Port verwendet wird, falls 3001 belegt ist
-    cors: true, // Erlaubt CORS für alle Ursprünge
-    open: true, // Öffnet automatisch den Browser
-    proxy: {
-      // Proxy-Konfiguration für API-Anfragen
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
   
-  // Erweiterte Build-Konfiguration
+  // Verbesserte Alias-Konfiguration für Import-Pfade
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@components': path.resolve(__dirname, './src/components'),
+      '@pages': path.resolve(__dirname, './src/pages'),
+      '@services': path.resolve(__dirname, './src/services'),
+      '@utils': path.resolve(__dirname, './src/utils'),
+      '@contexts': path.resolve(__dirname, './src/contexts'),
+      '@styles': path.resolve(__dirname, './src/styles'),
+      '@assets': path.resolve(__dirname, './src/assets'),
+    }
+  },
+
+  // Konfiguration für JSX/TSX-Dateien
+  esbuild: {
+    loader: { 
+      '.js': 'jsx', 
+      '.ts': 'tsx'
+    },
+    jsxFactory: 'React.createElement',
+    jsxFragment: 'React.Fragment'
+  },
+
+  // Server-Konfiguration
+  server: {
+    port: 5173,
+    strictPort: false, // Fallback auf anderen Port, wenn 5173 belegt ist
+    open: true, // Browser automatisch öffnen
+    cors: true, // CORS für API-Anfragen aktivieren
+    proxy: {
+      // API-Proxy-Konfiguration für Backend-Anfragen
+      '/api': {
+        target: 'http://localhost:8003',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  },
+
+  // Build-Konfiguration
   build: {
     outDir: 'dist',
-    assetsDir: 'assets',
-    sourcemap: true, // Hilft bei der Fehlerbehebung
-    chunkSizeWarningLimit: 1000, // Erhöht die Warnschwelle für Chunk-Größen
+    sourcemap: true,
+    minify: 'terser',
+    target: 'es2018', // Kompatibilität mit älteren Browsern
+    terserOptions: {
+      compress: {
+        drop_console: true // Console-Ausgaben in Produktionsbuilds entfernen
+      }
+    }
   },
-  
-  // Warnung unterdrücken
+
+  // Optimierungen
   optimizeDeps: {
-    include: ['react', 'react-dom', '@mui/material', '@emotion/react', '@emotion/styled'],
-  },
-  
-  // Devtools-Konfiguration
-  define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@mui/material',
+      '@mui/icons-material'
+    ]
   }
-})
+}); 

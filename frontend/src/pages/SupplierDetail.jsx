@@ -121,8 +121,66 @@ const SupplierDetail = () => {
     
     // Simuliere API-Aufruf mit Timeout
     setTimeout(() => {
-      if (id === '1') {
-        setSupplier(mockSupplier);
+      // Erweiterte Mock-Daten für verschiedene Lieferanten
+      const mockSuppliers = {
+        '1': mockSupplier,
+        '2': {
+          ...mockSupplier,
+          id: '2',
+          supplier_number: '453211',
+          name: 'Müller GmbH & Co. KG',
+          name2: 'Großhandel',
+          postal_code: '28195',
+          city: 'Bremen',
+          street: 'Bremer Straße 45',
+          phone: '+49 421 98765',
+          email: 'info@mueller-grosshandel.de',
+          is_grain_supplier: false
+        },
+        '3': {
+          ...mockSupplier,
+          id: '3',
+          supplier_number: '781234',
+          name: 'Futtermittel Schmidt',
+          name2: '',
+          postal_code: '49661',
+          city: 'Cloppenburg',
+          street: 'Industrieweg 12',
+          phone: '+49 4471 12345',
+          email: 'kontakt@futtermittel-schmidt.de',
+          is_grain_supplier: false
+        },
+        '4': {
+          ...mockSupplier,
+          id: '4',
+          supplier_number: '984522',
+          name: 'Bio-Hof Petersen',
+          name2: 'Direktvermarktung',
+          postal_code: '24782',
+          city: 'Büdelsdorf',
+          street: 'Dorfstraße 8',
+          phone: '+49 4331 87654',
+          email: 'info@biohof-petersen.de',
+          is_active: false,
+          is_grain_supplier: true
+        },
+        '5': {
+          ...mockSupplier,
+          id: '5',
+          supplier_number: '552398',
+          name: 'Landmaschinen Krause',
+          name2: '',
+          postal_code: '26655',
+          city: 'Westerstede',
+          street: 'Oldenburger Straße 78',
+          phone: '+49 4488 56789',
+          email: 'service@landmaschinen-krause.de',
+          is_grain_supplier: false
+        }
+      };
+
+      if (mockSuppliers[id]) {
+        setSupplier(mockSuppliers[id]);
       } else {
         setError('Lieferant nicht gefunden');
       }

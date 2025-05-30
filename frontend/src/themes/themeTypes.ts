@@ -1,63 +1,110 @@
-// Typdefinitionen für das Theme-System
-import { PaletteOptions, ThemeOptions } from '@mui/material/styles';
+/**
+ * Theme-System Typdefinitionen
+ * Zentrale Definitionen für das Theme-System
+ */
 
 // Verfügbare Theme-Modi
-export type ThemeMode = 'light' | 'dark' | 'high-contrast';
+export type ThemeMode = 'light' | 'dark' | 'highContrast';
 
-// Verfügbare Theme-Varianten (Farbschemata)
-export type ThemeVariant = 'odoo' | 'default' | 'modern' | 'classic';
+// Verfügbare Theme-Varianten
+export type ThemeVariant = 'default' | 'odoo' | 'modern' | 'classic';
 
-// Theme-Parameter für LLM-Anpassungen
+// Spezifische Theme-Parameter zur Anpassung
 export interface ThemeParameters {
+  // Allgemeine Einstellungen
+  fontFamily?: string;
+  fontSize?: 'small' | 'medium' | 'large';
+  borderRadius?: 'none' | 'small' | 'medium' | 'large';
+  spacing?: 'compact' | 'normal' | 'comfortable';
+  visualDensity?: 'compact' | 'medium' | 'comfortable';
+  
+  // Barrierefreiheit
+  highContrastEnabled?: boolean;
+  motionReduced?: boolean;
+  enhancedFocus?: boolean;
+  
+  // Farbeinstellungen
   primaryColor?: string;
   secondaryColor?: string;
-  fontSize?: 'small' | 'medium' | 'large';
-  spacing?: 'compact' | 'normal' | 'comfortable';
-  borderRadius?: 'none' | 'small' | 'medium' | 'large';
-  fontFamily?: string;
-  visualDensity?: 'low' | 'medium' | 'high';
+  backgroundColor?: string;
+  textColor?: string;
+  
+  // UI-Einstellungen
+  elevationLevel?: 'flat' | 'subtle' | 'normal' | 'prominent';
+  buttonStyle?: 'text' | 'outlined' | 'contained';
+  
+  // Erweiterte Einstellungen
+  customCSS?: string;
+  rtl?: boolean;
 }
 
-// Theme-Konfigurationsobjekt
+// Vollständige Theme-Konfiguration
 export interface ThemeConfig {
   mode: ThemeMode;
   variant: ThemeVariant;
-  parameters?: ThemeParameters;
+  parameters: ThemeParameters;
 }
 
-// Erweiterte Theme-Optionen mit benutzerdefinierten Eigenschaften
-export interface ExtendedThemeOptions extends ThemeOptions {
-  visualDensity?: number;
-  palette?: ThemeOptions['palette'] & {
-    customBackground?: {
-      header?: string;
-      sidebar?: string;
-      card?: string;
-      hover?: string;
-    };
-  };
+// Standard-Theme-Konfiguration
+export const DEFAULT_THEME_CONFIG: ThemeConfig = {
+  mode: 'light',
+  variant: 'default',
+  parameters: {
+    fontSize: 'medium',
+    borderRadius: 'medium',
+    spacing: 'normal',
+    visualDensity: 'medium',
+    highContrastEnabled: false,
+    motionReduced: false,
+    enhancedFocus: false,
+    elevationLevel: 'normal',
+    buttonStyle: 'contained',
+    rtl: false,
+  },
+};
+
+// Theme-Context-Typ-Definition
+export interface ThemeContextType {
+  currentThemeConfig: ThemeConfig;
+  setThemeMode: (mode: ThemeMode) => void;
+  setThemeVariant: (variant: ThemeVariant) => void;
+  updateThemeParameters: (params: Partial<ThemeParameters>) => void;
+  resetTheme: () => void;
 }
 
-// Interface für Theme-Palette mit erweiterten Eigenschaften
-export interface ExtendedPaletteOptions extends PaletteOptions {
-  customBackground?: {
-    header?: string;
-    sidebar?: string;
-    footer?: string;
-    card?: string;
-    hover?: string;
-  };
-  customText?: {
-    primary?: string;
-    secondary?: string;
-    disabled?: string;
-    hint?: string;
-  };
+// Theme-KI-Befehle
+export interface ThemeCommand {
+  type: 'mode' | 'variant' | 'parameter' | 'reset';
+  mode?: ThemeMode;
+  variant?: ThemeVariant;
+  parameter?: keyof ThemeParameters;
+  value?: any;
 }
 
-// Interface für Theme-Anbieter, um Themes zu registrieren und abzurufen
-export interface ThemeProviderInterface {
-  getTheme: (config: ThemeConfig) => ExtendedThemeOptions;
-  getCurrentThemeConfig: () => ThemeConfig;
-  setThemeConfig: (config: ThemeConfig) => void;
-} 
+// Theme-Service Typdefinitionen
+export interface ThemeStorage {
+  getStoredTheme: () => ThemeConfig | null;
+  storeTheme: (config: ThemeConfig) => void;
+  clearStoredTheme: () => void;
+}
+
+// Benutzertyp für Theme-Einstellungen
+export interface ThemePreferences {
+  userId: string;
+  themeConfig: ThemeConfig;
+  lastUpdated: Date;
+}
+
+// Barrierefreiheit
+export interface AccessibilityOptions {
+  highContrast: boolean;
+  largeText: boolean;
+  reduceMotion: boolean;
+  screenReaderOptimized: boolean;
+}
+
+// Export der Standard-Theme-Varianten
+export const THEME_VARIANTS: ThemeVariant[] = ['default', 'odoo', 'modern', 'classic'];
+
+// Export der Standard-Theme-Modi
+export const THEME_MODES: ThemeMode[] = ['light', 'dark', 'highContrast']; 

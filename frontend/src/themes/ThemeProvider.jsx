@@ -8,6 +8,18 @@ const ThemeContext = createContext();
 // Hook zum Verwenden des Themes
 export const useTheme = () => useContext(ThemeContext);
 
+// ThemeSystem Context für erweiterte Theme-Funktionalität
+const ThemeSystemContext = createContext();
+
+// Hook zum Verwenden des erweiterten ThemeSystems
+export const useThemeSystem = () => {
+  const context = useContext(ThemeSystemContext);
+  if (!context) {
+    throw new Error('useThemeSystem muss innerhalb eines ThemeSystemProvider verwendet werden');
+  }
+  return context;
+};
+
 // Vordefinierte Themes
 const themes = {
   // Odoo-Theme (Standard)
@@ -306,6 +318,13 @@ const CustomThemeProvider = ({ children }) => {
     return savedThemeType || 'odoo';
   });
 
+  // Erweitertes Theme-System mit zusätzlichen Parametern
+  const [themeParameters, setThemeParameters] = useState({
+    fontSize: 'medium',
+    spacing: 'standard',
+    borderRadius: 'medium'
+  });
+
   // Toggle-Funktion für den Dunkel/Hell-Modus
   const toggleTheme = () => {
     const newMode = mode === 'light' ? 'dark' : 'light';
@@ -321,11 +340,27 @@ const CustomThemeProvider = ({ children }) => {
     }
   };
 
+  // Funktion zum Aktualisieren des erweiterten Theme-Systems
+  const updateTheme = ({ mode: newMode, variant: newVariant, parameters: newParameters }) => {
+    if (newMode) {
+      setMode(newMode);
+      localStorage.setItem('themeMode', newMode);
+    }
+    
+    if (newVariant) {
+      changeThemeType(newVariant);
+    }
+    
+    if (newParameters) {
+      setThemeParameters(prev => ({ ...prev, ...newParameters }));
+    }
+  };
+
   // Aktuelles Theme basierend auf dem Mode und Typ
   const themeConfig = themes[themeType]?.[mode] || themes.odoo[mode];
   const theme = createTheme(themeConfig);
 
-  // Context-Wert
+  // Context-Wert für normales Theme
   const themeContextValue = {
     mode,
     toggleTheme,
@@ -334,14 +369,28 @@ const CustomThemeProvider = ({ children }) => {
     availableThemes: Object.keys(themes),
   };
 
+  // Context-Wert für erweitertes ThemeSystem
+  const themeSystemValue = {
+    currentThemeConfig: {
+      mode,
+      variant: themeType,
+      parameters: themeParameters
+    },
+    updateTheme,
+    availableThemes: Object.keys(themes)
+  };
+
   return (
     <ThemeContext.Provider value={themeContextValue}>
-      <MuiThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </MuiThemeProvider>
+      <ThemeSystemContext.Provider value={themeSystemValue}>
+        <MuiThemeProvider theme={theme}>
+          <CssBaseline />
+          {children}
+        </MuiThemeProvider>
+      </ThemeSystemContext.Provider>
     </ThemeContext.Provider>
   );
 };
 
-export default CustomThemeProvider; 
+export default CustomThemeProvider;
+export { CustomThemeProvider as ThemeProvider }; 

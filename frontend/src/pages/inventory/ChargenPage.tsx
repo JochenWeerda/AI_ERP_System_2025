@@ -4,6 +4,8 @@ import { Link as RouterLink } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import HomeIcon from '@mui/icons-material/Home';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import ScienceIcon from '@mui/icons-material/Science';
 import ChargeList from '../../components/inventory/ChargeList';
 import ChargeDetail from '../../components/inventory/ChargeDetail';
 import ChargeTracking from '../../components/inventory/ChargeTracking';
@@ -150,7 +152,28 @@ const ChargenPage: React.FC = () => {
       </Box>
 
       {currentView === View.LIST && (
-        <Box display="flex" justifyContent="flex-end" mb={2}>
+        <Box display="flex" justifyContent="space-between" mb={2}>
+          <Box>
+            <Button
+              component={RouterLink}
+              to="/chargenberichte"
+              variant="outlined"
+              color="primary"
+              startIcon={<AssessmentIcon />}
+              sx={{ mr: 2 }}
+            >
+              Chargenberichte
+            </Button>
+            <Button
+              component={RouterLink}
+              to="/chargen/qualitaet"
+              variant="outlined"
+              color="primary"
+              startIcon={<ScienceIcon />}
+            >
+              Qualitätsmanagement
+            </Button>
+          </Box>
           <Button
             variant="contained"
             color="primary"

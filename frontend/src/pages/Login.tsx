@@ -89,7 +89,11 @@ const Login: React.FC = () => {
           <Typography component="h1" variant="h5">
             AI-Driven ERP
           </Typography>
-          <Typography component="h2" variant="h6" sx={{ mt: 2, mb: 3 }}>
+          <Typography 
+            component="h2" 
+            variant="h6" 
+            sx={{ mt: 2, mb: 3 }}
+          >
             Anmelden
           </Typography>
           <Box

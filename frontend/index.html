@@ -1,10 +1,25 @@
 <!DOCTYPE html>
 <html lang="de">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Folkerts Landhandel ERP-System</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#4a7c59" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta
+      name="description"
+      content="AI-gesteuertes ERP-System für den Landhandel"
+    />
+    <base href="/" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Material Icons einbinden -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <title>Folkerts ERP</title>
     <style>
       /* Fallback-Stil, falls React nicht lädt */
       :root {
@@ -13,6 +28,23 @@
         --folkerts-dark-green: #305a3a;
         --folkerts-accent: #f9a03f;
         --folkerts-light: #f5f5f5;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: var(--folkerts-light);
+      }
+      
+      #root {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
       }
       
       .fallback-container {
@@ -42,6 +74,8 @@
     </style>
   </head>
   <body>
+    <noscript>Sie müssen JavaScript aktivieren, um diese App zu nutzen.</noscript>
+    
     <!-- Fallback-Inhalt, falls React nicht lädt -->
     <div class="fallback-container">
       <div class="fallback-content">
@@ -50,32 +84,48 @@
       </div>
     </div>
     
-    <!-- React-Montierungspunkt -->
     <div id="root"></div>
     
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/index.js"></script>
     
     <script>
       // Einfacher Test für JavaScript-Ausführung
       console.log('index.html Script wurde ausgeführt');
       
+      // iOS-Safari Optimierungen
+      // Verhindert unerwünschtes Zoomen auf iOS
+      document.addEventListener('gesturestart', function (e) {
+        e.preventDefault();
+      });
+      
+      // Hilfsfunktion zur Fehlerbehebung auf iOS
+      function checkIOSDisplay() {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) {
+          console.log('iOS-Gerät erkannt - Überprüfe Darstellung');
+          document.body.style.minHeight = '100vh';
+          document.getElementById('root').style.minHeight = '100vh';
+        }
+      }
+      
       // Prüfen, ob das Fallback-Element vorhanden ist
       window.addEventListener('DOMContentLoaded', function() {
         console.log('DOM vollständig geladen');
+        checkIOSDisplay();
         
         // Verstecke Fallback-Element nach 1 Sekunde, falls React erfolgreich geladen hat
         setTimeout(function() {
           const rootElement = document.getElementById('root');
-          const fallbackElement = document.querySelector('.fallback-container');
+          const fallbackContainer = document.querySelector('.fallback-container');
           
-          if (rootElement && rootElement.children.length > 0 && fallbackElement) {
+          if (rootElement && rootElement.children.length > 0 && fallbackContainer) {
             console.log('React hat erfolgreich gerendert, verstecke Fallback');
-            fallbackElement.style.display = 'none';
+            fallbackContainer.style.display = 'none';
           } else {
-            console.error('React hat nicht gerendert, zeige Fallback');
+            console.log('React hat nicht gerendert, zeige Fallback');
           }
         }, 1000);
       });
     </script>
   </body>
-</html>
+</html> 

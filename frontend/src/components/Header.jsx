@@ -14,7 +14,6 @@ import {
   Button,
   Tooltip,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import DarkModeIcon from '@mui/icons-material/Brightness4';
@@ -25,7 +24,7 @@ import { useTheme } from '../themes/ThemeProvider';
 /**
  * Header-Komponente im Odoo-Stil mit Zurück-Button
  */
-const Header = ({ sidebarOpen, toggleSidebar }) => {
+const Header = () => {
   const muiTheme = useMuiTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -114,16 +113,6 @@ const Header = ({ sidebarOpen, toggleSidebar }) => {
       }}
     >
       <Toolbar>
-        <IconButton
-          edge="start"
-          color="inherit"
-          aria-label="open drawer"
-          onClick={toggleSidebar}
-          sx={{ mr: 2 }}
-        >
-          <MenuIcon />
-        </IconButton>
-        
         {isSubPage && (
           <Tooltip title="Zurück">
             <IconButton
@@ -136,9 +125,7 @@ const Header = ({ sidebarOpen, toggleSidebar }) => {
           </Tooltip>
         )}
         
-        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-          Folkerts Landhandel ERP-System
-        </Typography>
+        <Box sx={{ flexGrow: 1 }} />
         
         <Box sx={{ display: 'flex' }}>
           <IconButton color="inherit" onClick={handleToggleDarkMode}>

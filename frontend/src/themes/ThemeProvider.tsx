@@ -1,114 +1,130 @@
-import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
-import { ThemeProvider as MuiThemeProvider, createTheme, Theme } from '@mui/material/styles';
-import { PaletteMode } from '@mui/material';
+import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
+import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeConfig, ThemeContextType, ThemeMode, ThemeVariant, ThemeParameters, DEFAULT_THEME_CONFIG } from './themeTypes';
+import themeService from './themeService';
 
-// Theme-Kontext-Typ
-interface ThemeContextType {
-  theme: Theme;
-  toggleColorMode: () => void;
-}
+// Erstellen des Theme-Kontexts
+export const ThemeContext = createContext<ThemeContextType | null>(null);
 
-// Erstellen des Kontexts
-const ThemeContext = createContext<ThemeContextType>({
-  theme: createTheme(),
-  toggleColorMode: () => {},
-});
-
-// Benutzerdefinierter Hook für den Zugriff auf den Kontext
-export const useThemeSystem = () => useContext(ThemeContext);
-
-// Theme-Provider-Props
 interface ThemeProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
+  initialTheme?: Partial<ThemeConfig>;
 }
 
-// Theme-Provider-Komponente
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  // Gespeicherten Modus aus dem localStorage abrufen
-  const storedMode = localStorage.getItem('themeMode') as PaletteMode | null;
-  const [mode, setMode] = useState<PaletteMode>(storedMode || 'light');
-
-  // Theme-Umschaltfunktion
-  const toggleColorMode = () => {
-    setMode((prevMode) => {
-      const newMode = prevMode === 'light' ? 'dark' : 'light';
-      localStorage.setItem('themeMode', newMode);
-      return newMode;
-    });
+/**
+ * Theme Provider Komponente
+ * Stellt das Theme und Theme-Funktionen für die Anwendung bereit
+ */
+const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialTheme }) => {
+  // Initialen Theme-Zustand laden
+  const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() => {
+    const storedConfig = themeService.getCurrentConfig();
+    const initialConfig = initialTheme ? {
+      ...storedConfig,
+      ...initialTheme,
+      parameters: {
+        ...storedConfig.parameters,
+        ...initialTheme.parameters || {}
+      }
+    } : storedConfig;
+    
+    return initialConfig;
+  });
+  
+  // Theme-Konfiguration im ThemeService aktualisieren, wenn sich der lokale Zustand ändert
+  useEffect(() => {
+    themeService.setThemeConfig(themeConfig);
+  }, [themeConfig]);
+  
+  // Material-UI Theme basierend auf der aktuellen Konfiguration erstellen
+  const theme = useMemo(() => {
+    return themeService.createCurrentTheme();
+  }, [themeConfig]);
+  
+  // CSS-Variablen in ein <style>-Element einfügen
+  useEffect(() => {
+    const cssVariables = themeService.generateCSSVariables();
+    let styleEl = document.getElementById('theme-css-variables');
+    
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'theme-css-variables';
+      document.head.appendChild(styleEl);
+    }
+    
+    styleEl.textContent = cssVariables;
+    
+    return () => {
+      if (styleEl && document.head.contains(styleEl)) {
+        document.head.removeChild(styleEl);
+      }
+    };
+  }, [theme]);
+  
+  // Theme-Modus ändern
+  const setThemeMode = (mode: ThemeMode) => {
+    setThemeConfig(prevConfig => ({
+      ...prevConfig,
+      mode
+    }));
   };
-
-  // Theme erstellen
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode,
-          primary: {
-            main: '#1976d2',
-          },
-          secondary: {
-            main: '#dc004e',
-          },
-          background: {
-            default: mode === 'light' ? '#f5f5f5' : '#121212',
-            paper: mode === 'light' ? '#fff' : '#1e1e1e',
-          },
-        },
-        typography: {
-          fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-        },
-        components: {
-          MuiAppBar: {
-            styleOverrides: {
-              root: {
-                boxShadow: '0px 2px 4px -1px rgba(0,0,0,0.1), 0px 4px 5px 0px rgba(0,0,0,0.07), 0px 1px 10px 0px rgba(0,0,0,0.06)',
-              },
-            },
-          },
-          MuiDrawer: {
-            styleOverrides: {
-              paper: {
-                backgroundColor: mode === 'light' ? '#fff' : '#1e1e1e',
-                borderRight: '1px solid rgba(0, 0, 0, 0.12)',
-              },
-            },
-          },
-          MuiCard: {
-            styleOverrides: {
-              root: {
-                borderRadius: '8px',
-                boxShadow: '0px 2px 4px -1px rgba(0,0,0,0.1), 0px 4px 5px 0px rgba(0,0,0,0.07), 0px 1px 10px 0px rgba(0,0,0,0.06)',
-              },
-            },
-          },
-          MuiButton: {
-            styleOverrides: {
-              root: {
-                borderRadius: '4px',
-                textTransform: 'none',
-              },
-            },
-          },
-        },
-      }),
-    [mode],
-  );
-
-  // Kontextwerte
-  const themeContextValue = {
-    theme,
-    toggleColorMode,
+  
+  // Theme-Variante ändern
+  const setThemeVariant = (variant: ThemeVariant) => {
+    setThemeConfig(prevConfig => ({
+      ...prevConfig,
+      variant
+    }));
   };
-
+  
+  // Theme-Parameter aktualisieren
+  const updateThemeParameters = (params: Partial<ThemeParameters>) => {
+    setThemeConfig(prevConfig => ({
+      ...prevConfig,
+      parameters: {
+        ...prevConfig.parameters,
+        ...params
+      }
+    }));
+  };
+  
+  // Theme auf Standardwerte zurücksetzen
+  const resetTheme = () => {
+    setThemeConfig(DEFAULT_THEME_CONFIG);
+  };
+  
+  // Context-Wert
+  const contextValue: ThemeContextType = {
+    currentThemeConfig: themeConfig,
+    setThemeMode,
+    setThemeVariant,
+    updateThemeParameters,
+    resetTheme
+  };
+  
   return (
-    <ThemeContext.Provider value={themeContextValue}>
+    <ThemeContext.Provider value={contextValue}>
       <MuiThemeProvider theme={theme}>
         <CssBaseline />
         {children}
       </MuiThemeProvider>
     </ThemeContext.Provider>
   );
+};
+
+/**
+ * Hook zum Zugriff auf den Theme-Kontext
+ * @returns ThemeContextType Objekt mit aktueller Konfiguration und Funktionen
+ */
+export const useThemeContext = (): ThemeContextType => {
+  const context = useContext(ThemeContext);
+  
+  if (!context) {
+    throw new Error('useThemeContext muss innerhalb eines ThemeProviders verwendet werden');
+  }
+  
+  return context;
 };
 
 export default ThemeProvider; 

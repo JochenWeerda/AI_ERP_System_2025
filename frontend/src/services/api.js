@@ -60,4 +60,9 @@ export const authService = {
   }
 };
 
+// Export der login-Funktion direkt für die Login.tsx-Komponente
+export const login = async (email, password) => {
+  return await authService.login(email, password);
+};
+
 export default api; 

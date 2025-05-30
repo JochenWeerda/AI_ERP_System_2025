@@ -1,114 +1,106 @@
-# Theme-Modul für AI-Driven ERP
+# Theme-System für das ERP-System
 
-Dieses Modul stellt ein zentrales, erweiterbares Theme-System für das AI-Driven ERP bereit, das ein einheitliches Look and Feel für alle Module gewährleistet.
+Das Theme-System ermöglicht eine flexible Anpassung des Erscheinungsbilds der Anwendung. Es unterstützt verschiedene Modi (Hell, Dunkel, Hoher Kontrast) und Theme-Varianten (Odoo, Default, Modern, Classic).
 
 ## Hauptfunktionen
 
-- **Zentrale Theme-Verwaltung**: Alle Module beziehen ihre Designs aus einer zentralen Quelle
-- **Multiple Theme-Varianten**: Unterstützung für Odoo, Standard, Modern und Klassisch
-- **Multiple Modi**: Hell, Dunkel und Hoher Kontrast für verschiedene Nutzerpräferenzen
-- **Anpassbare Parameter**: Schriftgröße, Abstände, Eckenradien und visuelle Dichte
-- **LLM-Integration**: Schnittstelle für KI-gesteuerte Theme-Anpassungen
+- **Verschiedene Modi**: Light, Dark, High-Contrast
+- **Theme-Varianten**: Odoo, Default, Modern, Classic
+- **Parametrisierbare Anpassungen**: Schriftgröße, Abstände, Eckenradien, etc.
+- **KI-Integration**: Natürlichsprachliche Befehle zur Theme-Anpassung
+- **Persistenz**: Speicherung der Theme-Einstellungen im localStorage
 
-## Dateien und Struktur
+## Struktur
 
-- `themeTypes.ts`: Definitionen für Theme-Typen und Interfaces
-- `themeService.ts`: Zentraler Theme-Service mit Theme-Generierung und -Verwaltung
-- `ThemeProvider.tsx`: React Context Provider für Theme-Integration
-- `llmInterface.ts`: Schnittstelle für LLM-Kommunikation
-- `index.ts`: Öffentliche API des Theme-Moduls
-- `variants/`: Spezifische Theme-Implementierungen
-  - `odooTheme.ts`: Odoo-inspiriertes Theme
+Das Theme-System besteht aus folgenden Hauptkomponenten:
+
+- `ThemeProvider.tsx`: Zentraler Provider für das Theme-System
+- `themeTypes.ts`: TypeScript-Definitionen für Theme-Parameter
+- `themeService.ts`: Service für die Verwaltung und Erstellung von Themes
+- `llmInterface.ts`: Schnittstelle für natürlichsprachliche Befehle
+- `variants/`: Verzeichnis mit verschiedenen Theme-Varianten
   - `defaultTheme.ts`: Standard-Theme
-  - (weitere Varianten werden hinzugefügt)
+  - `odooTheme.ts`: Odoo-inspiriertes Theme
 
-## Verwendung in Komponenten
+## Verwendung
 
-### Theme-Eigenschaften verwenden
+### ThemeProvider einbinden
 
 ```tsx
-import React from 'react';
-import { Box, Typography } from '@mui/material';
-import { useThemeSystem } from '../themes/ThemeProvider';
+import { ThemeProvider } from './themes/ThemeProvider';
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      {/* Anwendungskomponenten */}
+    </ThemeProvider>
+  );
+};
+```
+
+### Theme-Hook verwenden
+
+```tsx
+import { useThemeSystem } from './themes/ThemeProvider';
 
 const MyComponent: React.FC = () => {
-  const { currentThemeConfig } = useThemeSystem();
-  
-  // Theme-Parameter für angepasste Komponenten verwenden
-  const isHighContrast = currentThemeConfig.mode === 'high-contrast';
-  const visualDensity = currentThemeConfig.parameters?.visualDensity || 'medium';
+  const { mode, variant, toggleColorMode, setMode, setVariant } = useThemeSystem();
   
   return (
-    <Box sx={{ 
-      p: visualDensity === 'low' ? 4 : (visualDensity === 'high' ? 2 : 3),
-      border: isHighContrast ? '2px solid white' : '1px solid',
-      borderColor: 'divider',
-    }}>
-      <Typography variant="h4">Meine Komponente</Typography>
-      {/* Komponenten-Inhalt */}
-    </Box>
+    <div>
+      <p>Aktueller Modus: {mode}</p>
+      <p>Aktuelle Variante: {variant}</p>
+      <button onClick={toggleColorMode}>Theme umschalten</button>
+      <button onClick={() => setMode('dark')}>Dunkelmodus</button>
+      <button onClick={() => setVariant('odoo')}>Odoo-Theme</button>
+    </div>
   );
 };
 ```
 
-### Theme aktualisieren
+### LLM-Interface für natürlichsprachliche Befehle
 
 ```tsx
-import React from 'react';
-import { Button } from '@mui/material';
-import { useThemeSystem } from '../themes/ThemeProvider';
+import { processLLMThemeRequest } from './themes/llmInterface';
 
-const ThemeSwitcher: React.FC = () => {
-  const { updateTheme } = useThemeSystem();
-  
-  const enableDarkMode = () => {
-    updateTheme({ mode: 'dark' });
-  };
-  
-  const switchToOdooTheme = () => {
-    updateTheme({ variant: 'odoo' });
-  };
-  
-  return (
-    <>
-      <Button onClick={enableDarkMode}>Dark Mode aktivieren</Button>
-      <Button onClick={switchToOdooTheme}>Odoo-Theme aktivieren</Button>
-    </>
-  );
-};
+// Verarbeitung von Textbefehlen
+processLLMThemeRequest("Aktiviere den Dunkelmodus");
+processLLMThemeRequest("Wechsle zum Odoo-Theme");
+processLLMThemeRequest("Erhöhe die Schriftgröße");
 ```
 
-## LLM-Integration
+## Erweiterung
 
-Das Theme-Modul bietet eine Schnittstelle zur Integration mit LLMs für dynamische Theme-Anpassungen über natürliche Sprache.
+### Neue Theme-Variante hinzufügen
 
-```tsx
-import { LLMService } from '../services/llmService';
+1. Erstelle eine neue Datei in `variants/`, z.B. `modernTheme.ts`
+2. Implementiere die Theme-Erstellung basierend auf dem Modus
+3. Erweitere den Switch-Case in `createThemeFromConfig` in `ThemeProvider.tsx`
 
-// Verarbeitung von Nutzeranfragen
-const handleUserQuery = async (query: string) => {
-  const response = await LLMService.sendQuery(query);
-  // Antwort anzeigen...
-};
+### Neue Theme-Parameter hinzufügen
 
-// Direkte Theme-Anpassung
-const applyHighContrastMode = async () => {
-  await LLMService.updateTheme({ mode: 'high-contrast' });
-};
-```
+1. Erweitere die `ThemeParameters`-Schnittstelle in `themeTypes.ts`
+2. Aktualisiere den `defaultParameters`-Wert in `ThemeProvider.tsx`
+3. Implementiere die Verarbeitung der neuen Parameter in der Theme-Erstellung
 
-## Erweiterung um neue Theme-Varianten
+## Beispiele
 
-Um eine neue Theme-Variante hinzuzufügen:
+### Modi
 
-1. Erstellen Sie eine neue Datei in `variants/` (z.B. `variants/myTheme.ts`)
-2. Implementieren Sie die Theme-Funktion ähnlich wie in `odooTheme.ts`
-3. Registrieren Sie die neue Variante in `themeService.ts` in der `getThemeByVariant`-Funktion
-4. Fügen Sie den Varianten-Namen zu `ThemeVariant` in `themeTypes.ts` hinzu
+- **Light**: Helles Theme mit leichten Farben und weißem Hintergrund
+- **Dark**: Dunkles Theme mit geringerer Helligkeit für weniger Augenbelastung
+- **High-Contrast**: Hoher Kontrast für bessere Zugänglichkeit
 
-## Nächste Entwicklungsschritte
+### Varianten
 
-- Implementierung von Benutzer-spezifischen Theme-Einstellungen
-- Speicherung von Einstellungen im Browser (LocalStorage)
-- Erweiterte LLM-Integration mit spezifischeren Anpassungsmöglichkeiten
-- Unterstützung für saisonale und zeitabhängige Themes 
+- **Odoo**: Inspiriert vom Odoo ERP-System mit charakteristischen Farben und Stilen
+- **Default**: Standard-Material-UI-Aussehen mit leichten Anpassungen
+- **Modern**: Modernes Design mit flachen Elementen (Fallback auf Default)
+- **Classic**: Klassisches Business-Look (Fallback auf Odoo)
+
+## Geplante Erweiterungen
+
+- Vollständige Implementierung der Modern- und Classic-Varianten
+- Erweitertes Farbpaletten-Management
+- Benutzerdefinierte Theme-Presets
+- Verbessertes barrierefreies Design 

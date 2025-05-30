@@ -839,3 +839,160 @@ Die Chargenverwaltung ist ein zentrales Modul des ERP-Systems, das die lückenlo
    - Automatische Qualitätsbewertung
    - Prädiktive Analysen für Qualitätsprobleme
    - KI-gestützte Optimierung von Chargengrößen 
+
+## Frontend-Qualitätssicherung und Compliance
+
+Um sicherzustellen, dass alle dokumentierten Verfahren und Standards im Frontend-Bereich eingehalten werden, werden folgende obligatorische Qualitätssicherungsmaßnahmen eingeführt:
+
+### Pre-Commit-Checkliste für Frontend-Entwicklung
+
+Diese Checkliste muss vor jedem Commit von Code durchgeführt werden:
+
+1. **Verzeichnisstruktur-Prüfung**
+   - [ ] Arbeit erfolgt im korrekten Verzeichnis (`frontend/`)
+   - [ ] Änderungen betreffen nur relevante Dateien im Frontend-Bereich
+   - [ ] Neue Komponenten folgen der etablierten Verzeichnisstruktur
+
+2. **Konfigurationsdateien-Prüfung**
+   - [ ] package.json enthält alle standardisierten Skripte
+   - [ ] vite.config.js enthält korrekte JSX/TSX-Konfiguration
+   - [ ] Abhängigkeiten sind aktuell und vollständig
+
+3. **Funktionsprüfung**
+   - [ ] Lokaler Entwicklungsserver startet fehlerfrei
+   - [ ] Änderungen werden korrekt dargestellt
+   - [ ] Keine Konsolenfehler im Browser
+
+4. **Dokumentationsprüfung**
+   - [ ] Technische Änderungen sind in der Memory Bank dokumentiert
+   - [ ] Komponentenstruktur ist nachvollziehbar
+   - [ ] Best Practices werden eingehalten
+
+### Automatisierte Prüfungen
+
+Folgende automatisierte Prüfungen werden bei jeder Frontend-Änderung durchgeführt:
+
+1. **Linting und Formattierung**
+   ```bash
+   npm run lint
+   ```
+
+2. **Build-Test**
+   ```bash
+   npm run build
+   ```
+
+3. **Verifikation des Builds**
+   ```bash
+   npm run preview
+   ```
+
+### Cursor.ai-spezifische Verantwortlichkeiten
+
+Als zentrales Teammitglied mit Zugriff auf alle Projektdateien übernimmt Cursor.ai folgende spezifische Verantwortlichkeiten:
+
+1. **Automatische Konfigurationsprüfung**
+   - Bei jedem Frontend-Task automatisch die Konfigurationsdateien prüfen
+   - Abweichungen von Standards sofort melden und beheben
+   - Prüfen, ob package.json und vite.config.js korrekt konfiguriert sind
+
+2. **PowerShell-Kompatibilitätsprüfung**
+   - Alle Befehle auf PowerShell-Kompatibilität prüfen
+   - Keine Verwendung von `&&` zur Befehlsverkettung
+   - Korrekte Skripterstellung unter Berücksichtigung von Windows-Spezifika
+
+3. **Verzeichnisstrukturerhaltung**
+   - Korrekte Trennung zwischen Frontend und Backend sicherstellen
+   - Neue Dateien im richtigen Verzeichnis erstellen
+   - Bestehende Struktur respektieren
+
+4. **Dokumentationsverantwortung**
+   - Technische Änderungen in der Memory Bank dokumentieren
+   - Aktuelle Projektstruktur nachführen
+   - Lessons Learned aus Fehlern dokumentieren
+
+Diese Maßnahmen werden als verbindlich für alle Projektbeteiligten betrachtet und Cursor.ai übernimmt die Verantwortung für deren Einhaltung. 
+
+# Technischer Kontext für ERP-Entwicklung
+
+## VAN-Modus: Frontend-Validierung und Stabilität
+
+Um künftige Probleme mit der Frontend-Entwicklungsumgebung zu vermeiden, werden im VAN-Modus (Validation and Navigation) folgende verbindliche Prüfschritte durchgeführt:
+
+### Validierungsschritte für Frontend-Umgebung
+
+1. **Verzeichnisstruktur-Validierung**
+   - [ ] Entwicklung erfolgt ausschließlich im `frontend/`-Verzeichnis
+   - [ ] Alle Entwicklungsbefehle werden im korrekten Verzeichnis ausgeführt
+   - [ ] Prüfung, ob die benötigten Konfigurationsdateien vorhanden sind
+
+2. **Konfigurationsdateien-Prüfung**
+   - [ ] `package.json` mit standardisierten Skripten validieren
+   - [ ] `vite.config.js` mit korrekter JSX/TSX-Konfiguration prüfen
+   - [ ] `.npmrc` auf korrekte Einstellungen prüfen (falls vorhanden)
+
+3. **PowerShell-Kompatibilitätsprüfung**
+   - [ ] Befehle für PowerShell optimiert (keine `&&`-Verkettung)
+   - [ ] Befehlsausführung über PowerShell-Skripte standardisieren
+   - [ ] PowerShell-Befehle auf korrekte Syntax prüfen
+
+4. **Abhängigkeiten-Validierung**
+   - [ ] TypeScript und andere kritische Abhängigkeiten prüfen
+   - [ ] Versionskonflikte identifizieren und beheben
+   - [ ] Fehlende Abhängigkeiten installieren
+
+### VAN-Modus Checkliste für Frontend-Start
+
+```
+# Frontend-Validierung (VAN-Modus)
+
+## Umgebungsprüfung
+[ ] Befinde ich mich im richtigen Verzeichnis? (cd frontend)
+[ ] Sind alle erforderlichen Konfigurationsdateien vorhanden?
+   - package.json mit start/dev-Skripten
+   - vite.config.js mit JSX-Konfiguration
+[ ] Sind alle Abhängigkeiten installiert? (npm install)
+
+## Startbefehl-Validierung
+[ ] Korrekte Startbefehle verwenden:
+   - npm start ODER npm run dev
+   - Alternativ: npx vite
+[ ] Bei Fehlern PowerShell-kompatible Befehle nutzen
+   - Keine &&-Verkettung verwenden
+   - Stattdessen: cd frontend; npm start
+
+## Portkonflikt-Behandlung
+[ ] Bei Portkonflikten alternativen Port angeben:
+   - npm start -- --port 5000
+   - oder: npx vite --port 5000
+```
+
+### Automatisierte Validierung
+
+Um menschliche Fehler zu vermeiden, sollte das Start-Frontend-Skript aus dem `scripts/`-Verzeichnis verwendet werden:
+
+```powershell
+# PowerShell
+./scripts/start_frontend.ps1
+```
+
+Dieses Skript führt automatisch alle notwendigen Validierungen durch und startet den Frontend-Server im korrekten Verzeichnis mit den richtigen Parametern.
+
+### Fehlerbehandlungsprozess
+
+Bei Problemen mit dem Frontend-Start:
+
+1. **Fehlerdiagnose**
+   - Verzeichnispfad überprüfen (sollte `frontend/` sein)
+   - Konfigurationsdateien prüfen (package.json, vite.config.js)
+   - PowerShell-Befehle auf Kompatibilität prüfen
+
+2. **Standardlösung anwenden**
+   - In das frontend-Verzeichnis wechseln: `cd frontend`
+   - Abhängigkeiten installieren: `npm install`
+   - Frontend-Starter-Skript verwenden: `../scripts/start_frontend.ps1`
+
+3. **Wenn Probleme bestehen bleiben**
+   - JSX-Konfiguration in vite.config.js überprüfen und aktualisieren
+   - Portkonflikte mit alternativen Ports umgehen (5000, 5001, 5002)
+   - Bei TypeScript-Fehlern: `npm install typescript --save-dev`

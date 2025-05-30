@@ -129,7 +129,6 @@ const QSFuttermittelDashboard: React.FC = () => {
             label="Chargendetails" 
             id="qs-futtermittel-tab-1" 
             aria-controls="qs-futtermittel-tabpanel-1" 
-            disabled={!selectedCharge}
           />
           <Tab label="Export & Berichte" id="qs-futtermittel-tab-2" aria-controls="qs-futtermittel-tabpanel-2" />
         </Tabs>
@@ -169,7 +168,7 @@ const QSFuttermittelDashboard: React.FC = () => {
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
-        {selectedCharge && (
+        {selectedCharge ? (
           <QSFuttermittelChargeDetail
             charge={selectedCharge}
             onBack={handleBackToList}
@@ -189,6 +188,20 @@ const QSFuttermittelDashboard: React.FC = () => {
               setOpenSnackbar(true);
             }}
           />
+        ) : (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Alert severity="info">
+              Bitte wählen Sie zuerst eine Charge aus der Übersicht aus, um die Details anzuzeigen.
+            </Alert>
+            <Button 
+              variant="contained" 
+              color="primary"
+              sx={{ mt: 2 }}
+              onClick={() => setTabValue(0)}
+            >
+              Zur Chargenübersicht
+            </Button>
+          </Box>
         )}
       </TabPanel>
 

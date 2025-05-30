@@ -63,6 +63,20 @@ from .finanzen import (
     Zahlungsbedingung
 )
 
+from .artikel_stammdaten import (
+    ArtikelStammdaten,
+    AlternativArtikel,
+    AlternativeEinheit,
+    VerkaufsPreis,
+    ArtikelDokument,
+    ArtikelUnterlage,
+    ArtikelKonto,
+    ArtikelLagerbestand,
+    KIErweiterung,
+    KIAlternative,
+    SEOKeyword
+)
+
 # Exportiere alle wichtigen Klassen
 __all__ = [
     'Base',
@@ -99,5 +113,18 @@ __all__ = [
     'KontoArt', 'Kontenplan', 'Konto', 'Waehrung', 'Wechselkurs', 'SteuerArt',
     'Steuersatz', 'Steuerkategorie', 'SteuerkategorieZuordnung', 'Geschaeftsjahr',
     'Buchungsperiode', 'Buchung', 'Journal', 'Kostenstelle', 'Kostentraeger',
-    'Zahlungsbedingung'
+    'Zahlungsbedingung',
+
+    # artikel_stammdaten.py
+    'ArtikelStammdaten',
+    'AlternativArtikel',
+    'AlternativeEinheit',
+    'VerkaufsPreis',
+    'ArtikelDokument',
+    'ArtikelUnterlage',
+    'ArtikelKonto',
+    'ArtikelLagerbestand',
+    'KIErweiterung',
+    'KIAlternative',
+    'SEOKeyword'
 ]

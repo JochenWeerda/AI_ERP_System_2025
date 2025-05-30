@@ -4,6 +4,7 @@ import './Dashboard.css';
 
 /**
  * Slack-ähnlicher Chat-Bereich mit internem Chat und Kundenchat
+ * Mit Toggle-Button zum Ein- und Ausklappen
  */
 const ChatPanel = ({ isOpen, onToggle }) => {
   const [activeTab, setActiveTab] = useState('intern');

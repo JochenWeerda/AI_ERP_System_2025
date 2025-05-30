@@ -282,13 +282,19 @@ footer {
     width: 280px;
   }
   
-  .with-chat-panel::before {
-    background: rgba(0, 0, 0, 0.3);
-    pointer-events: auto;
+  .with-chat-panel .container {
+    width: 100%;
+    margin-left: 0;
+  }
+  
+  .with-chat-panel .dashboard-content {
+    width: calc(100% - 280px);
+    margin-left: 280px;
+    opacity: 1;
   }
   
   .chat-panel.open + .dashboard-content {
-    opacity: 1;
+    transform: translateX(0);
   }
   
   .apps-grid {
@@ -298,11 +304,16 @@ footer {
 
 @media (max-width: 768px) {
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .chat-panel {
-    width: 100%;
+    width: 260px;
+  }
+  
+  .with-chat-panel .dashboard-content {
+    width: calc(100% - 260px);
+    margin-left: 260px;
   }
   
   .header-controls {
@@ -511,9 +522,10 @@ footer {
 .dashboard-content {
   width: 100%;
   transition: all 0.3s ease;
+  margin-left: 0;
 }
 
-/* Dashboard Grid mit Chat-Panel Margin - überarbeitet, damit kein Verschieben stattfindet */
+/* Dashboard Grid mit Chat-Panel Margin */
 .with-chat-panel .container {
   width: 100%;
   margin-left: 0;
@@ -522,9 +534,8 @@ footer {
 }
 
 .with-chat-panel .dashboard-content {
-  width: 100%;
-  padding: 0;
-  margin-left: 0;
+  width: calc(100% - 300px);
+  margin-left: 300px;
 }
 
 .chat-hint {

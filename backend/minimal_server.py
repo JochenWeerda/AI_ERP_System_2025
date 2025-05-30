@@ -15,12 +15,13 @@ import asyncio
 import logging
 import uvicorn
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse, Response, FileResponse, RedirectResponse
+from starlette.responses import JSONResponse, Response, FileResponse, RedirectResponse, HTMLResponse
 from starlette.routing import Route, Mount
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 from starlette.background import BackgroundTask
+from starlette.exceptions import ExceptionMiddleware
 
 # Füge Verzeichnisse zum Python-Pfad hinzu
 current_dir = Path(__file__).parent
@@ -44,7 +45,9 @@ from api.chargen_lager import (
     get_chargen_lager_bewegungen, get_chargen_lager_bewegung_by_id, create_chargen_lager_bewegung,
     get_chargen_reservierungen, get_chargen_reservierung_by_id, create_chargen_reservierung,
     update_chargen_reservierung,
-    get_charge_lagerbestaende
+    get_charge_lagerbestaende, generate_qrcode_for_charge, get_charge_qrcode,
+    # Neue Funktionen für Chargenberichte
+    get_charge_bericht_typen, generate_charge_bericht
 )
 from api.demo_data.chargen_lager_data import chargen_lager_bewegungen, chargen_reservierungen, lagerorte
 
@@ -88,6 +91,21 @@ from backend.api.qs_futtermittel import (
     simulate_qs_api_lieferantenstatus,
     simulate_qs_api_probenupload,
     analyze_charge_anomalies
+)
+
+# Importiere die Scanner-API-Funktionen
+from api.scanner import (
+    verarbeite_scan, 
+    get_picklisten_fuer_mitarbeiter, 
+    get_inventur_auftraege_fuer_mitarbeiter, 
+    submit_inventur_ergebnis,
+    get_scan_history
+)
+
+# Importiere die API-Funktionen aus den Modulen
+from backend.api.partner_api import (
+    get_partner_data, get_partner_by_id, create_partner, update_partner,
+    get_partner_categories, get_partner_contacts, get_partner_addresses
 )
 
 # --------------- Demo-Daten ---------------
@@ -2438,10 +2456,10 @@ routes = [
     Route("/", endpoint=root),
     Route("/health", endpoint=health_check),
     Route("/docs", endpoint=swagger_ui),
-    Route("/api/v1/openapi.json", endpoint=openapi_spec),
+    Route("/openapi.json", endpoint=openapi_spec),
     
-    # Auth
-    Route("/api/v1/auth/login", endpoint=login, methods=["POST"]),
+    # Auth-Endpunkte
+    Route("/api/login", endpoint=login, methods=["POST"]),
     
     # Dashboard
     Route("/api/v1/dashboard", endpoint=get_dashboard_data),
@@ -2487,6 +2505,8 @@ routes = [
     Route("/api/v1/charge/{charge_id:int}/update", endpoint=update_charge, methods=["PUT"]),
     Route("/api/v1/charge/{charge_id:int}/delete", endpoint=delete_charge, methods=["DELETE"]),
     Route("/api/v1/charge/{charge_id:int}/verfolgung", endpoint=get_charge_verfolgung),
+    Route("/api/v1/charge/{charge_id:int}/generate-qrcode", endpoint=generate_qrcode_for_charge, methods=["POST"]),
+    Route("/api/v1/charge/{charge_id:int}/qrcode", endpoint=get_charge_qrcode),
     
     # Chargen-Referenz-Endpunkte
     Route("/api/v1/chargereferenz/create", endpoint=create_charge_referenz, methods=["POST"]),
@@ -2516,7 +2536,18 @@ routes = [
     
     # Statische Dateien
     Mount("/static", app=StaticFiles(directory="frontend/static"), name="static"),
-    Mount("/", app=StaticFiles(directory="frontend/dist", html=True), name="frontend")
+    Mount("/", app=StaticFiles(directory="frontend/dist", html=True), name="frontend"),
+    
+    # Neue Scanner-API-Endpunkte
+    Route("/api/v1/scanner/prozess", endpoint=verarbeite_scan, methods=["POST"]),
+    Route("/api/v1/picklisten/mitarbeiter/{mitarbeiter_id:int}", endpoint=get_picklisten_fuer_mitarbeiter),
+    Route("/api/v1/inventur/auftraege/mitarbeiter/{mitarbeiter_id:int}", endpoint=get_inventur_auftraege_fuer_mitarbeiter),
+    Route("/api/v1/inventur/{inventur_id:int}/ergebnis", endpoint=submit_inventur_ergebnis, methods=["POST"]),
+    Route("/api/v1/scanner/history", endpoint=get_scan_history),
+    
+    # Neue Chargen-Berichts-Endpunkte
+    Route("/api/chargen/berichte", endpoint=get_charge_bericht_typen),
+    Route("/api/chargen/{id:int}/berichte/{typ}", endpoint=generate_charge_bericht),
 ]
 
 # App mit optimierter Konfiguration erstellen

@@ -222,4 +222,100 @@ Diese Vorlage kann in jedem Microservice unter `src/api/v1/system.py` oder ähnl
 
 ## Update Belegfolgen
 
-Die Belegfolgen für das Warenwirtschaftssystem sind jetzt explizit getrennt und vollständig dokumentiert. Siehe dazu den neuen Abschnitt in 'Datenfelder für KI-ERP Warenwirtschaftssystem.md'. 
+Die Belegfolgen für das Warenwirtschaftssystem sind jetzt explizit getrennt und vollständig dokumentiert. Siehe dazu den neuen Abschnitt in 'Datenfelder für KI-ERP Warenwirtschaftssystem.md'.
+
+## Theme-Modul-Update (Mai 2024)
+
+### Status
+Das Theme-Modul wurde erfolgreich überarbeitet und ist jetzt vollständig implementiert. Die lokale State-Management-Lösung ersetzt die vorherige Redux-Implementierung, was zu einer verbesserten Performance und besserer Wartbarkeit führt.
+
+### Kernkomponenten
+- **ThemeProvider**: Zentrale Komponente mit lokalem State-Management
+- **Layout**: Vereinfachte Layout-Komponente mit Theme-Integration
+- **AI**: KI-Assistent für natürlichsprachliche Theme-Befehle
+- **ThemeSettings**: Benutzeroberfläche für manuelle Theme-Anpassungen
+- **ThemeDemo**: Demonstrationsanwendung mit Tabs für verschiedene Ansichten
+
+### Verfügbare Theme-Optionen
+- **Modi**: Hell (Standard), Dunkel, Hoher Kontrast
+- **Varianten**: Default, Modern, Classic, Odoo
+- **Anpassungen**: Farben, Schriftarten, Abstände, Radien, Animationen
+
+### Erreichte Vorteile
+1. **Verbesserte Performance** durch Entfernung der Redux-Abhängigkeit
+2. **Reduzierte Bundle-Größe** durch Eliminierung nicht benötigter Abhängigkeiten
+3. **Vereinfachte Wartung** durch lokalisierten State in einer Komponente
+4. **Verbesserte Barrierefreiheit** durch Implementierung des Hochkontrast-Modus
+5. **Intuitive Benutzerführung** durch natürlichsprachliche KI-Befehle
+
+### Dokumentation und Hilfsmittel
+- Ausführliche README_THEME.md-Dokumentation im Frontend-Verzeichnis
+- PowerShell-Skript (start_theme_demo.ps1) für einfachen Start der Demo
+- npm-Skript "theme-demo" in package.json für konsistenten Zugriff
+
+### Nächste Schritte
+1. Integration des Theme-Moduls mit anderen Frontendkomponenten
+2. Erweiterung der KI-Funktionalität für komplexere Theme-Anpassungen
+3. Entwicklung zusätzlicher Theme-Varianten für spezifische Anwendungsbereiche
+4. Implementierung von Theme-Voreinstellungen für Benutzerprofile
+
+Das Theme-Modul bildet nun eine solide Grundlage für ein konsistentes und anpassbares Benutzererlebnis im gesamten ERP-System.
+
+## Standardisierte Frontend-Entwicklung
+
+## Aktuelle Module und Status
+
+### Theme-Modul
+Status: **Abgeschlossen**
+
+Das Theme-Modul wurde vollständig implementiert und integriert. Es bietet folgende Funktionen:
+- Flexible Theme-Modi (Hell, Dunkel, Hoher Kontrast)
+- Verschiedene Theme-Varianten (Default, Odoo, Modern, Classic)
+- Anpassbare Parameter für detaillierte Stilanpassungen
+- Barrierefreiheitsfunktionen
+- Natürlichsprachliche Steuerung der Theme-Einstellungen
+
+Eine detaillierte Dokumentation findet sich in `memory-bank/archive/theme-modul-implementation.md`.
+
+## Theme-Modul-Problembehebung (Juni 2024)
+
+### Identifizierte Probleme
+1. **PowerShell-Skript-Fehler**: Das start_theme_demo.ps1-Skript enthielt Syntax-Fehler (fehlende schließende Klammern), die dazu führten, dass das Skript nicht ausgeführt werden konnte.
+2. **Strukturelle Redundanz**: Das Skript enthielt doppelte Funktionsaufrufe, die zu widersprüchlichem Verhalten führten.
+3. **Abhängigkeitskonflikte**: Es gab Inkompatibilitäten zwischen der installierten React-Version (18.3.1) und einigen Paketen (insbesondere react-qr-reader), die nur mit älteren React-Versionen kompatibel sind.
+4. **JSX-Konfigurationsprobleme**: Beim Start des Frontends traten JSX-Fehler auf, obwohl die Konfiguration in vite.config.js korrekt schien.
+
+### Implementierte Lösungen
+1. **Skript-Reparatur**: Die Syntax-Fehler wurden behoben und die Skriptstruktur vereinfacht.
+2. **Entfernung von Redundanz**: Doppelte Funktionsaufrufe wurden entfernt, um ein klares Ausführungsmuster zu gewährleisten.
+3. **Dokumentation von Inkompatibilitäten**: Die Konflikte zwischen Paketversionen wurden dokumentiert.
+4. **Validierung der JSX-Konfiguration**: Die JSX-Konfiguration in vite.config.js wurde bestätigt und als korrekt verifiziert.
+
+### Präventive Maßnahmen
+Um ähnliche Probleme in Zukunft zu vermeiden, wurden folgende Prozesse etabliert:
+1. **Syntax-Prüfung**: PowerShell-Skripte werden vor Commit mit einem Syntax-Checker geprüft.
+2. **Kompatibilitätsprüfung**: Neue Abhängigkeiten werden auf Kompatibilität mit bestehenden Paketen überprüft.
+3. **Klare Skriptstruktur**: Bei der Skripterstellung wird eine einheitliche Struktur mit eindeutigen Funktionsaufrufen eingehalten.
+4. **Verbesserte Dokumentation**: Bekannte Inkompatibilitäten werden in der README.md dokumentiert.
+
+Diese Maßnahmen sollen sicherstellen, dass die Entwicklungsumgebung stabil bleibt und neue Features ohne Komplikationen hinzugefügt werden können.
+
+## Artikel-Stammdaten-Modul (Juni 2024)
+
+### Implementierte Funktionalität
+- Erweitertes Artikel-Stammdatenmodell (backend/models/artikel_stammdaten.py)
+- Anbindung an bestehendes Artikel-Modell über Beziehungen
+- KI-Erweiterungen für Artikeldaten (Klassifikation, Preisempfehlungen, automatische Texte)
+- Frontend-Seite mit Tab-basiertem Editor für alle Stammdaten-Bereiche
+- Integration in die Routing-Struktur des Frontends
+
+### Aktuelle Entwicklungsstufe
+- Backend-Modelle vollständig implementiert
+- Frontend-UI vollständig implementiert
+- API-Endpunkte und API-Integration noch ausstehend
+- Tests noch ausstehend
+
+### Besonderheiten
+- Verwendung von SQLAlchemy JSON-Typen für komplexe Datenstrukturen
+- Trennung von Basis-Artikeldaten und erweiterten Stammdaten
+- Integration von KI-Funktionen in die Stammdatenpflege

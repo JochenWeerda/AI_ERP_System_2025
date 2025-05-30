@@ -683,3 +683,113 @@ Die Integration des IP-Adressmanagement-Systems erfordert Anpassungen an der Mic
 4. Implementierung regelmäßiger Heartbeats zur Statusüberwachung
 
 Das IP-Adressmanagement-System sollte als einer der ersten Dienste gestartet werden und eine hohe Verfügbarkeit aufweisen, da andere Dienste von ihm abhängig sind. 
+
+## Frontend-Development-Setup-Muster
+
+### Problemkontext
+Die Einrichtung und Verwaltung der Frontend-Entwicklungsumgebung kann komplex sein und zu erheblichen Zeitverlusten führen, wenn sie nicht gut dokumentiert und standardisiert ist. Insbesondere bei einem Projekt mit mehreren Entwicklern können unterschiedliche Umgebungen und fehlende Standardisierung zu schwer zu diagnostizierenden Problemen führen.
+
+### Pattern: Standardisiertes Frontend-Setup
+
+#### Komponenten
+1. **Einheitliche Konfigurationsdateien**:
+   - `package.json` mit standardisierten Skripten
+   - `vite.config.js` (oder äquivalent) mit korrekter JSX/TSX-Konfiguration
+   - `.npmrc` für konsistente Paketinstallationen
+
+2. **Projektstruktur-Dokumentation**:
+   - Klare README.md im Root- und Frontend-Verzeichnis
+   - Verzeichnisstruktur-Diagramm und Erklärungen
+   - Abhängigkeitsgraph für kritische Komponenten
+
+3. **Entwicklungsskripte**:
+   - PowerShell-kompatible Skripte für Windows-Umgebungen
+   - Bash-Skripte für Unix-basierte Systeme
+   - Cross-Plattform-Kompatibilitätsschicht (z.B. über cross-env)
+
+4. **Abhängigkeitsmanagement**:
+   - Explizite Versionierung aller kritischen Abhängigkeiten
+   - Lock-Dateien (package-lock.json, yarn.lock) im Repository
+   - Automatische Abhängigkeitsprüfung bei Setup
+
+5. **Port- und Umgebungskonfiguration**:
+   - Standard-Ports für alle Services definieren
+   - Fallback-Mechanismen bei Port-Konflikten
+   - Umgebungsvariablen in .env-Dateien mit Beispielen (.env.example)
+
+#### Implementation
+
+##### package.json Skripte
+```json
+"scripts": {
+  "start": "vite",
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview",
+  "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+  "test": "vitest run",
+  "test:watch": "vitest",
+  "typecheck": "tsc --noEmit"
+}
+```
+
+##### vite.config.js Grundkonfiguration
+```javascript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  esbuild: {
+    loader: { '.js': 'jsx', '.ts': 'tsx' },
+    jsxFactory: 'React.createElement',
+    jsxFragment: 'React.Fragment'
+  },
+  server: {
+    port: 5173,
+    strictPort: false,
+    open: true
+  }
+});
+```
+
+##### Entwicklungsskript-Beispiel (start_frontend.ps1)
+```powershell
+# Frontend-Entwicklungs-Starter
+Write-Host "Starte Frontend-Entwicklungsserver..."
+Write-Host "Wechsle ins Frontend-Verzeichnis..."
+Set-Location -Path ".\frontend"
+
+Write-Host "Installiere Abhängigkeiten (falls notwendig)..."
+npm install
+
+Write-Host "Starte Entwicklungsserver..."
+$env:PORT = 5173
+npm start
+
+# Hinweis: Dieses Skript muss im Root-Verzeichnis des Projekts ausgeführt werden
+```
+
+### Vorteile
+- Reduziert Zeit für Setup und Fehlerbehebung erheblich
+- Ermöglicht konsistente Entwicklungsumgebung über verschiedene Maschinen hinweg
+- Vereinfacht das Onboarding neuer Entwickler
+- Verhindert Umgebungs-spezifische Fehler
+
+### Anwendungskontext
+Dieses Muster sollte angewendet werden:
+- Bei Projekten mit mehreren Entwicklern
+- Wenn verschiedene Betriebssysteme im Entwicklungsteam verwendet werden
+- Bei komplexen Frontend-Setups mit vielen Abhängigkeiten
+- Wenn schnelles Onboarding neuer Teammitglieder wichtig ist
+
+### Verknüpfte Muster
+- Microservice-Architecture Pattern
+- Continuous Integration Pattern
+- Developer Experience Optimization Pattern 

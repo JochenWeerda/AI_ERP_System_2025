@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, CssBaseline, Toolbar, Paper, useMediaQuery, useTheme as useMuiTheme } from '@mui/material';
-import Sidebar from './Sidebar';
+import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import Notification from './Notification';
 import SystemStatus from './SystemStatus';
@@ -11,36 +11,23 @@ import IconSet from './IconSet';
  * Layout - Hauptlayout-Komponente im Odoo-Stil
  * 
  * Diese Komponente stellt das Haupt-Layout der Anwendung bereit, bestehend aus
- * Header, Sidebar und dem Hauptinhaltsbereich. Das Design orientiert sich an Odoo's
+ * Header und dem Hauptinhaltsbereich. Das Design orientiert sich an Odoo's
  * Enterprise-Version mit responsiven Anpassungen.
  */
 const Layout = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const { parameters } = useTheme();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
-  
-  // Automatisches Schließen der Sidebar auf mobilen Geräten
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
-    }
-  }, [isMobile]);
-  
-  // Toggle-Funktion für die Sidebar
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  const navigate = useNavigate();
   
   // Visuellen Abstand (Dichte) aus dem Theme verwenden
   const visualDensity = parameters?.visualDensity || 'medium';
   const paddingValue = visualDensity === 'low' ? 4 : (visualDensity === 'high' ? 2 : 3);
-  
-  // Anpassen der Breite basierend auf Sidebar-Status
-  const mainWidth = isMobile ? '100%' : `calc(100% - ${sidebarOpen ? 240 : 64}px)`;
-  const mainMargin = isMobile ? 0 : (sidebarOpen ? 240 : 64);
+
+  // Navigation zur Startseite
+  const navigateToHome = () => {
+    navigate('/');
+  };
 
   return (
     <Box sx={{ 
@@ -50,19 +37,15 @@ const Layout = ({ children }) => {
     }}>
       <CssBaseline />
       
-      {/* Header mit Toggle-Funktion */}
-      <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      
-      {/* Sidebar mit aktuellen Status */}
-      <Sidebar open={sidebarOpen} onToggle={toggleSidebar} />
+      {/* Header */}
+      <Header />
       
       {/* Hauptinhalt */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          width: mainWidth,
-          ml: `${mainMargin}px`,
+          width: '100%',
           transition: muiTheme.transitions.create(['margin', 'width'], {
             easing: muiTheme.transitions.easing.easeOut,
             duration: muiTheme.transitions.duration.enteringScreen,
@@ -85,7 +68,9 @@ const Layout = ({ children }) => {
               display: 'flex', 
               alignItems: 'center',
               borderLeft: `3px solid ${muiTheme.palette.primary.main}`,
+              cursor: 'pointer'
             }}
+            onClick={navigateToHome}
           >
             <IconSet icon="home" color={muiTheme.palette.primary.main} />
             <Box sx={{ ml: 1, typography: 'h6', flexGrow: 1 }}>

@@ -36,7 +36,7 @@ import {
   Security as SecurityIcon,
   Build as BuildIcon,
   LocalShipping as LocalShippingIcon,
-  Eco as EcoIcon,
+  Nature as NatureIcon,
   Assignment as AssignmentIcon,
   People as PeopleIcon,
   AttachMoney as AttachMoneyIcon,
@@ -103,7 +103,7 @@ const getEmergencyTypeIcon = (type: EmergencyType) => {
     case EmergencyType.SUPPLY_CHAIN:
       return <LocalShippingIcon />;
     case EmergencyType.ENVIRONMENTAL:
-      return <EcoIcon />;
+      return <NatureIcon />;
     case EmergencyType.QUALITY_ISSUE:
       return <AssignmentIcon />;
     case EmergencyType.PERSONNEL:

@@ -9,15 +9,22 @@ import '../components/dashboard/Dashboard.css';
 
 /**
  * AppsPage-Komponente im exakt gleichen Layout wie das ERP-Dashboard
- * mit standardmäßig geöffnetem Chat-Bereich
+ * mit standardmäßig geöffnetem Chat-Bereich, der ein- und ausgeklappt werden kann
  */
 const AppsPage = () => {
   const navigate = useNavigate();
+  // Chat-Panel ist zu Beginn immer geöffnet
   const [isChatOpen, setIsChatOpen] = useState(true);
   
+  // Toggle-Funktion zum Ein- und Ausklappen des Chats
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
   };
+  
+  // Setze die Sidebar beim Laden der Komponente auf geöffnet
+  useEffect(() => {
+    setIsChatOpen(true);
+  }, []);
   
   // Handler für Klicks auf das Overlay im mobilen Modus
   const handleBackdropClick = (e) => {
@@ -55,8 +62,8 @@ const AppsPage = () => {
             apps: [
               { icon: 'people', title: 'Kunden', hasStammdatenBadge: true, onClick: () => navigate('/kunden') },
               { icon: 'account_balance', title: 'CPD-Konten', hasStammdatenBadge: true, onClick: () => navigate('/cpd-konten') },
-              { icon: 'inventory_2', title: 'Artikel', hasStammdatenBadge: true },
-              { icon: 'local_shipping', title: 'Lieferanten', hasStammdatenBadge: true }
+              { icon: 'inventory_2', title: 'Artikel', hasStammdatenBadge: true, onClick: () => navigate('/artikel') },
+              { icon: 'local_shipping', title: 'Lieferanten', hasStammdatenBadge: true, onClick: () => navigate('/lieferanten') }
             ]
           }
         ]
@@ -67,29 +74,29 @@ const AppsPage = () => {
           {
             title: 'Vertrieb',
             apps: [
-              { icon: 'point_of_sale', title: 'Verkauf' },
-              { icon: 'description', title: 'Angebote' },
-              { icon: 'shopping_bag', title: 'Aufträge' },
-              { icon: 'receipt', title: 'Rechnungen' }
+              { icon: 'point_of_sale', title: 'Verkauf', onClick: () => navigate('/verkauf') },
+              { icon: 'description', title: 'Angebote', onClick: () => navigate('/angebote') },
+              { icon: 'shopping_bag', title: 'Aufträge', onClick: () => navigate('/auftraege') },
+              { icon: 'receipt', title: 'Rechnungen', onClick: () => navigate('/rechnungen') }
             ]
           },
           {
             title: 'Einkauf',
             apps: [
-              { icon: 'shopping_cart', title: 'Bestellungen' },
-              { icon: 'input', title: 'Wareneingang' },
-              { icon: 'receipt_long', title: 'Lieferantenrechnungen' },
-              { icon: 'payment', title: 'Zahlungen' }
+              { icon: 'shopping_cart', title: 'Bestellungen', onClick: () => navigate('/bestellungen') },
+              { icon: 'input', title: 'Wareneingang', onClick: () => navigate('/wareneingang') },
+              { icon: 'receipt_long', title: 'Lieferantenrechnungen', onClick: () => navigate('/lieferantenrechnungen') },
+              { icon: 'payment', title: 'Zahlungen', onClick: () => navigate('/zahlungen') }
             ]
           },
           {
             title: 'Logistik',
             apps: [
-              { icon: 'warehouse', title: 'Lagerbestand' },
-              { icon: 'inventory', title: 'Lagerorte' },
+              { icon: 'warehouse', title: 'Lagerbestand', onClick: () => navigate('/lagerbestand') },
+              { icon: 'inventory', title: 'Lagerorte', onClick: () => navigate('/lagerorte') },
               { icon: 'qr_code_2', title: 'Chargenverwaltung', onClick: () => navigate('/chargen') },
-              { icon: 'list_alt', title: 'Ladelisten' },
-              { icon: 'route', title: 'Tourenplanung' }
+              { icon: 'list_alt', title: 'Ladelisten', onClick: () => navigate('/ladelisten') },
+              { icon: 'route', title: 'Tourenplanung', onClick: () => navigate('/touren') }
             ]
           }
         ]
@@ -100,10 +107,10 @@ const AppsPage = () => {
           {
             title: 'Landwirtschaft',
             apps: [
-              { icon: 'scale', title: 'Waage' },
-              { icon: 'agriculture', title: 'Getreideannahme' },
-              { icon: 'eco', title: 'Pflanzenschutz' },
-              { icon: 'co2', title: 'THG-Erfassung' }
+              { icon: 'scale', title: 'Waage', onClick: () => navigate('/waage') },
+              { icon: 'agriculture', title: 'Getreideannahme', onClick: () => navigate('/getreideannahme') },
+              { icon: 'eco', title: 'Pflanzenschutz', onClick: () => navigate('/pflanzenschutz') },
+              { icon: 'co2', title: 'THG-Erfassung', onClick: () => navigate('/thg-erfassung') }
             ]
           },
           {
@@ -115,19 +122,19 @@ const AppsPage = () => {
           {
             title: 'Finanzen',
             apps: [
-              { icon: 'account_balance_wallet', title: 'Kontenplan' },
-              { icon: 'euro_symbol', title: 'Buchungen' },
-              { icon: 'trending_up', title: 'BWA' },
-              { icon: 'upload_file', title: 'DATEV-Export' }
+              { icon: 'account_balance_wallet', title: 'Kontenplan', onClick: () => navigate('/kontenplan') },
+              { icon: 'euro_symbol', title: 'Buchungen', onClick: () => navigate('/buchungen') },
+              { icon: 'trending_up', title: 'BWA', onClick: () => navigate('/bwa') },
+              { icon: 'upload_file', title: 'DATEV-Export', onClick: () => navigate('/datev-export') }
             ]
           },
           {
             title: 'Reporting',
             apps: [
-              { icon: 'insights', title: 'Dashboards' },
-              { icon: 'bar_chart', title: 'Berichte' },
-              { icon: 'analytics', title: 'Analysen' },
-              { icon: 'history', title: 'Auswertungen' }
+              { icon: 'insights', title: 'Dashboards', onClick: () => navigate('/dashboards') },
+              { icon: 'bar_chart', title: 'Berichte', onClick: () => navigate('/berichte') },
+              { icon: 'analytics', title: 'Analysen', onClick: () => navigate('/analysen') },
+              { icon: 'history', title: 'Auswertungen', onClick: () => navigate('/auswertungen') }
             ]
           }
         ]

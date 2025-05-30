@@ -1,128 +1,128 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import ThemeProvider from './themes/ThemeProvider';
-import Layout from './components/Layout';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import AppsPage from './pages/AppsPage';
-import HealthConnectors from './pages/HealthConnectors';
-import SettingsPage from './pages/SettingsPage';
 import CustomerListPage from './pages/CustomerListPage';
-import CustomerForm from './pages/CustomerForm';
 import CustomerDetail from './pages/CustomerDetail';
+import CustomerForm from './pages/CustomerForm';
+import SupplierListPage from './pages/SupplierListPage';
+import SupplierDetail from './pages/SupplierDetail';
+import SupplierForm from './pages/SupplierForm';
+import EmployeeListPage from './pages/EmployeeListPage';
+import EmployeeDetail from './pages/EmployeeDetail';
+import EmployeeForm from './pages/EmployeeForm';
 import CPDAccountsListPage from './pages/CPDAccountsListPage';
 import CPDAccountForm from './pages/CPDAccountForm';
-import ChargenPage from './pages/inventory/ChargenPage';
+import SettingsPage from './pages/SettingsPage';
+import HealthConnectors from './pages/HealthConnectors';
 import QSFuttermittelDashboard from './pages/QSFuttermittelDashboard';
-import SupplierListPage from './pages/SupplierListPage';
-import SupplierForm from './pages/SupplierForm';
-import SupplierDetail from './pages/SupplierDetail';
-// Mitarbeiter-Importe
-import EmployeeListPage from './pages/EmployeeListPage';
-import EmployeeForm from './pages/EmployeeForm';
-import EmployeeDetail from './pages/EmployeeDetail';
-import './App.css';
+import EmergencyDashboard from './pages/EmergencyDashboard';
+import NotificationCenter from './pages/NotificationCenter';
+import AnomalyDashboard from './pages/AnomalyDashboard';
+import EcommerceOrders from './pages/EcommerceOrders';
+import AI from './pages/AI';
+import Ecommerce from './pages/Ecommerce';
+import Login from './pages/Login';
+import { ChargenPage, ChargenBerichtePage } from './pages/inventory';
+import Test from './Test';
+
+// Platzhalter-Komponenten für die fehlenden Routen
+const PlaceholderPage = ({ title }) => (
+  <div style={{ padding: '2rem', textAlign: 'center' }}>
+    <h1 style={{ color: '#4a7c59' }}>{title}</h1>
+    <p>Diese Seite ist noch in Entwicklung.</p>
+    <button 
+      onClick={() => window.history.back()} 
+      style={{ 
+        background: '#4a7c59', 
+        color: 'white', 
+        border: 'none', 
+        padding: '0.5rem 1rem', 
+        borderRadius: '4px',
+        cursor: 'pointer',
+        marginTop: '1rem'
+      }}
+    >
+      Zurück
+    </button>
+  </div>
+);
 
 /**
- * Die Hauptanwendungskomponente für das AI-gesteuerte ERP-System
- * 
- * Enthält das Routing und die Theme-Konfiguration nach Odoo-Standards
+ * App-Komponente mit allen Routen für die verschiedenen App-Bereiche
  */
 function App() {
-  console.log("Vollständige App mit Layout wird gerendert");
+  console.log("App-Komponente wird gerendert");
   
   return (
-    <ThemeProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Navigate to="/apps" replace />} />
-          <Route path="/dashboard" element={<Navigate to="/health-connectors" replace />} />
-          <Route path="/apps" element={
-            <AppsPage />
-          } />
-          <Route path="/landhandel" element={
-            <Navigate to="/apps" replace />
-          } />
-          <Route path="/erp-dashboard" element={
-            <Navigate to="/apps" replace />
-          } />
-          <Route path="/health-connectors" element={
-            <Layout>
-              <HealthConnectors />
-            </Layout>
-          } />
-          <Route path="/settings" element={
-            <SettingsPage />
-          } />
-          {/* Kundenstammdaten-Routen - ohne Layout */}
-          <Route path="/kunden" element={
-            <CustomerListPage />
-          } />
-          <Route path="/kunden/neu" element={
-            <CustomerForm mode="create" />
-          } />
-          <Route path="/kunden/:id" element={
-            <CustomerDetail />
-          } />
-          <Route path="/kunden/:id/bearbeiten" element={
-            <CustomerForm mode="edit" />
-          } />
-          {/* CPD-Konten-Stammdaten-Routen */}
-          <Route path="/cpd-konten" element={
-            <Layout>
-              <CPDAccountsListPage />
-            </Layout>
-          } />
-          <Route path="/cpd-konten/neu" element={
-            <Layout>
-              <CPDAccountForm mode="create" />
-            </Layout>
-          } />
-          <Route path="/cpd-konten/:id/bearbeiten" element={
-            <Layout>
-              <CPDAccountForm mode="edit" />
-            </Layout>
-          } />
-          {/* Lieferantenstammdaten-Routen */}
-          <Route path="/lieferanten" element={
-            <SupplierListPage />
-          } />
-          <Route path="/lieferanten/neu" element={
-            <SupplierForm mode="create" />
-          } />
-          <Route path="/lieferanten/:id" element={
-            <SupplierDetail />
-          } />
-          <Route path="/lieferanten/:id/bearbeiten" element={
-            <SupplierForm mode="edit" />
-          } />
-          {/* Mitarbeiterstammdaten-Routen */}
-          <Route path="/mitarbeiter" element={
-            <EmployeeListPage />
-          } />
-          <Route path="/mitarbeiter/neu" element={
-            <EmployeeForm mode="create" />
-          } />
-          <Route path="/mitarbeiter/:id" element={
-            <EmployeeDetail />
-          } />
-          <Route path="/mitarbeiter/:id/bearbeiten" element={
-            <EmployeeForm mode="edit" />
-          } />
-          {/* Chargenverwaltung-Routen */}
-          <Route path="/chargen" element={
-            <Layout>
-              <ChargenPage />
-            </Layout>
-          } />
-          {/* QS-Futtermittel-Routen */}
-          <Route path="/qs-futtermittel" element={
-            <Layout>
-              <QSFuttermittelDashboard />
-            </Layout>
-          } />
-          {/* Weitere Routen hier einfügen */}
-        </Routes>
-      </Router>
-    </ThemeProvider>
+    <Routes>
+      <Route exact path="/" element={<Navigate to="/apps" replace />} />
+      <Route exact path="/apps" element={<><AppsPage /><Test /></>} />
+      
+      {/* Stammdaten */}
+      <Route exact path="/kunden" element={<CustomerListPage />} />
+      <Route exact path="/kunden/neu" element={<CustomerForm />} />
+      <Route exact path="/kunden/:id" element={<CustomerDetail />} />
+      <Route exact path="/cpd-konten" element={<CPDAccountsListPage />} />
+      <Route exact path="/cpd-konten/neu" element={<CPDAccountForm />} />
+      <Route exact path="/artikel" element={<PlaceholderPage title="Artikel" />} />
+      <Route exact path="/lieferanten" element={<SupplierListPage />} />
+      <Route exact path="/lieferanten/neu" element={<SupplierForm />} />
+      <Route exact path="/lieferanten/:id" element={<SupplierDetail />} />
+      <Route exact path="/mitarbeiter" element={<EmployeeListPage />} />
+      <Route exact path="/mitarbeiter/neu" element={<EmployeeForm />} />
+      <Route exact path="/mitarbeiter/:id" element={<EmployeeDetail />} />
+      
+      {/* System */}
+      <Route exact path="/settings" element={<SettingsPage />} />
+      <Route exact path="/health-connectors" element={<HealthConnectors />} />
+      <Route exact path="/benachrichtigungen" element={<NotificationCenter />} />
+      <Route exact path="/anomalien" element={<AnomalyDashboard />} />
+      <Route exact path="/notfall" element={<EmergencyDashboard />} />
+      <Route exact path="/ai" element={<AI />} />
+      <Route exact path="/login" element={<Login />} />
+      
+      {/* Prozesse */}
+      <Route exact path="/verkauf" element={<PlaceholderPage title="Verkauf" />} />
+      <Route exact path="/angebote" element={<PlaceholderPage title="Angebote" />} />
+      <Route exact path="/auftraege" element={<PlaceholderPage title="Aufträge" />} />
+      <Route exact path="/rechnungen" element={<PlaceholderPage title="Rechnungen" />} />
+      <Route exact path="/bestellungen" element={<PlaceholderPage title="Bestellungen" />} />
+      <Route exact path="/wareneingang" element={<PlaceholderPage title="Wareneingang" />} />
+      <Route exact path="/lieferantenrechnungen" element={<PlaceholderPage title="Lieferantenrechnungen" />} />
+      <Route exact path="/zahlungen" element={<PlaceholderPage title="Zahlungen" />} />
+      <Route exact path="/ecommerce" element={<Ecommerce />} />
+      <Route exact path="/ecommerce/bestellungen" element={<EcommerceOrders />} />
+      
+      {/* Logistik */}
+      <Route exact path="/lagerbestand" element={<PlaceholderPage title="Lagerbestand" />} />
+      <Route exact path="/lagerorte" element={<PlaceholderPage title="Lagerorte" />} />
+      <Route exact path="/chargen" element={<ChargenPage />} />
+      <Route exact path="/chargen/berichte" element={<ChargenBerichtePage />} />
+      <Route exact path="/ladelisten" element={<PlaceholderPage title="Ladelisten" />} />
+      <Route exact path="/touren" element={<PlaceholderPage title="Tourenplanung" />} />
+      
+      {/* Fachbereiche */}
+      <Route exact path="/waage" element={<PlaceholderPage title="Waage" />} />
+      <Route exact path="/getreideannahme" element={<PlaceholderPage title="Getreideannahme" />} />
+      <Route exact path="/pflanzenschutz" element={<PlaceholderPage title="Pflanzenschutz" />} />
+      <Route exact path="/thg-erfassung" element={<PlaceholderPage title="THG-Erfassung" />} />
+      <Route exact path="/qs-futtermittel" element={<QSFuttermittelDashboard />} />
+      
+      {/* Finanzen */}
+      <Route exact path="/kontenplan" element={<PlaceholderPage title="Kontenplan" />} />
+      <Route exact path="/buchungen" element={<PlaceholderPage title="Buchungen" />} />
+      <Route exact path="/bwa" element={<PlaceholderPage title="BWA" />} />
+      <Route exact path="/datev-export" element={<PlaceholderPage title="DATEV-Export" />} />
+      
+      {/* Reporting */}
+      <Route exact path="/dashboards" element={<PlaceholderPage title="Dashboards" />} />
+      <Route exact path="/berichte" element={<PlaceholderPage title="Berichte" />} />
+      <Route exact path="/analysen" element={<PlaceholderPage title="Analysen" />} />
+      <Route exact path="/auswertungen" element={<PlaceholderPage title="Auswertungen" />} />
+      
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/apps" replace />} />
+    </Routes>
   );
 }
 

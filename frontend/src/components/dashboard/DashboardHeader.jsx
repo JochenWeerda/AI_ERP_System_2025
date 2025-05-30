@@ -45,7 +45,12 @@ const DashboardHeader = () => {
             <span className="material-icons">arrow_back</span>
           </button>
         )}
-        <img src="/img/folkerts-logo.png" alt="Folkerts Landhandel Logo" className="logo" />
+        <img 
+          src="/images/logo_top.jpg" 
+          alt="Folkerts Landhandel Logo" 
+          className="company-logo" 
+          style={{ height: '50px' }}
+        />
         <h1>ERP-System</h1>
       </div>
       <div className="header-controls">

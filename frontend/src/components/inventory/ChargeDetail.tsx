@@ -22,6 +22,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Charge, getChargeById } from '../../services/inventoryApi';
+import QRCodeComponent from './QRCodeComponent';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -160,10 +161,13 @@ const ChargeDetail: React.FC<ChargeDetailProps> = ({ chargeId, onBack }) => {
               <Typography variant="h5" component="h1">
                 Charge: {charge.chargennummer}
               </Typography>
-              <Chip 
-                label={charge.status} 
-                color={getStatusColor(charge.status) as any}
-              />
+              <Box display="flex" alignItems="center" gap={1}>
+                <Chip 
+                  label={charge.status} 
+                  color={getStatusColor(charge.status) as any}
+                />
+                <QRCodeComponent chargeId={chargeId} chargennummer={charge.chargennummer} />
+              </Box>
             </Box>
             <Divider sx={{ my: 2 }} />
           </Grid>
