@@ -1,6 +1,6 @@
 {
-  "name": "folkerts-landhandel-erp-frontend",
-  "description": "Frontend für das Folkerts Landhandel ERP-System",
+  "name": "valeo-neuroerp-frontend",
+  "description": "Frontend für das VALEO - Die NeuroERP System",
   "version": "1.2.0",
   "private": true,
   "scripts": {

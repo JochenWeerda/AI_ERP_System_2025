@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/folkertslandhandel/erp-system.git"
+    "url": "git+https://github.com/JochenWeerda/VALEO-NeuroERP-1.01.git"
   },
   "keywords": [
     "erp",
@@ -39,9 +39,9 @@
   "license": "UNLICENSED",
   "private": true,
   "bugs": {
-    "url": "https://github.com/folkertslandhandel/erp-system/issues"
+    "url": "https://github.com/JochenWeerda/VALEO-NeuroERP-1.01/issues"
   },
-  "homepage": "https://github.com/folkertslandhandel/erp-system#readme",
+  "homepage": "https://github.com/JochenWeerda/VALEO-NeuroERP-1.01#readme",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
