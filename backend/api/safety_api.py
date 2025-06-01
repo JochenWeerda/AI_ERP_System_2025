@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
 import os
+import logging
 
 from ..database import get_db
 from ..models.safety import SafetyTraining, SafetyDocument, TrainingSchedule, SafetyNotification, TrainingType, DocumentType
@@ -17,6 +18,7 @@ from ..schemas.safety import (
 from ..dependencies import get_current_active_user, get_current_superuser
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # SafetyTraining Endpunkte
 @router.post("/trainings/", response_model=SafetyTrainingSchema, status_code=status.HTTP_201_CREATED, tags=["safety"])

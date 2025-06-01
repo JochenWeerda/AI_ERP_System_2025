@@ -1,23 +1,11 @@
 """
-Modelle für das AI-gestützte ERP-System.
+Modellpaket für das ERP-System.
 
-Dieses Paket enthält alle SQLAlchemy-Datenbankmodelle für das ERP-System.
+Dieses Paket enthält alle Datenbankmodelle, die die Grundlage für das ERP-System bilden.
 """
 
-# Versuche verschiedene Import-Pfade
-try:
-    from backend.db.base import Base
-except ImportError:
-    try:
-        from backend.app.db.base import Base
-    except ImportError:
-        try:
-            from app.db.base import Base
-        except ImportError:
-            try:
-                from db.base import Base
-            except ImportError:
-                Base = None
+# Base aus database importieren
+from backend.db.database import Base
 
 # Importiere Modelle
 from .ecommerce import (
@@ -77,7 +65,38 @@ from .artikel_stammdaten import (
     SEOKeyword
 )
 
-# Exportiere alle wichtigen Klassen
+# Importiere weitere Modelle
+try:
+    from .qs_futtermittel import QSFuttermittelCharge, QSRohstoff, QSMonitoring, QSEreignis, QSBenachrichtigung, QSDokument
+except ImportError as e:
+    print(f"Fehler beim Import von QS-Futtermittel-Modellen: {e}")
+
+try:
+    from .lager import Lager, LagerOrt, LagerBewegung, LagerBestand
+except ImportError as e:
+    print(f"Fehler beim Import von Lager-Modellen: {e}")
+
+try:
+    from .partner import KundenGruppe, LieferantenBewertung, Zahlungsbedingungen
+except ImportError as e:
+    print(f"Fehler beim Import von Partner-Modellen: {e}")
+
+try:
+    from .produktion import ProduktionsAuftrag, ProduktionsSchritt, ProduktionsProtokoll, RezepturPosition
+except ImportError as e:
+    print(f"Fehler beim Import von Produktions-Modellen: {e}")
+
+try:
+    from .user import User, Role, Permission
+except ImportError as e:
+    print(f"Fehler beim Import von Benutzer-Modellen: {e}")
+
+try:
+    from .notfall import NotfallPlan, NotfallKontakt, NotfallRessource, NotfallAktion, Notfall
+except ImportError as e:
+    print(f"Fehler beim Import von Notfall-Modellen: {e}")
+
+# Exportieren aller Modelle für den Import von anderen Modulen
 __all__ = [
     'Base',
     
@@ -126,5 +145,23 @@ __all__ = [
     'ArtikelLagerbestand',
     'KIErweiterung',
     'KIAlternative',
-    'SEOKeyword'
+    'SEOKeyword',
+
+    # qs_futtermittel.py
+    'QSFuttermittelCharge', 'QSRohstoff', 'QSMonitoring', 'QSEreignis', 'QSBenachrichtigung', 'QSDokument',
+
+    # lager.py
+    'Lager', 'LagerOrt', 'LagerBewegung', 'LagerBestand',
+
+    # partner.py
+    'KundenGruppe', 'LieferantenBewertung', 'Zahlungsbedingungen',
+
+    # produktion.py
+    'ProduktionsAuftrag', 'ProduktionsSchritt', 'ProduktionsProtokoll', 'RezepturPosition',
+
+    # user.py
+    'User', 'Role', 'Permission',
+
+    # notfall.py
+    'NotfallPlan', 'NotfallKontakt', 'NotfallRessource', 'NotfallAktion', 'Notfall'
 ]

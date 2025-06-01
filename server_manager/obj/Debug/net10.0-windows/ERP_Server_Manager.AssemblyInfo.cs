@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright © 2024")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Server Manager für das AI-Driven ERP System")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+35a55fa0fcf677c933eb13d73d9cda84ba884052")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8828adc4bc4f94b3e1ff0c0f6ec150cb0d0f557a")]
 [assembly: System.Reflection.AssemblyProductAttribute("ERP Server Manager")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ERP_Server_Manager")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

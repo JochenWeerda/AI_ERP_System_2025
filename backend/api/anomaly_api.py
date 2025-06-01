@@ -3,6 +3,7 @@ from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import json
+import logging
 
 from ..services.anomaly_detection_service import AnomalyDetectionService
 from ..db.database import get_db

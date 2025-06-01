@@ -1,35 +1,30 @@
 """
-API-Module für das AI-gestützte ERP-System.
-
-Dieses Paket enthält alle API-Routen für das ERP-System.
+API-Modul-Initialisierung für das modulare ERP-System.
+Dieses Modul definiert Router und API-Endpunkte für verschiedene Funktionsbereiche.
 """
 
-# Import der API-Router
 from fastapi import APIRouter
-from .partner_api import router as partner_router
-from .emergency_api import router as emergency_router
-from .anomaly_api import router as anomaly_router
-from .users_api import router as users_router
-from .emergencies_api import router as emergencies_router
-from .notifications_api import router as notifications_router
-from .customers_api import router as customers_router
-from .safety_api import router as safety_router
 
-# Exportiere alle wichtigen Router
-__all__ = [
-    'partner_router',
-    'emergency_router',
-    'anomaly_router',
-    'users_router',
-    'emergencies_router',
-    'notifications_router',
-    'customers_router',
-    'safety_router',
-]
-
+# Haupt-Router für alle API-Endpunkte
 api_router = APIRouter()
-api_router.include_router(users_router, prefix="/users", tags=["users"])
-api_router.include_router(emergencies_router, prefix="/emergencies", tags=["emergencies"])
-api_router.include_router(notifications_router, prefix="/notifications", tags=["notifications"])
-api_router.include_router(customers_router, prefix="/customers", tags=["customers"])
-api_router.include_router(safety_router, prefix="/safety", tags=["safety"]) 
+
+# Router für Batch-Operationen und Performance-Monitoring
+try:
+    from .batch_api import router as batch_router
+    api_router.include_router(batch_router, prefix="/batch", tags=["Batch"])
+    print("Batch-API erfolgreich registriert")
+except ImportError as e:
+    print(f"Batch-API konnte nicht importiert werden: {e}")
+
+try:
+    from .performance_api import router as performance_router
+    api_router.include_router(performance_router, prefix="/performance", tags=["Performance"])
+    print("Performance-API erfolgreich registriert")
+except ImportError as e:
+    print(f"Performance-API konnte nicht importiert werden: {e}")
+
+# Status-API für Health-Checks und Monitoring
+@api_router.get("/status", tags=["System"])
+async def status():
+    """Grundlegender Statusendpunkt für Health-Checks"""
+    return {"status": "online"}

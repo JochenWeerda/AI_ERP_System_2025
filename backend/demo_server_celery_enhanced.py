@@ -14,6 +14,7 @@ import random
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Union
 from pydantic import BaseModel, Field
+import asyncio
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -204,7 +205,6 @@ async def create_task(request: TaskRequest, background_tasks: BackgroundTasks):
     }
     
     # Starte die Task-Ausführung im Hintergrund
-    import asyncio
     background_tasks.add_task(mock_task_execution, task_id, request.task_type)
     
     return TaskStatus(**task_store[task_id])
@@ -339,9 +339,6 @@ async def clear_completed_tasks():
         del task_store[task_id]
     
     return Response(status_code=204)
-
-# Fehlerbehebung und asyncio-Import hinzufügen
-import asyncio
 
 # Middleware für Fehlerprotokollierung
 @app.middleware("http")

@@ -24,8 +24,9 @@ except ImportError:
 
 
 class LagerChargenReservierung(Base):
-    """Modell für Reservierungen von Chargen in bestimmten Lagerorten"""
-    __tablename__ = "lager_chargen_reservierung"
+    """Reservierung von Chargen im Lager"""
+    __tablename__ = 'lager_chargen_reservierung'
+    __table_args__ = {'extend_existing': True}  # Erlaubt das Überschreiben einer existierenden Tabelle
     
     id = Column(Integer, primary_key=True, index=True)
     charge_id = Column(Integer, ForeignKey("charge.id"), nullable=False)

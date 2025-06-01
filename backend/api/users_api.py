@@ -17,7 +17,7 @@ from backend.schemas.user import (
 )
 
 # Datenbankzugriff
-from backend.database import get_db
+from backend.db.database import get_db
 from backend.models.user import User as UserModel
 from backend.models.user import Role as RoleModel
 
@@ -485,4 +485,13 @@ def remove_role_from_user(user_id: int, role_id: int, db: Session = Depends(get_
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Interner Serverfehler: {str(e)}"
-        ) 
+        )
+
+
+def register_user_routes(app):
+    """
+    Registriert die Benutzer-Routen in der Starlette-App.
+    """
+    from starlette.routing import Mount
+    app.routes.append(Mount("/api/v1/users", router))
+    return app 

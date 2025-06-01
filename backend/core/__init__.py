@@ -1,8 +1,20 @@
 """
-Core-Modul des AI-Driven ERP-Systems
-
-Dieses Modul enthält zentrale Funktionalitäten und Dienste, die im gesamten System verwendet werden.
+Core-Modul für das modulare ERP-System
 """
+
+from .server import create_app, run_server, middleware
+from .health import get_health_check, health_check_handler
+from .routing import APIRouter, main_router
+
+__all__ = [
+    "create_app",
+    "run_server",
+    "middleware",
+    "get_health_check",
+    "health_check_handler",
+    "APIRouter",
+    "main_router"
+]
 
 # Initialisierung der Pfadregistrierung
 try:

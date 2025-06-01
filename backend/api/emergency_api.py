@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
+import logging
 
 from ..schemas.emergency import (
     EmergencyCaseCreate,
@@ -28,8 +29,13 @@ from ..schemas.emergency import (
     EmergencyEscalationResponse
 )
 from ..models.emergency import EmergencyStatus, EmergencyType, EmergencySeverity, EscalationLevel
-from ..services.emergency_service import EmergencyService
-from ..db.database import get_db
+try:
+    from backend.services.emergency_service import EmergencyService
+except ImportError:
+    # Dummy-Service
+    class EmergencyService:
+        def __init__(self): pass import EmergencyService
+from backend.db.database import get_db
 
 router = APIRouter(
     prefix="/api/v1/emergency",

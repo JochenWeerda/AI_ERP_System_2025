@@ -170,7 +170,7 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/api/batch", tags=["Batch Processing"])
 
 class BatchJob(BaseModel):
-    """Modell für einen Batch-Job."""
+    # Modell für einen Batch-Job.
     id: Optional[str] = None
     name: str
     type: str
@@ -182,7 +182,7 @@ batch_jobs = {}
 
 @router.post("/jobs", response_model=BatchJob)
 async def create_batch_job(job: BatchJob, background_tasks: BackgroundTasks):
-    """Erstellt einen neuen Batch-Job."""
+    # Erstellt einen neuen Batch-Job.
     import uuid
     job_id = str(uuid.uuid4())
     job.id = job_id
@@ -195,18 +195,18 @@ async def create_batch_job(job: BatchJob, background_tasks: BackgroundTasks):
 
 @router.get("/jobs", response_model=List[BatchJob])
 async def get_batch_jobs():
-    """Gibt alle Batch-Jobs zurück."""
+    # Gibt alle Batch-Jobs zurück.
     return list(batch_jobs.values())
 
 @router.get("/jobs/{job_id}", response_model=BatchJob)
 async def get_batch_job(job_id: str):
-    """Gibt einen bestimmten Batch-Job zurück."""
+    # Gibt einen bestimmten Batch-Job zurück.
     if job_id not in batch_jobs:
         raise HTTPException(status_code=404, detail="Batch-Job nicht gefunden")
     return batch_jobs[job_id]
 
 async def process_batch_job(job_id: str):
-    """Verarbeitet einen Batch-Job im Hintergrund."""
+    # Verarbeitet einen Batch-Job im Hintergrund.
     import asyncio
     import random
     
@@ -219,45 +219,44 @@ async def process_batch_job(job_id: str):
             content = """\"\"\"
 Performance-API-Modul.
 
-Dieses Modul implementiert API-Endpunkte für Performance-Monitoring und -Optimierung.
+Dieses Modul implementiert API-Endpunkte für Performance-Metriken und -Monitoring.
 \"\"\"
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
-from datetime import datetime, timedelta
-import random
+from datetime import datetime
 
 router = APIRouter(prefix="/api/performance", tags=["Performance"])
 
 class PerformanceMetric(BaseModel):
-    """Modell für eine Performance-Metrik."""
+    # Modell für eine Performance-Metrik.
     id: Optional[str] = None
     name: str
     value: float
-    unit: str
-    timestamp: datetime = datetime.now()
-
+    timestamp: Optional[datetime] = None
+    tags: Dict[str, str] = {}
+    
 # In-Memory-Speicher für Metriken (temporär)
-metrics_data = {}
+performance_metrics = {}
 
 @router.post("/metrics", response_model=PerformanceMetric)
 async def create_metric(metric: PerformanceMetric):
-    """Speichert eine neue Performance-Metrik."""
+    # Speichert eine neue Performance-Metrik.
     import uuid
     metric_id = str(uuid.uuid4())
     metric.id = metric_id
-    metrics_data[metric_id] = metric.dict()
+    performance_metrics[metric_id] = metric.dict()
     return metric
 
 @router.get("/metrics", response_model=List[PerformanceMetric])
 async def get_metrics():
-    """Gibt alle Performance-Metriken zurück."""
-    return list(metrics_data.values())
+    # Gibt alle Performance-Metriken zurück.
+    return list(performance_metrics.values())
 
 @router.get("/metrics/{metric_name}/history", response_model=List[PerformanceMetric])
 async def get_metric_history(metric_name: str, days: int = 7):
-    """Gibt den Verlauf einer bestimmten Metrik zurück."""
+    # Gibt den Verlauf einer bestimmten Metrik zurück.
     # Simuliere historische Daten
     result = []
     now = datetime.now()
@@ -278,7 +277,7 @@ async def get_metric_history(metric_name: str, days: int = 7):
 
 @router.get("/dashboard")
 async def get_performance_dashboard():
-    """Gibt Performance-Dashboard-Daten zurück."""
+    # Gibt Performance-Dashboard-Daten zurück.
     return {
         "summary": {
             "api_response_time_avg": random.uniform(20, 100),
@@ -351,7 +350,7 @@ def create_missing_classes() -> bool:
                     if module_path == "backend.models.lager":
                         class_def = f"""
 class {class_name}:
-    """Modell für einen Lagerort."""
+    # Modell für einen Lagerort.
     
     def __init__(self, id=None, name=None, beschreibung=None, lager_typ=None):
         self.id = id
@@ -360,12 +359,12 @@ class {class_name}:
         self.lager_typ = lager_typ
         
     def __repr__(self):
-        return f"<{class_name}(id={self.id}, name={self.name})>"
+        return f"<{class_name}(id={{self.id}}, name={{self.name}})>"
 """
                     elif module_path == "backend.models.partner":
                         class_def = f"""
 class {class_name}:
-    """Modell für eine Kundengruppe."""
+    # Modell für eine Kundengruppe.
     
     def __init__(self, id=None, name=None, beschreibung=None, rabatt=0.0):
         self.id = id
@@ -374,12 +373,12 @@ class {class_name}:
         self.rabatt = rabatt
         
     def __repr__(self):
-        return f"<{class_name}(id={self.id}, name={self.name})>"
+        return f"<{class_name}(id={{self.id}}, name={{self.name}})>"
 """
                     elif module_path == "backend.models.produktion":
                         class_def = f"""
 class {class_name}:
-    """Modell für einen Produktionsauftrag."""
+    # Modell für einen Produktionsauftrag.
     
     def __init__(self, id=None, name=None, start_datum=None, end_datum=None, status="geplant"):
         self.id = id
@@ -389,12 +388,12 @@ class {class_name}:
         self.status = status
         
     def __repr__(self):
-        return f"<{class_name}(id={self.id}, name={self.name}, status={self.status})>"
+        return f"<{class_name}(id={{self.id}}, name={{self.name}}, status={{self.status}})>"
 """
                     elif module_path == "backend.models.user":
                         class_def = f"""
 class {class_name}:
-    """Modell für eine Benutzererlaubnis."""
+    # Modell für eine Benutzererlaubnis.
     
     def __init__(self, id=None, name=None, beschreibung=None):
         self.id = id
@@ -402,12 +401,12 @@ class {class_name}:
         self.beschreibung = beschreibung
         
     def __repr__(self):
-        return f"<{class_name}(id={self.id}, name={self.name})>"
+        return f"<{class_name}(id={{self.id}}, name={{self.name}})>"
 """
                     elif module_path == "backend.models.notfall":
                         class_def = f"""
 class {class_name}:
-    """Modell für einen Notfallplan."""
+    # Modell für einen Notfallplan.
     
     def __init__(self, id=None, name=None, beschreibung=None, prioritaet="mittel", aktiviert=False):
         self.id = id
@@ -417,7 +416,7 @@ class {class_name}:
         self.aktiviert = aktiviert
         
     def __repr__(self):
-        return f"<{class_name}(id={self.id}, name={self.name}, prioritaet={self.prioritaet})>"
+        return f"<{class_name}(id={{self.id}}, name={{self.name}}, prioritaet={{self.prioritaet}})>"
 """
                     elif module_path == "backend.db.performance_monitor":
                         class_def = f"""
@@ -430,7 +429,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class {class_name}(BaseHTTPMiddleware):
-    """Middleware zur Überwachung der Datenbankleistung."""
+    # Middleware zur Überwachung der Datenbankleistung.
     
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
@@ -460,20 +459,20 @@ class {class_name}(BaseHTTPMiddleware):
         return response
     
     def count_db_queries(self):
-        """Zählt die Anzahl der Datenbankabfragen (simuliert)."""
+        # Zählt die Anzahl der Datenbankabfragen (simuliert).
         # In einer realen Implementierung würde dies die tatsächlichen DB-Abfragen zählen
         # Hier geben wir einen simulierten Wert zurück
         return 0
     
     def store_metrics(self, request, processing_time, db_queries):
-        """Speichert die Leistungsmetriken (simuliert)."""
+        # Speichert die Leistungsmetriken (simuliert).
         # In einer realen Implementierung würden die Metriken in einer Datenbank gespeichert
         pass
 """
                     else:
                         class_def = f"""
 class {class_name}:
-    """Automatisch generierte Klasse für {class_name}."""
+    # Automatisch generierte Klasse für {class_name}.
     
     def __init__(self, id=None, name=None):
         self.id = id

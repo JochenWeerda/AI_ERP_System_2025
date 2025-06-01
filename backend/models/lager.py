@@ -5,7 +5,8 @@ Basierend auf dem Lagerkonzept von Odoo und ERPNext mit einer
 hierarchischen Lagerortstruktur und flexibler Bestandsführung.
 """
 
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Text, Enum, Table, JSON, JSONB
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Text, Enum, Table, JSON
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -18,6 +19,9 @@ except ImportError:
         from backend.app.db.base import Base
     except ImportError:
         from app.db.base import Base
+
+# Import der Chargen-Lager-Integrationsmodelle
+from backend.models.chargen_lager import LagerChargenReservierung, ChargenLagerBewegung
 
 
 class LagerTyp(enum.Enum):
@@ -449,70 +453,5 @@ class InventurPosition(Base):
     seriennummer = relationship("Seriennummer")
 
 
-class LagerChargenReservierung(Base):
-    """Modell für Chargen-Reservierungen im Lager"""
-    __tablename__ = "lager_chargen_reservierung"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    charge_id = Column(Integer, ForeignKey("charge.id"), nullable=False)
-    lager_id = Column(Integer, ForeignKey("lager.id"), nullable=False)
-    lagerort_id = Column(Integer, ForeignKey("lagerort.id"), nullable=True)
-    menge = Column(Float, nullable=False)
-    einheit_id = Column(Integer, ForeignKey("einheit.id"), nullable=False)
-    
-    # Referenz auf Dokument (z.B. Auftrag, Bestellung)
-    referenz_typ = Column(String(50), nullable=True)
-    referenz_id = Column(Integer, nullable=True)
-    
-    # Status der Reservierung
-    status = Column(String(50), nullable=False, default="aktiv")
-    gueltig_bis = Column(DateTime, nullable=True)
-    
-    # Tracking-Felder
-    erstellt_am = Column(DateTime, nullable=False, default=datetime.now)
-    erstellt_von = Column(Integer, ForeignKey("user.id"), nullable=True)
-    geaendert_am = Column(DateTime, nullable=True, onupdate=datetime.now)
-    
-    # Beziehungen
-    charge = relationship("Charge")
-    lager = relationship("Lager")
-    lagerort = relationship("Lagerort")
-    einheit = relationship("Einheit")
-    ersteller = relationship("User", foreign_keys=[erstellt_von])
-
-
-class ChargenLagerBewegung(Base):
-    """Modell für Lagerbewegungen von Chargen"""
-    __tablename__ = "chargen_lager_bewegung"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    charge_id = Column(Integer, ForeignKey("charge.id"), nullable=False)
-    lager_id = Column(Integer, ForeignKey("lager.id"), nullable=False)
-    lagerort_id = Column(Integer, ForeignKey("lagerort.id"), nullable=True)
-    bewegungs_typ = Column(Enum(BewegungsTyp), nullable=False)
-    menge = Column(Float, nullable=False)
-    einheit_id = Column(Integer, ForeignKey("einheit.id"), nullable=False)
-    
-    # Bei Transfers
-    ziel_lager_id = Column(Integer, ForeignKey("lager.id"), nullable=True)
-    ziel_lagerort_id = Column(Integer, ForeignKey("lagerort.id"), nullable=True)
-    
-    # Referenz auf Dokument
-    referenz_typ = Column(String(50), nullable=True)
-    referenz_id = Column(Integer, nullable=True)
-    
-    # Zusatzinformationen
-    notiz = Column(Text, nullable=True)
-    
-    # Tracking-Felder
-    erstellt_am = Column(DateTime, nullable=False, default=datetime.now)
-    erstellt_von = Column(Integer, ForeignKey("user.id"), nullable=True)
-    
-    # Beziehungen
-    charge = relationship("Charge")
-    lager = relationship("Lager", foreign_keys=[lager_id])
-    lagerort = relationship("Lagerort", foreign_keys=[lagerort_id])
-    ziel_lager = relationship("Lager", foreign_keys=[ziel_lager_id])
-    ziel_lagerort = relationship("Lagerort", foreign_keys=[ziel_lagerort_id])
-    einheit = relationship("Einheit")
-    ersteller = relationship("User", foreign_keys=[erstellt_von]) 
+# Klassen LagerChargenReservierung und ChargenLagerBewegung wurden nach chargen_lager.py verschoben
+# und werden von dort importiert 

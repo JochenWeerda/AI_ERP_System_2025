@@ -6,4 +6,7 @@ export {
   ChargenBerichteGenerator
 };
 
-export default ChargenBerichteGenerator; 
+export default {
+  ChargenLebenszyklus,
+  ChargenBerichteGenerator
+}; 

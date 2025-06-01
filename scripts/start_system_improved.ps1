@@ -86,7 +86,7 @@ function Handle-Error {
         [switch]$Fatal
     )
     
-    Write-SystemLog "FEHLER bei $ComponentName: $ErrorMessage" -Level Error -LogToFile
+    Write-SystemLog "FEHLER bei ${ComponentName}: ${ErrorMessage}" -Level Error -LogToFile
     
     if ($Fatal) {
         Write-SystemLog "Fataler Fehler, breche Skript ab" -Level Error -LogToFile
@@ -169,7 +169,26 @@ function Start-BackgroundProcess {
     
     # Prüfe, ob der Dienst bereits läuft
     if ($Port -gt 0 -and (Test-ServiceRunning -ServiceName $Name -Port $Port)) {
-        Write-SystemLog "$Name läuft bereits auf Port $Port" -Level Warning
+        Write-SystemLog "$Name läuft bereits auf Port $Port - wird wiederverwendet" -Level Warning
+        
+        # Suche die Prozess-ID für den Port
+        $tcpConnection = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
+        if ($tcpConnection) {
+            $processId = $tcpConnection.OwningProcess
+            try {
+                $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+                if ($process) {
+                    # Füge den existierenden Prozess zu unserem Tracking hinzu
+                    Write-SystemLog "Übernehme existierenden Prozess: $Name (PID: $processId)" -Level Success -LogToFile
+                    return $process
+                }
+            } catch {
+                Write-SystemLog "Konnte Prozess mit PID $processId nicht finden: $($_.Exception.Message)" -Level Warning -LogToFile
+            }
+        }
+        
+        # Wenn wir hierher kommen, ist der Port besetzt, aber wir konnten den Prozess nicht identifizieren
+        Write-SystemLog "Port $Port ist belegt, aber der Prozess konnte nicht identifiziert werden" -Level Warning
         return $null
     }
     
@@ -332,9 +351,9 @@ if (-not $SkipFlower) {
     }
 }
 
-# 4. Demo-Server starten (statt modularem Server, da dieser besser funktioniert)
+# 4. Demo-Server starten (verbesserte Version mit Celery-Unterstützung)
 if (-not $SkipAPI) {
-    $apiCommand = "uvicorn backend.demo_server_celery:app --reload --host 0.0.0.0 --port 8003"
+    $apiCommand = "uvicorn backend.demo_server_celery_enhanced:app --reload --host 0.0.0.0 --port 8003"
     $apiProcess = Start-BackgroundProcess -Name "Demo-Server" -Command $apiCommand -LogFile $API_LOG -Port 8003
     
     if ($apiProcess) {
