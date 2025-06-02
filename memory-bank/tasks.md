@@ -520,6 +520,7 @@ Nach der erfolgreichen Implementierung der Containerisierung für unser ERP-Syst
 - [x] Finales Design speichern und archivieren
 - [x] Dateien im VALEO-final-design Ordner zusammenfassen
 - [x] Nicht mehr benötigte Frontend-Dateien bereinigen
+- [x] Kubernetes-Manifeste aktualisieren und bereinigen
 - [ ] Backend-Routen integrieren
 - [ ] Unterseiten entwickeln
 
