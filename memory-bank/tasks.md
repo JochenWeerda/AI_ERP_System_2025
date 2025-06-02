@@ -199,21 +199,69 @@ Nach der erfolgreichen Implementierung der Containerisierung für unser ERP-Syst
   - Ressourcen-Quotas für den Namespace definieren
   - QoS-Klassen für kritische Services festlegen
 
-### Zukünftige Aufgaben (Niedrige Priorität)
-- [ ] **Backup- und Wiederherstellungsstrategie erweitern**
-  - Backup-CronJobs für alle persistenten Daten implementieren
-  - Wiederherstellungsverfahren testen und dokumentieren
-  - Notfallplan für Cluster-Ausfälle erstellen
-  
-- [ ] **Multi-Cluster-Deployment vorbereiten**
-  - Strategie für Multi-Cluster-Deployment entwerfen
-  - Service-Mesh für Cluster-übergreifende Kommunikation evaluieren
-  - Globalen Load-Balancer konfigurieren
-  
-- [ ] **Production-Readiness-Checkliste erstellen**
-  - Umfassende Checkliste für Produktionsbereitschaft erstellen
-  - Sicherheitsaudits durchführen
-  - Compliance-Anforderungen überprüfen
+## Zukünftige Aufgaben (Niedrige Priorität)
+
+### 6. Autonomes System für externe Erreichbarkeit des ERP-Systems
+
+**Ziel:** Entwicklung eines vollständig autonomen Systems zur dynamischen Erreichbarkeit des ERP-Frontends über die Domain `n8n-services.com`.
+
+> **HINWEIS:** Diese Aufgabe wurde nach sorgfältiger Analyse für eine spätere Implementierung priorisiert. Sie sollte erst nach Abschluss und Validierung des Connection Monitors angegangen werden.
+
+#### Teilaufgaben:
+
+- [ ] **Dynamic DNS mit Cloudflare**
+  - [ ] Entwicklung eines Skripts zur automatischen Aktualisierung der öffentlichen IP-Adresse
+  - [ ] Integration mit der Cloudflare API für automatische A-Record-Updates
+  - [ ] Implementierung eines Cron-Jobs oder Docker-Services für kontinuierliche Überwachung
+  - [ ] Protokollierungs- und Benachrichtigungssystem für IP-Änderungen
+
+- [ ] **Reverse-Proxy mit Traefik**
+  - [ ] Installation und Konfiguration von Traefik als Reverse-Proxy
+  - [ ] Einrichtung von Routen für verschiedene Dienste (`/frontend`, `/api`, `/qs`)
+  - [ ] Konfiguration von Traefik mit Label- oder Datei-Provider
+  - [ ] Integration mit dem Kubernetes-Cluster
+  - [ ] Implementierung von Rate-Limiting und Circuit-Breaking
+
+- [ ] **SSL/HTTPS mit Let's Encrypt**
+  - [ ] Konfiguration von Traefik zur Verwendung von Let's Encrypt
+  - [ ] Implementierung der DNS-Challenge über Cloudflare
+  - [ ] Automatisierung der Zertifikatserneuerung
+  - [ ] Sichere Speicherung der Zertifikate
+  - [ ] SSL-Konfiguration gemäß Best Practices (TLS 1.3, starke Cipher, HSTS)
+
+- [ ] **Sicherheitskonzept**
+  - [ ] Durchführung einer Sicherheitsanalyse für öffentlich zugängliche Dienste
+  - [ ] Implementierung von WAF-Regeln (Web Application Firewall)
+  - [ ] Konfiguration von Zugriffsbeschränkungen und Authentifizierung
+  - [ ] Implementierung von IP-basierten Zugriffskontrollen
+  - [ ] Sichere Handhabung von API-Schlüsseln und Zugangsdaten
+
+- [ ] **Dokumentation und Monitoring**
+  - [ ] Erstellung einer umfassenden Dokumentation zur Systemarchitektur
+  - [ ] Implementierung von Monitoring für externe Erreichbarkeit
+  - [ ] Entwicklung von Alarmen für Verbindungs- und Zertifikatsprobleme
+  - [ ] Dokumentation der Wiederherstellungsverfahren
+  - [ ] Erstellung von Benutzerhandbüchern für den externen Zugriff
+
+#### Infrastrukturkomponenten:
+
+```
+/infra/
+├── docker-compose.yml      # Container-Orchestrierung
+├── .env                    # Umgebungsvariablen (sensible Daten)
+├── traefik.yml             # Traefik-Hauptkonfiguration
+├── dynamic.yml             # Dynamische Traefik-Konfiguration
+├── ddns/
+│   └── cloudflare-ddns.py  # Script für DDNS-Updates
+└── acme.json               # SSL-Zertifikate (persistent)
+```
+
+#### Voraussetzungen vor der Implementierung:
+
+1. Abschluss und Validierung des Connection Monitors
+2. Umfassende Sicherheitsbewertung der zu exponierenden Dienste
+3. DNS-Konfiguration und Zugriff auf Cloudflare-API
+4. Firewall-Konfiguration für eingehenden Verkehr
 
 ## Microservice-Implementierung
 
@@ -331,3 +379,156 @@ Nach der erfolgreichen Implementierung der Containerisierung für unser ERP-Syst
   - Prometheus-Alarme für kritische Metriken
   - Slack/E-Mail-Benachrichtigungen bei Problemen
   - Automatische Skalierung basierend auf Metriken
+
+## Aktuelle Aufgaben - Frontend-Implementierung
+
+### TODO: VALEO Frontend Funktionalitäten
+- [x] **Detaillierte Modulseiten**
+  - [x] Artikelverwaltung mit Formular für Artikeldetails
+  - [ ] Kundenverwaltung mit Adressfeldern und Kontaktdaten
+  - [ ] Rechnungsformular mit Positionserfassung
+  - [ ] Lagerverwaltung mit Bestandsanzeige
+  - [ ] Priorität: HOCH
+
+- [ ] **Such- und Filterfunktion**
+  - [ ] Globale Suche über alle Module
+  - [ ] Erweiterte Filter mit Speicherfunktion
+  - [ ] Autovervollständigung für Suchfelder
+  - [ ] Priorität: MITTEL
+
+- [ ] **Benutzerauthentifizierung**
+  - [ ] Login/Logout-Funktionalität
+  - [ ] Benutzerprofile mit Einstellungen
+  - [ ] Rollenbasierte Berechtigungen
+  - [ ] Priorität: HOCH
+
+- [ ] **Backend-Integration**
+  - [ ] API-Verbindungen zu Datenservices
+  - [ ] Formularvalidierung
+  - [ ] Fehlerbehandlung bei API-Aufrufen
+  - [ ] Priorität: HOCH
+
+- [ ] **Benachrichtigungssystem**
+  - [ ] Echtzeit-Benachrichtigungen
+  - [ ] Aufgabenliste/To-Dos
+  - [ ] Statusaktualisierungen
+  - [ ] Priorität: NIEDRIG
+
+- [ ] **Dashboard-Personalisierung**
+  - [ ] Anpassbare Dashboard-Ansicht
+  - [ ] Favoriten-Funktion
+  - [ ] Widget-Konfiguration
+  - [ ] Priorität: NIEDRIG
+
+- [ ] **Reporting und Visualisierung**
+  - [ ] Diagramme für Datenanalyse
+  - [ ] Export-Funktionen (PDF, Excel)
+  - [ ] Anpassbare Berichtsvorlagen
+  - [ ] Priorität: MITTEL
+
+- [ ] **Offline-Funktionalität**
+  - [ ] Progressive Web App-Setup
+  - [ ] Offline-Datenspeicherung
+  - [ ] Service Worker Implementierung
+  - [ ] Priorität: NIEDRIG
+
+- [ ] **Hilfe- und Dokumentationssystem**
+  - [ ] Kontextsensitive Hilfe
+  - [ ] Onboarding-Tutorials
+  - [ ] Tastenkombinationen
+  - [ ] Priorität: NIEDRIG
+
+- [ ] **Mehrsprachigkeit**
+  - [ ] i18n-Framework einrichten
+  - [ ] Deutsche und englische Übersetzungen
+  - [ ] Sprachumschalter in UI
+  - [ ] Priorität: MITTEL
+
+- [ ] **KI-Assistenten Integration**
+  - [ ] Kontextbezogene Hilfestellungen
+  - [ ] Automatisierte Arbeitsabläufe
+  - [ ] Natürliche Sprachverarbeitung
+  - [ ] Priorität: MITTEL
+
+- [ ] **Mobile Optimierung**
+  - [ ] Responsive Design für kleine Bildschirme
+  - [ ] Touch-freundliche UI-Elemente
+  - [ ] Mobile-spezifische Workflows
+  - [ ] Priorität: MITTEL
+
+- [ ] **Theme-Anpassungen**
+  - [ ] Dunkelmodus
+  - [ ] Barrierefreiheit-Optionen
+  - [ ] Benutzerdefinierte Themes
+  - [ ] Priorität: NIEDRIG
+
+- [ ] **Feedback-System**
+  - [ ] Ladeanzeigen
+  - [ ] Erfolgs-/Fehlermeldungen
+  - [ ] Prozessstatusanzeigen
+  - [ ] Priorität: HOCH
+
+- [ ] **Kollaborative Funktionen**
+  - [ ] Kommentare zu Datensätzen
+  - [ ] Aufgabenzuweisung
+  - [ ] Aktivitätsprotokolle
+  - [ ] Priorität: NIEDRIG
+
+## Implementierungsplan
+
+### Phase 1: Grundlegende Funktionalität
+1. Detaillierte Modulseiten für Kernfunktionen (Artikel, Kunden)
+2. Benutzerauthentifizierung und Grundgerüst
+3. Backend-Integration für Datenpersistenz
+4. Feedback-System für Benutzerinteraktionen
+
+### Phase 2: Erweiterte Funktionalität
+1. Such- und Filterfunktion
+2. Reporting und Visualisierung
+3. Mehrsprachigkeit
+4. KI-Assistenten Integration
+
+### Phase 3: Optimierung und Erweiterung
+1. Mobile Optimierung
+2. Dashboard-Personalisierung
+3. Benachrichtigungssystem
+4. Theme-Anpassungen
+
+### Phase 4: Zusätzliche Funktionen
+1. Offline-Funktionalität
+2. Hilfe- und Dokumentationssystem
+3. Kollaborative Funktionen
+
+## Aktuelle Fokus-Aufgabe
+**Implementierung der Artikelverwaltung**
+- [x] Formular für Artikeldetails erstellen
+- [x] Tabellenansicht für Artikelliste implementieren
+- [x] Filter- und Sortierfunktionen einbauen
+- [x] Mit Backend-API verbinden (simuliert mit Dummy-Daten)
+
+**Nächste Aufgabe: Kundenverwaltung**
+- [ ] Kundenliste mit Suchfunktion erstellen
+- [ ] Kundendetails-Formular implementieren
+- [ ] Adressen und Kontaktdaten verwalten
+- [ ] Kundenkategorien einrichten
+
+## Frontend-Design Finalisierung
+
+- [x] Design des Dashboard vereinheitlichen
+- [x] Chat-Sidebar implementieren
+- [x] Benutzer- und Benachrichtigungssystem hinzufügen
+- [x] Finales Design speichern und archivieren
+- [x] Dateien im VALEO-final-design Ordner zusammenfassen
+- [x] Nicht mehr benötigte Frontend-Dateien bereinigen
+- [ ] Backend-Routen integrieren
+- [ ] Unterseiten entwickeln
+
+## Nächste Schritte
+
+- Integration des finalen Designs mit den Backend-Services
+- Implementierung der Funktionalität für die Belegfolge-Prozesse
+- Verbindung zur Datenbank für dynamische Inhalte
+- Entwicklung der modulspezifischen Unterseiten
+- Implementierung der Authentifizierung und Benutzerverwaltung
+
+# Abgeschlossene Aufgaben
