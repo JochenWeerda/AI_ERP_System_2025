@@ -1868,6 +1868,13 @@ Die Implementierungsdetails wurden in der Tasks-Datei dokumentiert und für eine
 
 # Projekt-Fortschritt
 
+## 02.06.2025: Kubernetes-Deployment des finalen Designs
+- Deployment des finalen Dashboard-Designs im Kubernetes-Cluster
+- Erstellt: ConfigMaps (valeo-final-dashboard, valeo-nginx-config), Deployment, Service und Ingress
+- Service auf Port 8091 verfügbar gemacht
+- Ingress für den Hostnamen valeo-erp.local konfiguriert
+- Veraltete Deployments und Services bereinigt
+
 ## 02.06.2025: Kubernetes-Manifeste bereinigt
 - Veraltete Frontend-Manifeste (frontend-simple.yaml, frontend-custom.yaml, frontend-optimized.yaml, frontend-custom-build.yaml) entfernt
 - Neues Manifest für das finale VALEO-Dashboard erstellt (frontend-dashboard-deployment.yaml)
