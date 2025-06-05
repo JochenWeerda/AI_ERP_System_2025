@@ -1,0 +1,344 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-router-config
+  namespace: erp-system
+data:
+  router-config.json: |-
+    {
+      "moduleRoutes": {
+        "dashboard": {
+          "id": 1,
+          "path": "/",
+          "service": "valeo-final-dashboard",
+          "description": "Dashboard-Hauptseite"
+        },
+        "inventory": {
+          "id": 2,
+          "path": "/inventory",
+          "service": "valeo-final-dashboard",
+          "description": "Lager-Modul"
+        },
+        "finance": {
+          "id": 3,
+          "path": "/finance",
+          "service": "valeo-final-dashboard",
+          "description": "Finanz-Modul"
+        },
+        "sales": {
+          "id": 4,
+          "path": "/sales",
+          "service": "valeo-final-dashboard",
+          "description": "Verkaufs-Modul"
+        },
+        "purchase": {
+          "id": 5,
+          "path": "/purchase",
+          "service": "valeo-final-dashboard",
+          "description": "Einkaufs-Modul"
+        },
+        "documents": {
+          "id": 6,
+          "path": "/documents",
+          "service": "valeo-final-dashboard",
+          "description": "Dokumenten-Modul"
+        },
+        "settings": {
+          "id": 7,
+          "path": "/settings",
+          "service": "valeo-final-dashboard",
+          "description": "Einstellungen"
+        },
+        "finance-service": {
+          "id": 101,
+          "path": "/services/finance",
+          "service": "finance-service",
+          "description": "Finance Service API"
+        },
+        "document-service": {
+          "id": 102,
+          "path": "/services/document",
+          "service": "document-service",
+          "description": "Document Service API"
+        },
+        "beleg-service": {
+          "id": 103,
+          "path": "/services/beleg",
+          "service": "beleg-service",
+          "description": "Beleg Service API"
+        },
+        "theme-service": {
+          "id": 104,
+          "path": "/services/theme",
+          "service": "theme-service",
+          "description": "Theme Service API"
+        }
+      }
+    }
+  router-middleware.js: |-
+    // Express Router-Middleware für den zentralen Router
+    const express = require('express');
+    const router = express.Router();
+    const fs = require('fs');
+    const path = require('path');
+
+    // Lade die Routing-Konfiguration
+    const configPath = path.join(__dirname, 'router-config.json');
+    const routerConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    // Lookup-Tabelle für Routing nach ID
+    const idToRouteMap = {};
+    Object.values(routerConfig.moduleRoutes).forEach(route => {
+      idToRouteMap[route.id] = route;
+    });
+
+    // Middleware zum Protokollieren von Anfragen
+    router.use((req, res, next) => {
+      console.log(`Router-Anfrage: ${req.method} ${req.url}`);
+      next();
+    });
+
+    // Haupt-Routing-Endpunkt, der Frontend-Klicks verarbeitet
+    router.post('/navigate', (req, res) => {
+      const { moduleId, targetId, params } = req.body;
+      
+      console.log(`Navigationsanfrage: moduleId=${moduleId}, targetId=${targetId}`);
+      
+      // Bestimme die Ziel-Route basierend auf der ID
+      const targetRoute = idToRouteMap[moduleId || targetId];
+      
+      if (!targetRoute) {
+        return res.status(404).json({ 
+          error: 'Unbekannte Modul-ID', 
+          message: `Keine Route für ID ${moduleId || targetId} gefunden` 
+        });
+      }
+      
+      // Erstelle die Ziel-URL mit optionalen Parametern
+      let targetUrl = targetRoute.path;
+      if (params && Object.keys(params).length > 0) {
+        const queryParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+          queryParams.append(key, value);
+        });
+        targetUrl += `?${queryParams.toString()}`;
+      }
+      
+      console.log(`Leite weiter zu: ${targetUrl}`);
+      
+      // Gib die Ziel-URL zurück, zu der der Client navigieren soll
+      res.json({ 
+        success: true, 
+        redirect: targetUrl,
+        module: targetRoute 
+      });
+    });
+
+    // Endpunkt zum Abrufen aller verfügbaren Module
+    router.get('/modules', (req, res) => {
+      res.json({ 
+        modules: routerConfig.moduleRoutes 
+      });
+    });
+
+    // Endpunkt zum Abrufen einer spezifischen Route nach ID
+    router.get('/module/:id', (req, res) => {
+      const moduleId = parseInt(req.params.id, 10);
+      const module = idToRouteMap[moduleId];
+      
+      if (!module) {
+        return res.status(404).json({ 
+          error: 'Modul nicht gefunden',
+          message: `Keine Route für ID ${moduleId} gefunden` 
+        });
+      }
+      
+      res.json({ module });
+    });
+
+    module.exports = router;
+  router-integration.js: |-
+    // Integration des Routers in die API-Gateway-App
+    const express = require('express');
+    const router = require('./router-middleware');
+
+    module.exports = function(app) {
+      // Registriere den Router unter dem /router Pfad
+      app.use('/router', router);
+      
+      console.log('Zentraler Router wurde erfolgreich integriert');
+    };
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-code
+  namespace: erp-system
+data:
+  server.js: |-
+    const express = require('express');
+    const cors = require('cors');
+    const bodyParser = require('body-parser');
+    const app = express();
+    const PORT = process.env.PORT || 80;
+
+    // Middleware
+    app.use(cors());
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
+
+    // Einfacher Health-Check-Endpunkt
+    app.get('/health', (req, res) => {
+      res.status(200).json({ status: 'ok' });
+    });
+
+    // API-Root-Endpunkt
+    app.get('/', (req, res) => {
+      res.status(200).json({ 
+        message: 'VALEO ERP API Gateway', 
+        version: '1.0.0',
+        status: 'running' 
+      });
+    });
+
+    // Router-Integration
+    const routerIntegration = require('./router-integration');
+    routerIntegration(app);
+
+    // Beispiel-API-Endpunkte
+    app.get('/api/services', (req, res) => {
+      res.json({
+        services: [
+          { id: 'finance', name: 'Finanz-Service', status: 'online' },
+          { id: 'document', name: 'Dokument-Service', status: 'online' },
+          { id: 'beleg', name: 'Beleg-Service', status: 'online' },
+          { id: 'theme', name: 'Theme-Service', status: 'online' }
+        ]
+      });
+    });
+
+    // Starte den Server
+    app.listen(PORT, () => {
+      console.log(`API Gateway läuft auf Port ${PORT}`);
+    });
+  package.json: |-
+    {
+      "name": "api-gateway",
+      "version": "1.0.0",
+      "description": "API Gateway für VALEO ERP",
+      "main": "server.js",
+      "scripts": {
+        "start": "node server.js"
+      },
+      "dependencies": {
+        "express": "^4.17.1",
+        "cors": "^2.8.5",
+        "body-parser": "^1.19.0"
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: erp-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: node:16-alpine
+        command: ["node", "/app/server.js"]
+        ports:
+        - containerPort: 80
+        env:
+        - name: PORT
+          value: "80"
+        - name: NODE_ENV
+          value: "production"
+        volumeMounts:
+        - name: api-gateway-code
+          mountPath: /app
+        - name: router-config
+          mountPath: /app/router-config.json
+          subPath: router-config.json
+        - name: router-middleware
+          mountPath: /app/router-middleware.js
+          subPath: router-middleware.js
+        - name: router-integration
+          mountPath: /app/router-integration.js
+          subPath: router-integration.js
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "256Mi"
+          requests:
+            cpu: "0.1"
+            memory: "128Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: api-gateway-code
+        configMap:
+          name: api-gateway-code
+      - name: router-config
+        configMap:
+          name: api-gateway-router-config
+          items:
+          - key: router-config.json
+            path: router-config.json
+      - name: router-middleware
+        configMap:
+          name: api-gateway-router-config
+          items:
+          - key: router-middleware.js
+            path: router-middleware.js
+      - name: router-integration
+        configMap:
+          name: api-gateway-router-config
+          items:
+          - key: router-integration.js
+            path: router-integration.js
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: erp-system
+spec:
+  selector:
+    app: api-gateway
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-nodeport
+  namespace: erp-system
+spec:
+  type: NodePort
+  selector:
+    app: api-gateway
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30091 

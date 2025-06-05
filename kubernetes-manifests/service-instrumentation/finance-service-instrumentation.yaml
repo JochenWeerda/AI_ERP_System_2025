@@ -1,8 +1,7 @@
-# Kubernetes-Manifest für Document-Service-Tracing-Patch
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: document-service
+  name: finance-service
   namespace: erp-system
 spec:
   template:
@@ -10,14 +9,14 @@ spec:
       annotations:
         # Prometheus-Annotationen für Metrik-Scraping
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8030"
+        prometheus.io/port: "8007"
         prometheus.io/path: "/metrics"
         # Jaeger-Annotationen für Tracing
         jaeger.erp-system.svc.cluster.local/inject: "true"
-        jaeger.erp-system.svc.cluster.local/service-name: "document-service"
+        jaeger.erp-system.svc.cluster.local/service-name: "finance-service"
     spec:
       containers:
-      - name: document-service
+      - name: finance-service
         env:
         # Umgebungsvariablen für Metriken
         - name: ENABLE_METRICS
@@ -25,7 +24,7 @@ spec:
         - name: METRICS_PATH
           value: "/metrics"
         - name: METRICS_PORT
-          value: "8030"
+          value: "8007"
         # Umgebungsvariablen für Jaeger Tracing
         - name: JAEGER_AGENT_HOST
           value: "erp-jaeger-agent.erp-system.svc.cluster.local"
@@ -36,7 +35,7 @@ spec:
         - name: JAEGER_SAMPLER_PARAM
           value: "1"
         - name: JAEGER_SERVICE_NAME
-          value: "document-service"
+          value: "finance-service"
         - name: ENABLE_TRACING
           value: "true"
         # Umgebungsvariablen für strukturiertes Logging
@@ -48,14 +47,11 @@ spec:
           value: "elasticsearch.erp-system.svc.cluster.local:9200"
         - name: USE_ELASTICSEARCH
           value: "true"
-        # Spezifische Umgebungsvariablen für den Document-Service
-        - name: DOCUMENT_STORAGE_PATH
-          value: "/app/data/documents"
-        - name: THUMBNAIL_GENERATION_ENABLED
+        # Spezifische Umgebungsvariablen für den Finance-Service
+        - name: DATEV_EXPORT_ENABLED
           value: "true"
-        - name: DOCUMENT_CACHE_SIZE
-          value: "100"
-        # Volume Mounts
+        - name: TRANSACTION_CACHE_TTL
+          value: "300"
         volumeMounts:
         # Volume für Metriken-Konfiguration
         - name: metrics-config
@@ -65,14 +61,11 @@ spec:
         - name: tracing-config
           mountPath: /app/config/tracing
           readOnly: true
-        # Volume für Dokumente
-        - name: document-storage
-          mountPath: /app/data/documents
         # Health Probes für Kubernetes
         livenessProbe:
           httpGet:
             path: /health
-            port: 8030
+            port: 8007
           initialDelaySeconds: 30
           periodSeconds: 15
           timeoutSeconds: 5
@@ -80,11 +73,19 @@ spec:
         readinessProbe:
           httpGet:
             path: /health
-            port: 8030
+            port: 8007
           initialDelaySeconds: 15
           periodSeconds: 10
           timeoutSeconds: 3
           failureThreshold: 2
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8007
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 20
         resources:
           requests:
             cpu: 200m
@@ -96,79 +97,68 @@ spec:
       # ConfigMap für Metriken
       - name: metrics-config
         configMap:
-          name: document-service-metrics-config
+          name: finance-service-metrics-config
       # ConfigMap für Tracing
       - name: tracing-config
         configMap:
-          name: document-service-tracing-config
-      # PersistentVolumeClaim für Dokumente
-      - name: document-storage
-        persistentVolumeClaim:
-          claimName: document-service-document-storage
+          name: finance-service-tracing-config
 ---
 # ConfigMap für Metriken-Konfiguration
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: document-service-metrics-config
+  name: finance-service-metrics-config
   namespace: erp-system
 data:
   metrics.yml: |
-    # Metriken-Konfiguration für Document-Service
+    # Metriken-Konfiguration für Finance-Service
     metrics:
       enabled: true
       endpoint: /metrics
-      port: 8030
+      port: 8007
       collectors:
         - type: counter
-          name: document_operations_total
-          help: "Gesamtzahl der Dokumentoperationen"
+          name: finance_transactions_total
+          help: "Gesamtzahl der finanziellen Transaktionen"
           labels:
-            - operation_type
-            - document_type
+            - transaction_type
             - status
+            - account_type
         - type: histogram
-          name: document_processing_duration_seconds
-          help: "Dauer der Dokumentverarbeitung in Sekunden"
+          name: transaction_processing_duration_seconds
+          help: "Dauer der Transaktionsverarbeitung in Sekunden"
           labels:
-            - operation_type
-            - document_type
-          buckets: [0.1, 0.5, 1, 2.5, 5, 10, 30, 60]
+            - transaction_type
+          buckets: [0.01, 0.05, 0.1, 0.5, 1, 2.5, 5, 10, 30]
         - type: gauge
-          name: document_storage_size_bytes
-          help: "Größe des Dokumentenspeichers in Bytes"
+          name: active_accounts
+          help: "Anzahl der aktiven Konten"
           labels:
-            - document_type
+            - account_type
         - type: counter
-          name: thumbnail_generations_total
-          help: "Gesamtzahl der Thumbnail-Generierungen"
+          name: datev_export_total
+          help: "Anzahl der DATEV-Exporte"
           labels:
+            - export_type
             - status
-            - document_type
-        - type: histogram
-          name: thumbnail_generation_duration_seconds
-          help: "Dauer der Thumbnail-Generierung in Sekunden"
-          labels:
-            - document_type
-          buckets: [0.1, 0.5, 1, 2.5, 5, 10, 30]
         - type: gauge
-          name: document_cache_size
-          help: "Anzahl der Dokumente im Cache"
+          name: transaction_queue_size
+          help: "Anzahl der Transaktionen in der Warteschlange"
           labels:
-            - document_type
+            - priority
 ---
 # ConfigMap für Tracing-Konfiguration
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: document-service-tracing-config
+  name: finance-service-tracing-config
   namespace: erp-system
 data:
   tracing.yml: |
-    # Tracing-Konfiguration für Document-Service
+    # Tracing-Konfiguration für Finance-Service
     tracing:
       enabled: true
-      service_name: document-service
+      service_name: finance-service
       jaeger:
         agent_host: erp-jaeger-agent.erp-system.svc.cluster.local
         agent_port: 6831
@@ -176,14 +166,14 @@ data:
         sampler_param: 1
       # Operation-Tags für bessere Kategorisierung der Traces
       operation_tags:
-        - key: document_id
-          tag_as: document.id
+        - key: transaction_id
+          tag_as: transaction.id
+        - key: account_id
+          tag_as: account.id
         - key: user_id
           tag_as: user.id
-        - key: document_type
-          tag_as: document.type
-        - key: operation_type
-          tag_as: operation.type
+        - key: transaction_type
+          tag_as: transaction.type
       # Optionen für detaillierte Tracing-Spans
       span_options:
         include_request_headers:
@@ -194,18 +184,4 @@ data:
           - content-type
           - content-length
         include_payload: false
-        include_metadata: true
----
-# PersistentVolumeClaim für Dokumentenspeicher
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: document-service-document-storage
-  namespace: erp-system
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
-  storageClassName: standard 
+        include_metadata: true 

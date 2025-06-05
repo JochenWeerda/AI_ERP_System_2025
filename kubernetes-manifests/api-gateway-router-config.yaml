@@ -1,0 +1,324 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-router-config
+  namespace: erp-system
+data:
+  router-config.json: |-
+    {
+      "moduleRoutes": {
+        "dashboard": {
+          "id": 1,
+          "path": "/",
+          "service": "valeo-final-dashboard",
+          "description": "Dashboard-Hauptseite",
+          "components": [
+            {"id": "dashboard-summary", "name": "Übersicht", "type": "widget"},
+            {"id": "notifications", "name": "Benachrichtigungen", "type": "widget"},
+            {"id": "quick-actions", "name": "Schnellzugriff", "type": "action-panel"}
+          ],
+          "actions": [
+            {"id": "refresh-dashboard", "name": "Dashboard aktualisieren", "endpoint": "/api/dashboard/refresh"},
+            {"id": "customize-widgets", "name": "Widgets anpassen", "endpoint": "/api/dashboard/customize"}
+          ]
+        },
+        "inventory": {
+          "id": 2,
+          "path": "/inventory",
+          "service": "valeo-final-dashboard",
+          "description": "Lager-Modul",
+          "components": [
+            {"id": "inventory-list", "name": "Lagerbestand", "type": "data-table"},
+            {"id": "inventory-movements", "name": "Lagerbewegungen", "type": "timeline"},
+            {"id": "inventory-categories", "name": "Kategorien", "type": "tree-view"}
+          ],
+          "actions": [
+            {"id": "add-inventory", "name": "Artikel hinzufügen", "endpoint": "/api/inventory/add", "formId": "inventory-form"},
+            {"id": "export-inventory", "name": "Bestand exportieren", "endpoint": "/api/inventory/export"}
+          ],
+          "forms": [
+            {"id": "inventory-form", "title": "Artikel verwalten", "fields": [
+              {"name": "articleNumber", "type": "text", "label": "Artikelnummer", "required": true},
+              {"name": "description", "type": "text", "label": "Beschreibung", "required": true},
+              {"name": "category", "type": "select", "label": "Kategorie", "dataSource": "/api/inventory/categories"},
+              {"name": "quantity", "type": "number", "label": "Menge", "required": true},
+              {"name": "unit", "type": "text", "label": "Einheit", "required": true},
+              {"name": "location", "type": "text", "label": "Lagerort"}
+            ]}
+          ]
+        },
+        "finance": {
+          "id": 3,
+          "path": "/finance",
+          "service": "valeo-final-dashboard",
+          "description": "Finanz-Modul",
+          "components": [
+            {"id": "finance-dashboard", "name": "Finanz-Übersicht", "type": "widget"},
+            {"id": "accounts", "name": "Konten", "type": "data-table"},
+            {"id": "transactions", "name": "Transaktionen", "type": "data-table"},
+            {"id": "reports", "name": "Berichte", "type": "report-viewer"}
+          ],
+          "actions": [
+            {"id": "add-transaction", "name": "Transaktion hinzufügen", "endpoint": "/api/finance/transactions", "formId": "transaction-form"},
+            {"id": "generate-report", "name": "Bericht erstellen", "endpoint": "/api/finance/reports/generate", "formId": "report-form"}
+          ],
+          "forms": [
+            {"id": "transaction-form", "title": "Transaktion erfassen", "fields": [
+              {"name": "date", "type": "date", "label": "Datum", "required": true},
+              {"name": "amount", "type": "number", "label": "Betrag", "required": true},
+              {"name": "description", "type": "text", "label": "Beschreibung", "required": true},
+              {"name": "account", "type": "select", "label": "Konto", "dataSource": "/api/finance/accounts", "required": true},
+              {"name": "category", "type": "select", "label": "Kategorie", "dataSource": "/api/finance/categories"}
+            ]}
+          ],
+          "subRoutes": [
+            {"id": "finance-accounts", "path": "/finance/accounts", "name": "Konten", "componentId": "accounts"},
+            {"id": "finance-transactions", "path": "/finance/transactions", "name": "Transaktionen", "componentId": "transactions"},
+            {"id": "finance-reports", "path": "/finance/reports", "name": "Berichte", "componentId": "reports"}
+          ]
+        },
+        "sales": {
+          "id": 4,
+          "path": "/sales",
+          "service": "valeo-final-dashboard",
+          "description": "Verkaufs-Modul",
+          "components": [
+            {"id": "orders-list", "name": "Aufträge", "type": "data-table"},
+            {"id": "customers-list", "name": "Kunden", "type": "data-table"},
+            {"id": "sales-analytics", "name": "Verkaufsanalyse", "type": "analytics"}
+          ],
+          "actions": [
+            {"id": "create-order", "name": "Auftrag erstellen", "endpoint": "/api/sales/orders", "formId": "order-form"},
+            {"id": "add-customer", "name": "Kunde hinzufügen", "endpoint": "/api/sales/customers", "formId": "customer-form"}
+          ]
+        },
+        "purchase": {
+          "id": 5,
+          "path": "/purchase",
+          "service": "valeo-final-dashboard",
+          "description": "Einkaufs-Modul",
+          "components": [
+            {"id": "purchase-orders", "name": "Bestellungen", "type": "data-table"},
+            {"id": "suppliers", "name": "Lieferanten", "type": "data-table"},
+            {"id": "procurement-planning", "name": "Beschaffungsplanung", "type": "planning-tool"}
+          ],
+          "actions": [
+            {"id": "create-purchase-order", "name": "Bestellung erstellen", "endpoint": "/api/purchase/orders", "formId": "purchase-order-form"},
+            {"id": "add-supplier", "name": "Lieferant hinzufügen", "endpoint": "/api/purchase/suppliers", "formId": "supplier-form"}
+          ]
+        },
+        "documents": {
+          "id": 6,
+          "path": "/documents",
+          "service": "valeo-final-dashboard",
+          "description": "Dokumenten-Modul",
+          "components": [
+            {"id": "document-browser", "name": "Dokumentenbrowser", "type": "file-browser"},
+            {"id": "document-preview", "name": "Vorschau", "type": "document-viewer"},
+            {"id": "document-categories", "name": "Kategorien", "type": "tree-view"}
+          ],
+          "actions": [
+            {"id": "upload-document", "name": "Dokument hochladen", "endpoint": "/api/documents/upload", "formId": "document-upload-form"},
+            {"id": "create-folder", "name": "Ordner erstellen", "endpoint": "/api/documents/folders", "formId": "folder-form"}
+          ]
+        },
+        "settings": {
+          "id": 7,
+          "path": "/settings",
+          "service": "valeo-final-dashboard",
+          "description": "Einstellungen",
+          "components": [
+            {"id": "user-settings", "name": "Benutzereinstellungen", "type": "settings-panel"},
+            {"id": "system-settings", "name": "Systemeinstellungen", "type": "settings-panel"},
+            {"id": "theme-settings", "name": "Design", "type": "theme-selector"}
+          ],
+          "actions": [
+            {"id": "save-settings", "name": "Einstellungen speichern", "endpoint": "/api/settings/save"},
+            {"id": "reset-settings", "name": "Zurücksetzen", "endpoint": "/api/settings/reset"},
+            {"id": "change-theme", "name": "Design ändern", "endpoint": "/api/theme/change", "formId": "theme-form"}
+          ]
+        },
+        "stammdaten": {
+          "id": 8,
+          "path": "/stammdaten",
+          "service": "valeo-final-dashboard",
+          "description": "Stammdaten-Modul",
+          "components": [
+            {"id": "artikel-list", "name": "Artikel", "type": "data-table"},
+            {"id": "artikel-kategorien", "name": "Kategorien", "type": "tree-view"},
+            {"id": "einheiten-list", "name": "Maßeinheiten", "type": "data-table"}
+          ],
+          "actions": [
+            {"id": "add-artikel", "name": "Artikel hinzufügen", "endpoint": "/api/stammdaten/artikel", "formId": "artikel-form"},
+            {"id": "add-einheit", "name": "Maßeinheit hinzufügen", "endpoint": "/api/stammdaten/einheiten", "formId": "einheit-form"}
+          ],
+          "forms": [
+            {"id": "artikel-form", "title": "Artikel verwalten", "fields": [
+              {"name": "artikelNummer", "type": "text", "label": "Artikelnummer", "required": true},
+              {"name": "bezeichnung", "type": "text", "label": "Bezeichnung", "required": true},
+              {"name": "kategorie", "type": "select", "label": "Kategorie", "dataSource": "/api/stammdaten/kategorien"},
+              {"name": "einheit", "type": "select", "label": "Maßeinheit", "dataSource": "/api/stammdaten/einheiten", "required": true},
+              {"name": "preis", "type": "number", "label": "Preis", "required": true},
+              {"name": "steuersatz", "type": "select", "label": "Steuersatz", "dataSource": "/api/stammdaten/steuersaetze"}
+            ]},
+            {"id": "einheit-form", "title": "Maßeinheit hinzufügen", "fields": [
+              {"name": "name", "type": "text", "label": "Name", "required": true},
+              {"name": "kuerzel", "type": "text", "label": "Kürzel", "required": true},
+              {"name": "beschreibung", "type": "text", "label": "Beschreibung"}
+            ]}
+          ],
+          "subRoutes": [
+            {"id": "stammdaten-artikel", "path": "/stammdaten/artikel", "name": "Artikel", "componentId": "artikel-list"},
+            {"id": "stammdaten-kategorien", "path": "/stammdaten/kategorien", "name": "Kategorien", "componentId": "artikel-kategorien"},
+            {"id": "stammdaten-einheiten", "path": "/stammdaten/einheiten", "name": "Maßeinheiten", "componentId": "einheiten-list"}
+          ]
+        },
+        "finance-service": {
+          "id": 101,
+          "path": "/services/finance",
+          "service": "finance-service",
+          "description": "Finance Service API"
+        },
+        "document-service": {
+          "id": 102,
+          "path": "/services/document",
+          "service": "document-service",
+          "description": "Document Service API"
+        },
+        "beleg-service": {
+          "id": 103,
+          "path": "/services/beleg",
+          "service": "beleg-service",
+          "description": "Beleg Service API"
+        },
+        "theme-service": {
+          "id": 104,
+          "path": "/services/theme",
+          "service": "theme-service",
+          "description": "Theme Service API"
+        },
+        "artikel-stammdaten-service": {
+          "id": 105,
+          "path": "/services/artikel-stammdaten",
+          "service": "artikel-stammdaten-service",
+          "description": "Artikel-Stammdaten Service API"
+        },
+        "einheiten-service": {
+          "id": 106,
+          "path": "/services/einheiten",
+          "service": "einheiten-service",
+          "description": "Einheiten Service API"
+        }
+      },
+      "events": {
+        "click": {
+          "handler": "handleClick",
+          "triggers": [
+            {"selector": "[data-module-id]", "action": "navigateToModule"},
+            {"selector": "[data-action-id]", "action": "executeAction"},
+            {"selector": "[data-form-submit]", "action": "submitForm"},
+            {"selector": "[data-component-id]", "action": "activateComponent"}
+          ]
+        },
+        "form": {
+          "handler": "handleFormSubmit",
+          "triggers": [
+            {"selector": "form[data-form-id]", "action": "submitForm"}
+          ]
+        }
+      }
+    }
+  router-middleware.js: |-
+    // Express Router-Middleware für den zentralen Router
+    const express = require('express');
+    const router = express.Router();
+    const fs = require('fs');
+    const path = require('path');
+
+    // Lade die Routing-Konfiguration
+    const configPath = path.join(__dirname, 'router-config.json');
+    const routerConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    // Lookup-Tabelle für Routing nach ID
+    const idToRouteMap = {};
+    Object.values(routerConfig.moduleRoutes).forEach(route => {
+      idToRouteMap[route.id] = route;
+    });
+
+    // Middleware zum Protokollieren von Anfragen
+    router.use((req, res, next) => {
+      console.log(`Router-Anfrage: ${req.method} ${req.url}`);
+      next();
+    });
+
+    // Haupt-Routing-Endpunkt, der Frontend-Klicks verarbeitet
+    router.post('/navigate', (req, res) => {
+      const { moduleId, targetId, params } = req.body;
+      
+      console.log(`Navigationsanfrage: moduleId=${moduleId}, targetId=${targetId}`);
+      
+      // Bestimme die Ziel-Route basierend auf der ID
+      const targetRoute = idToRouteMap[moduleId || targetId];
+      
+      if (!targetRoute) {
+        return res.status(404).json({ 
+          error: 'Unbekannte Modul-ID', 
+          message: `Keine Route für ID ${moduleId || targetId} gefunden` 
+        });
+      }
+      
+      // Erstelle die Ziel-URL mit optionalen Parametern
+      let targetUrl = targetRoute.path;
+      if (params && Object.keys(params).length > 0) {
+        const queryParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+          queryParams.append(key, value);
+        });
+        targetUrl += `?${queryParams.toString()}`;
+      }
+      
+      console.log(`Leite weiter zu: ${targetUrl}`);
+      
+      // Gib die Ziel-URL zurück, zu der der Client navigieren soll
+      res.json({ 
+        success: true, 
+        redirect: targetUrl,
+        module: targetRoute 
+      });
+    });
+
+    // Endpunkt zum Abrufen aller verfügbaren Module
+    router.get('/modules', (req, res) => {
+      res.json({ 
+        modules: routerConfig.moduleRoutes,
+        events: routerConfig.events
+      });
+    });
+
+    // Endpunkt zum Abrufen einer spezifischen Route nach ID
+    router.get('/module/:id', (req, res) => {
+      const moduleId = parseInt(req.params.id, 10);
+      const module = idToRouteMap[moduleId];
+      
+      if (!module) {
+        return res.status(404).json({ 
+          error: 'Modul nicht gefunden',
+          message: `Keine Route für ID ${moduleId} gefunden` 
+        });
+      }
+      
+      res.json({ module });
+    });
+
+    module.exports = router;
+  router-integration.js: |-
+    // Integration des Routers in die API-Gateway-App
+    const express = require('express');
+    const router = require('./router-middleware');
+
+    module.exports = function(app) {
+      // Registriere den Router unter dem /router Pfad
+      app.use('/router', router);
+      
+      console.log('Zentraler Router wurde erfolgreich integriert');
+    }; 

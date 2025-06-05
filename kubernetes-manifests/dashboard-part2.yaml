@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: valeo-dashboard
+  namespace: erp-system
+  labels:
+    app: valeo-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: valeo-dashboard
+  template:
+    metadata:
+      labels:
+        app: valeo-dashboard
+    spec:
+      containers:
+      - name: valeo-dashboard
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: dashboard-config
+          mountPath: /usr/share/nginx/html/index.html
+          subPath: index.html
+        - name: dashboard-styles
+          mountPath: /usr/share/nginx/html/styles
+      volumes:
+      - name: dashboard-config
+        configMap:
+          name: dashboard-config
+      - name: dashboard-styles
+        configMap:
+          name: dashboard-styles-config
+          items:
+          - key: styles.css
+            path: styles.css 

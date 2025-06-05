@@ -1,0 +1,234 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observer-service
+  namespace: erp-system
+spec:
+  template:
+    metadata:
+      annotations:
+        # Prometheus-Annotationen für Metrik-Scraping
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8010"
+        prometheus.io/path: "/metrics"
+        # Jaeger-Annotationen für Tracing
+        jaeger.erp-system.svc.cluster.local/inject: "true"
+        jaeger.erp-system.svc.cluster.local/service-name: "observer-service"
+    spec:
+      containers:
+      - name: observer-service
+        env:
+        # Umgebungsvariablen für Metriken
+        - name: ENABLE_METRICS
+          value: "true"
+        - name: METRICS_PATH
+          value: "/metrics"
+        - name: METRICS_PORT
+          value: "8010"
+        # Umgebungsvariablen für Jaeger Tracing
+        - name: JAEGER_AGENT_HOST
+          value: "erp-jaeger-agent.erp-system.svc.cluster.local"
+        - name: JAEGER_AGENT_PORT
+          value: "6831"
+        - name: JAEGER_SAMPLER_TYPE
+          value: "const"
+        - name: JAEGER_SAMPLER_PARAM
+          value: "1"
+        - name: JAEGER_SERVICE_NAME
+          value: "observer-service"
+        - name: ENABLE_TRACING
+          value: "true"
+        # Umgebungsvariablen für strukturiertes Logging
+        - name: LOG_LEVEL
+          value: "info"
+        - name: LOG_FORMAT
+          value: "json"
+        - name: ELASTICSEARCH_HOST
+          value: "elasticsearch.erp-system.svc.cluster.local:9200"
+        - name: USE_ELASTICSEARCH
+          value: "true"
+        # Spezifische Umgebungsvariablen für den Observer-Service
+        - name: ENABLE_AUTO_RESTART
+          value: "true"
+        - name: HEALTH_CHECK_FAILURES_THRESHOLD
+          value: "3"
+        - name: RESTART_SCRIPTS_DIR
+          value: "/app/restart_scripts"
+        volumeMounts:
+        # Volume für Metriken-Konfiguration
+        - name: metrics-config
+          mountPath: /app/config/metrics
+          readOnly: true
+        # Volume für Tracing-Konfiguration
+        - name: tracing-config
+          mountPath: /app/config/tracing
+          readOnly: true
+        # Volume für Neustart-Skripte
+        - name: restart-scripts
+          mountPath: /app/restart_scripts
+          readOnly: true
+        # Health Probes für Kubernetes
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8010
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8010
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8010
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 20
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      # ConfigMap für Metriken
+      - name: metrics-config
+        configMap:
+          name: observer-service-metrics-config
+      # ConfigMap für Tracing
+      - name: tracing-config
+        configMap:
+          name: observer-service-tracing-config
+      # ConfigMap für Neustart-Skripte
+      - name: restart-scripts
+        configMap:
+          name: observer-service-restart-scripts
+---
+# ConfigMap für Metriken-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observer-service-metrics-config
+  namespace: erp-system
+data:
+  metrics.yml: |
+    # Metriken-Konfiguration für Observer-Service
+    metrics:
+      enabled: true
+      endpoint: /metrics
+      port: 8010
+      collectors:
+        - type: counter
+          name: service_registrations_total
+          help: "Gesamtzahl der Service-Registrierungen"
+          labels:
+            - service_name
+            - status
+        - type: counter
+          name: health_checks_total
+          help: "Gesamtzahl der Health-Checks"
+          labels:
+            - service_name
+            - status
+        - type: counter
+          name: service_restarts_total
+          help: "Gesamtzahl der Service-Neustarts"
+          labels:
+            - service_name
+            - reason
+        - type: gauge
+          name: registered_services
+          help: "Anzahl der registrierten Services"
+        - type: gauge
+          name: healthy_services
+          help: "Anzahl der gesunden Services"
+        - type: gauge
+          name: unhealthy_services
+          help: "Anzahl der ungesunden Services"
+        - type: histogram
+          name: health_check_duration_seconds
+          help: "Dauer der Health-Checks in Sekunden"
+          labels:
+            - service_name
+          buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
+        - type: histogram
+          name: optimization_run_duration_seconds
+          help: "Dauer der Optimierungsläufe in Sekunden"
+          buckets: [0.1, 0.5, 1, 5, 10, 30, 60, 120, 300]
+---
+# ConfigMap für Tracing-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observer-service-tracing-config
+  namespace: erp-system
+data:
+  tracing.yml: |
+    # Tracing-Konfiguration für Observer-Service
+    tracing:
+      enabled: true
+      service_name: observer-service
+      jaeger:
+        agent_host: erp-jaeger-agent.erp-system.svc.cluster.local
+        agent_port: 6831
+        sampler_type: const
+        sampler_param: 1
+      # Operation-Tags für bessere Kategorisierung der Traces
+      operation_tags:
+        - key: service_name
+          tag_as: service.name
+        - key: operation_type
+          tag_as: operation.type
+        - key: health_status
+          tag_as: health.status
+      # Optionen für detaillierte Tracing-Spans
+      span_options:
+        include_request_headers:
+          - content-type
+          - authorization
+          - x-request-id
+        include_response_headers:
+          - content-type
+          - content-length
+        include_payload: false
+        include_metadata: true
+---
+# ConfigMap für Neustart-Skripte (Beispiel)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observer-service-restart-scripts
+  namespace: erp-system
+data:
+  restart_finance_service.sh: |
+    #!/bin/bash
+    echo "Neustart des Finance-Service wird eingeleitet..."
+    kubectl rollout restart deployment/finance-service -n erp-system
+    echo "Neustart-Befehl für Finance-Service wurde ausgeführt."
+  
+  restart_auth_service.sh: |
+    #!/bin/bash
+    echo "Neustart des Auth-Service wird eingeleitet..."
+    kubectl rollout restart deployment/auth-service -n erp-system
+    echo "Neustart-Befehl für Auth-Service wurde ausgeführt."
+  
+  restart_reporting_service.sh: |
+    #!/bin/bash
+    echo "Neustart des Reporting-Service wird eingeleitet..."
+    kubectl rollout restart deployment/reporting-service -n erp-system
+    echo "Neustart-Befehl für Reporting-Service wurde ausgeführt."
+  
+  restart_document_service.sh: |
+    #!/bin/bash
+    echo "Neustart des Document-Service wird eingeleitet..."
+    kubectl rollout restart deployment/document-service -n erp-system
+    echo "Neustart-Befehl für Document-Service wurde ausgeführt." 
