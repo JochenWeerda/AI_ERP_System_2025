@@ -1,170 +1,141 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Benutzertyp
-interface User {
-  id: number;
+// Benutzertyp-Definition
+export interface User {
+  id: string;
   username: string;
   email: string;
-  phone?: string;
-  fullName: string;
-  department?: string;
-  position?: string;
   roles: string[];
 }
 
-// Kontext-Werte
-interface AuthContextType {
+// Auth-Kontext-Typ-Definition
+export interface AuthContextType {
+  isAuthenticated: boolean;
   user: User | null;
+  login: (username: string, password: string) => Promise<boolean>;
+  logout: () => void;
   loading: boolean;
   error: string | null;
-  isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
-  register: (userData: RegisterData) => Promise<void>;
 }
 
-// Registrierungsdaten
-interface RegisterData {
-  username: string;
-  email: string;
-  password: string;
-  fullName: string;
-  phone?: string;
-  department?: string;
-  position?: string;
-}
+// Erstellen des Auth-Kontexts
+const AuthContext = createContext<AuthContextType | null>(null);
 
-// Erstellen des Kontexts mit Standardwerten
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: false,
-  error: null,
-  isAuthenticated: false,
-  login: async () => {},
-  logout: () => {},
-  register: async () => {},
-});
-
-// Benutzerdefinierter Hook für den Zugriff auf den Kontext
-export const useAuth = () => useContext(AuthContext);
-
-// Kontext-Provider
+// Auth-Provider-Props
 interface AuthProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
+/**
+ * Auth Provider Komponente
+ * Verwaltet den Authentifizierungsstatus der Anwendung
+ */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  // Beim Laden der Anwendung prüfen, ob ein Token vorhanden ist
+  
+  // Beim Laden der Anwendung prüfen, ob ein Benutzer eingeloggt ist
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          // Token als Header für alle Anfragen setzen
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
-          // Benutzerdaten abrufen
-          const response = await axios.get(`${API_BASE_URL}/api/v1/auth/me`);
-          setUser(response.data);
-          setIsAuthenticated(true);
-        } catch (err) {
-          console.error('Fehler beim Abrufen der Benutzerdaten:', err);
-          localStorage.removeItem('token');
-          delete axios.defaults.headers.common['Authorization'];
+      try {
+        // In einer realen Anwendung würde hier ein API-Aufruf stattfinden
+        // z.B. const response = await api.get('/auth/me');
+        
+        // Für Demozwecke verwenden wir den localStorage
+        const storedUser = localStorage.getItem('auth_user');
+        
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
         }
+      } catch (err) {
+        setError('Fehler beim Laden des Benutzerprofils');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-
+    
     checkAuth();
   }, []);
-
-  // Anmelden
-  const login = async (username: string, password: string) => {
+  
+  /**
+   * Benutzeranmeldung
+   * @param username Benutzername
+   * @param password Passwort
+   * @returns True, wenn die Anmeldung erfolgreich war
+   */
+  const login = async (username: string, password: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
+      // In einer realen Anwendung würde hier ein API-Aufruf stattfinden
+      // z.B. const response = await api.post('/auth/login', { username, password });
       
-      // Anmeldedaten senden
-      const response = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, {
-        username,
-        password,
-      });
-      
-      // Token speichern
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      
-      // Token als Header für alle Anfragen setzen
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Benutzerdaten speichern
-      setUser(user);
-      setIsAuthenticated(true);
+      // Für Demozwecke simulieren wir eine erfolgreiche Anmeldung
+      if (username && password) {
+        const mockUser: User = {
+          id: 'user-123',
+          username,
+          email: `${username}@example.com`,
+          roles: ['user'],
+        };
+        
+        // Benutzer im localStorage speichern
+        localStorage.setItem('auth_user', JSON.stringify(mockUser));
+        
+        setUser(mockUser);
+        return true;
+      } else {
+        throw new Error('Ungültige Anmeldedaten');
+      }
     } catch (err: any) {
-      console.error('Anmeldefehler:', err);
-      setError(err.response?.data?.message || 'Fehler bei der Anmeldung');
-      setIsAuthenticated(false);
+      setError(err.message || 'Fehler bei der Anmeldung');
+      return false;
     } finally {
       setLoading(false);
     }
   };
-
-  // Abmelden
-  const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
+  
+  /**
+   * Benutzerabmeldung
+   */
+  const logout = (): void => {
+    // Benutzer aus dem localStorage entfernen
+    localStorage.removeItem('auth_user');
+    
     setUser(null);
-    setIsAuthenticated(false);
   };
-
-  // Registrieren
-  const register = async (userData: RegisterData) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Registrierungsdaten senden
-      const response = await axios.post(`${API_BASE_URL}/api/v1/auth/register`, userData);
-      
-      // Token speichern
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      
-      // Token als Header für alle Anfragen setzen
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Benutzerdaten speichern
-      setUser(user);
-      setIsAuthenticated(true);
-    } catch (err: any) {
-      console.error('Registrierungsfehler:', err);
-      setError(err.response?.data?.message || 'Fehler bei der Registrierung');
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Kontextwerte
-  const value = {
+  
+  // Context-Wert
+  const contextValue: AuthContextType = {
+    isAuthenticated: !!user,
     user,
-    loading,
-    error,
-    isAuthenticated,
     login,
     logout,
-    register,
+    loading,
+    error,
   };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export default AuthContext; 
+/**
+ * Hook zum Zugriff auf den Auth-Kontext
+ * @returns AuthContextType Objekt mit Authentifizierungsinformationen und -funktionen
+ */
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  
+  if (!context) {
+    throw new Error('useAuth muss innerhalb eines AuthProviders verwendet werden');
+  }
+  
+  return context;
+};
+
+export default AuthProvider; 

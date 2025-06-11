@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OWL Framework Test</title>
+  
+  <!-- CSS-Stylesheets -->
+  <link rel="stylesheet" href="../styles/framework.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f7fa;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .header {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .header h1 {
+      margin: 0;
+      color: #2d3748;
+    }
+    
+    .header p {
+      color: #4a5568;
+      margin-top: 8px;
+    }
+    
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    
+    .test-section h2 {
+      margin-top: 0;
+      color: #2d3748;
+    }
+    
+    .test-container {
+      margin-top: 20px;
+      min-height: 300px;
+      border: 1px dashed #cbd5e0;
+      border-radius: 4px;
+      padding: 10px;
+    }
+    
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .log-container {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #2d3748;
+      color: #e2e8f0;
+      border-radius: 6px;
+      font-family: monospace;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .log-entry {
+      margin: 5px 0;
+      padding: 5px;
+      border-bottom: 1px solid #4a5568;
+    }
+    
+    .success {
+      color: #48bb78;
+    }
+    
+    .error {
+      color: #f56565;
+    }
+    
+    .info {
+      color: #4299e1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>OWL Framework Test</h1>
+      <p>Eine einfache Testumgebung für das OWL-Module-Framework</p>
+    </div>
+    
+    <div class="test-section">
+      <h2>Beispielmodul</h2>
+      <div id="example-module-container" class="test-container"></div>
+      <div class="controls">
+        <button id="refresh-module" class="btn btn-primary">Modul neu laden</button>
+        <button id="reset-store" class="btn btn-secondary">Store zurücksetzen</button>
+      </div>
+    </div>
+    
+    <div class="log-container" id="log">
+      <div class="log-entry info">Test gestartet...</div>
+    </div>
+  </div>
+  
+  <!-- OWL und andere Abhängigkeiten laden -->
+  <script src="../../node_modules/@odoo/owl/dist/owl.iife.js"></script>
+  
+  <!-- OWL Framework -->
+  <script type="module">
+    import { initFramework, ModuleBase, registerModule } from '../index.js';
+    import { ExampleModule } from './ExampleModule.js';
+    
+    // Logging-Funktion
+    function log(message, type = 'info') {
+      const logContainer = document.getElementById('log');
+      const logEntry = document.createElement('div');
+      logEntry.className = `log-entry ${type}`;
+      logEntry.textContent = message;
+      logContainer.appendChild(logEntry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    // Framework initialisieren
+    const framework = initFramework({
+      debug: true,
+      devTools: true
+    });
+    
+    log('Framework initialisiert', 'success');
+    
+    // Beispielmodul registrieren
+    try {
+      registerModule('example-module', ExampleModule, {
+        title: 'Framework Test-Modul',
+        description: 'Dieses Modul testet die Funktionalität des OWL-Frameworks',
+        showRetryButton: true,
+        showFooter: true
+      });
+      log('Beispielmodul registriert', 'success');
+    } catch (error) {
+      log(`Fehler beim Registrieren des Moduls: ${error.message}`, 'error');
+    }
+    
+    // Modul mounten
+    async function mountModule() {
+      try {
+        const container = document.getElementById('example-module-container');
+        container.innerHTML = '';
+        
+        const { mount } = owl;
+        const app = await mount(ExampleModule, container, {
+          props: {
+            moduleId: 'example-module',
+            config: {
+              title: 'Framework Test-Modul',
+              description: 'Dieses Modul testet die Funktionalität des OWL-Frameworks'
+            },
+            onAction: (action) => {
+              log(`Modul-Aktion: ${action.action}`, 'info');
+            },
+            onError: (error) => {
+              log(`Modul-Fehler: ${error.error?.message || 'Unbekannter Fehler'}`, 'error');
+            },
+            onUpdate: (update) => {
+              log(`Modul-Update: ${update.type}`, 'info');
+            }
+          }
+        });
+        
+        // Anwendung global verfügbar machen für Debug-Zwecke
+        window.app = app;
+        log('Modul erfolgreich gemountet', 'success');
+      } catch (error) {
+        log(`Fehler beim Mounten des Moduls: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
+    
+    // Event-Listener
+    document.getElementById('refresh-module').addEventListener('click', () => {
+      log('Modul wird neu geladen...', 'info');
+      mountModule();
+    });
+    
+    document.getElementById('reset-store').addEventListener('click', () => {
+      try {
+        if (window.app && window.app.store) {
+          window.app.store.dispatch('reset');
+          log('Store wurde zurückgesetzt', 'success');
+        } else {
+          log('Kein Store gefunden', 'error');
+        }
+      } catch (error) {
+        log(`Fehler beim Zurücksetzen des Stores: ${error.message}`, 'error');
+      }
+    });
+    
+    // Modul beim Laden der Seite mounten
+    document.addEventListener('DOMContentLoaded', () => {
+      mountModule();
+    });
+  </script>
+</body>
+</html> 

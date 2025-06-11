@@ -1,0 +1,654 @@
+/**
+ * framework.css
+ * Basis-Styling für das OWL-Module-Framework
+ */
+
+/* ============================================
+   Grundlegende Module-Styles
+   ============================================ */
+.owl-module {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Module Header */
+.owl-module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+}
+
+.owl-module-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.module-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Module Content */
+.owl-module-content {
+  flex: 1;
+  padding: 16px;
+  min-height: 100px;
+}
+
+.module-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  color: #666;
+}
+
+.module-error {
+  padding: 16px;
+  background-color: #fff5f5;
+  border: 1px solid #ffebeb;
+  border-radius: 4px;
+  color: #e53e3e;
+  margin-bottom: 12px;
+}
+
+.error-message {
+  margin: 0 0 12px 0;
+}
+
+/* Module Footer */
+.owl-module-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #ddd;
+  font-size: 14px;
+  color: #666;
+}
+
+.module-status {
+  font-size: 12px;
+  color: #718096;
+}
+
+/* ============================================
+   Liste Module Styles
+   ============================================ */
+.owl-list-module .module-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #f1f3f5;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.search-container {
+  flex: 1;
+  max-width: 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ============================================
+   Form Module Styles
+   ============================================ */
+.owl-form-module .form-status {
+  font-size: 12px;
+  color: #718096;
+  padding: 4px 16px;
+  background-color: #f1f3f5;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.status-modified {
+  color: #dd6b20;
+}
+
+.status-saving {
+  color: #3182ce;
+}
+
+.status-saved {
+  color: #38a169;
+}
+
+.validation-errors {
+  padding: 12px;
+  background-color: #fff5f5;
+  border: 1px solid #ffebeb;
+  border-radius: 4px;
+  color: #e53e3e;
+  margin-bottom: 16px;
+}
+
+.validation-errors h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.validation-errors ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* ============================================
+   Dashboard Module Styles
+   ============================================ */
+.owl-dashboard-module .dashboard-period {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 8px;
+}
+
+/* ============================================
+   Formular-Komponenten
+   ============================================ */
+/* Input Gruppen */
+.owl-input-group,
+.owl-select-group,
+.owl-checkbox-group,
+.owl-radio-group {
+  margin-bottom: 16px;
+}
+
+.input-label,
+.select-label,
+.checkbox-label,
+.radio-group-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.required-marker {
+  color: #e53e3e;
+  margin-left: 2px;
+}
+
+.input-container,
+.select-container {
+  position: relative;
+}
+
+.input-hint,
+.select-hint,
+.checkbox-hint,
+.radio-hint {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 4px;
+}
+
+/* Error Styling */
+.has-error .input-label,
+.has-error .select-label,
+.has-error .checkbox-label,
+.has-error .radio-group-label {
+  color: #e53e3e;
+}
+
+.has-error input,
+.has-error select {
+  border-color: #e53e3e;
+}
+
+.error-message {
+  font-size: 12px;
+  color: #e53e3e;
+  margin-top: 4px;
+}
+
+/* ============================================
+   Tabellen
+   ============================================ */
+.owl-table-container {
+  overflow-x: auto;
+}
+
+.owl-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e2e8f0;
+}
+
+.owl-table-container th,
+.owl-table-container td {
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.owl-table-container th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.owl-table-container .selection-column {
+  width: 40px;
+  text-align: center;
+}
+
+.owl-table-container .actions-column {
+  width: 120px;
+  text-align: right;
+}
+
+.owl-table-container .sortable {
+  cursor: pointer;
+}
+
+.owl-table-container .th-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.owl-table-container .sort-icon {
+  margin-left: 8px;
+}
+
+.owl-table-container tr.selected {
+  background-color: #ebf8ff;
+}
+
+.owl-table-container tr:hover {
+  background-color: #f7fafc;
+}
+
+.owl-table-container .empty-row td {
+  text-align: center;
+  padding: 30px;
+  color: #718096;
+}
+
+/* ============================================
+   Modal Komponente
+   ============================================ */
+.owl-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.owl-modal-container {
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.owl-modal-container.small {
+  width: 400px;
+}
+
+.owl-modal-container.large {
+  width: 800px;
+}
+
+.owl-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.modal-close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #718096;
+}
+
+.owl-modal-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.owl-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px;
+  border-top: 1px solid #e2e8f0;
+  gap: 8px;
+}
+
+/* ============================================
+   Alert Komponente
+   ============================================ */
+.owl-alert {
+  display: flex;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.owl-alert.success {
+  background-color: #f0fff4;
+  border: 1px solid #c6f6d5;
+  color: #2f855a;
+}
+
+.owl-alert.info {
+  background-color: #ebf8ff;
+  border: 1px solid #bee3f8;
+  color: #2c5282;
+}
+
+.owl-alert.warning {
+  background-color: #fffaf0;
+  border: 1px solid #feebc8;
+  color: #c05621;
+}
+
+.owl-alert.error {
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
+}
+
+.alert-icon {
+  margin-right: 12px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-title {
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.alert-message {
+  font-size: 14px;
+}
+
+.alert-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  font-size: 14px;
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+/* ============================================
+   Button Styles
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background-color: #3182ce;
+  color: white;
+  border-color: #3182ce;
+}
+
+.btn-primary:hover {
+  background-color: #2c5282;
+  border-color: #2c5282;
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #4a5568;
+  border-color: #e2e8f0;
+}
+
+.btn-secondary:hover {
+  background-color: #cbd5e0;
+  border-color: #cbd5e0;
+}
+
+.btn-danger {
+  background-color: #e53e3e;
+  color: white;
+  border-color: #e53e3e;
+}
+
+.btn-danger:hover {
+  background-color: #c53030;
+  border-color: #c53030;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button-icon {
+  margin-right: 6px;
+}
+
+/* ============================================
+   React Integration Styles
+   ============================================ */
+.owl-wrapper {
+  width: 100%;
+}
+
+.owl-container {
+  width: 100%;
+}
+
+.module-integration-demo {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.module-settings {
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.settings-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+.form-group label {
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.module-container {
+  margin-bottom: 20px;
+}
+
+.module-events {
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.events-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background-color: #fff;
+  padding: 8px;
+}
+
+.event-item {
+  padding: 6px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+
+.no-events {
+  text-align: center;
+  color: #718096;
+  padding: 20px;
+}
+
+/* ============================================
+   Beispielmodul Styles
+   ============================================ */
+.example-module .counter-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #f7fafc;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.example-module .counter-value {
+  font-weight: bold;
+  color: #3182ce;
+}
+
+.example-module .counter-controls {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.example-module .items-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #f7fafc;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.example-module .item-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
+}
+
+.example-module .item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.example-module .add-item-form {
+  padding: 16px;
+  background-color: #f7fafc;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.example-module .input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.example-module .form-control {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+}

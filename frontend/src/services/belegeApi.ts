@@ -423,6 +423,97 @@ const belegeApi = {
   getQualitaetsanalyse: async (eingangslieferscheinId: string) => {
     const response = await api.get(`/belege/ki/qualitaetsanalyse/${eingangslieferscheinId}`);
     return response.data;
+  },
+
+  // Hilfsfunktionen für das LieferscheinFormular
+  searchKunden: async (suchtext: string) => {
+    try {
+      const response = await api.get(`/api/v1/kunden/search?q=${encodeURIComponent(suchtext)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Fehler bei der Kundensuche:', error);
+      throw error;
+    }
+  },
+
+  getAuftraegeForKunde: async (kundeId: string) => {
+    try {
+      const response = await api.get(`/api/v1/auftraege?kundeId=${encodeURIComponent(kundeId)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Fehler beim Laden der Aufträge für Kunde:', error);
+      throw error;
+    }
+  },
+
+  searchArtikel: async (suchtext: string) => {
+    try {
+      const response = await api.get(`/api/v1/artikel/search?q=${encodeURIComponent(suchtext)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Fehler bei der Artikelsuche:', error);
+      throw error;
+    }
+  },
+
+  getEinheiten: async () => {
+    try {
+      const response = await api.get('/api/v1/einheiten');
+      return response.data;
+    } catch (error) {
+      console.error('Fehler beim Laden der Einheiten:', error);
+      throw error;
+    }
+  },
+
+  getLieferschein: async (id: string) => {
+    try {
+      const response = await api.get(`/api/v1/lieferscheine/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Fehler beim Laden des Lieferscheins:', error);
+      throw error;
+    }
+  },
+
+  createLieferschein: async (lieferschein: any) => {
+    try {
+      const response = await api.post('/api/v1/lieferscheine', lieferschein);
+      return response.data;
+    } catch (error) {
+      console.error('Fehler beim Erstellen des Lieferscheins:', error);
+      throw error;
+    }
+  },
+
+  updateLieferschein: async (id: string, lieferschein: any) => {
+    try {
+      const response = await api.put(`/api/v1/lieferscheine/${id}`, lieferschein);
+      return response.data;
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Lieferscheins:', error);
+      throw error;
+    }
+  },
+
+  updateLieferscheinStatus: async (id: string, status: string) => {
+    try {
+      const response = await api.patch(`/api/v1/lieferscheine/${id}/status`, { status });
+      return response.data;
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Lieferschein-Status:', error);
+      throw error;
+    }
+  },
+
+  getAuftrag: async (id: string) => {
+    try {
+      const response = await api.get(`/api/v1/auftraege/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Fehler beim Laden des Auftrags:', error);
+      throw error;
+    }
   }
 };
 

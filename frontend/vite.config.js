@@ -10,7 +10,17 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      // Diese Konfiguration ist notwendig, um React korrekt zu laden
+      include: '**/*.{jsx,tsx}',
+      jsxImportSource: 'react',
+      jsxRuntime: 'automatic',
+      babel: {
+        plugins: []
+      }
+    })
+  ],
   
   // Verbesserte Alias-Konfiguration für Import-Pfade
   resolve: {
@@ -23,17 +33,8 @@ export default defineConfig({
       '@contexts': path.resolve(__dirname, './src/contexts'),
       '@styles': path.resolve(__dirname, './src/styles'),
       '@assets': path.resolve(__dirname, './src/assets'),
-    }
-  },
-
-  // Konfiguration für JSX/TSX-Dateien
-  esbuild: {
-    loader: { 
-      '.js': 'jsx', 
-      '.ts': 'tsx'
     },
-    jsxFactory: 'React.createElement',
-    jsxFragment: 'React.Fragment'
+    extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json']
   },
 
   // Server-Konfiguration
@@ -47,7 +48,17 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8003',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        rewrite: (path) => path
+      },
+      '/v1': {
+        target: 'http://localhost:8003',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
+      '/api/v1': {
+        target: 'http://localhost:8003',
+        changeOrigin: true,
+        rewrite: (path) => path
       }
     }
   },

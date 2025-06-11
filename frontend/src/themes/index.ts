@@ -5,6 +5,7 @@
 export { default as ThemeProvider } from './ThemeProvider';
 export { default as themeService } from './themeService';
 export { default as llmInterface } from './llmInterface';
+export { default as themeRestAPI } from './themeRestAPI';
 export * from './themeTypes';
 
 // Export der Theme-Varianten

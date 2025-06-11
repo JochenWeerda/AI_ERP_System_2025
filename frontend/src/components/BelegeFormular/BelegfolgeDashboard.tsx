@@ -14,7 +14,9 @@ import {
   CircularProgress,
   Tabs,
   Tab,
-  Skeleton
+  Skeleton,
+  AppBar,
+  Toolbar
 } from '@mui/material';
 import {
   FeaturedPlayList as AngebotIcon,
@@ -27,7 +29,7 @@ import {
   Visibility as ViewIcon,
   Notifications as NotificationIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface BelegCount {
   total: number;
@@ -182,6 +184,7 @@ const BelegCardSkeleton = () => (
 const BelegfolgeDashboard: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const [belegData, setBelegData] = useState<BelegData>({
@@ -192,6 +195,27 @@ const BelegfolgeDashboard: React.FC = () => {
     bestellungen: { total: 0, open: 0, inProgress: 0, completed: 0 },
     eingangslieferscheine: { total: 0, open: 0, inProgress: 0, completed: 0 }
   });
+
+  // Bestimme den aktiven Tab basierend auf der aktuellen URL
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/angebote')) {
+      setActiveTab(0);
+    } else if (path.includes('/auftraege')) {
+      setActiveTab(1);
+    } else if (path.includes('/lieferscheine')) {
+      setActiveTab(2);
+    } else if (path.includes('/rechnungen')) {
+      setActiveTab(3);
+    } else if (path.includes('/bestellungen')) {
+      setActiveTab(4);
+    } else if (path.includes('/eingangslieferscheine')) {
+      setActiveTab(5);
+    } else {
+      // Dashboard als Standard
+      setActiveTab(0);
+    }
+  }, [location]);
 
   // Daten nur laden, wenn die Komponente gemounted ist
   useEffect(() => {
@@ -241,217 +265,163 @@ const BelegfolgeDashboard: React.FC = () => {
     };
   }, []);
 
+  // Geänderte handleTabChange-Funktion, um zur entsprechenden Route zu navigieren
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
-  }, []);
+    switch (newValue) {
+      case 0:
+        navigate('/belegfolge/angebote');
+        break;
+      case 1:
+        navigate('/belegfolge/auftraege');
+        break;
+      case 2:
+        navigate('/belegfolge/lieferscheine');
+        break;
+      case 3:
+        navigate('/belegfolge/rechnungen');
+        break;
+      case 4:
+        navigate('/belegfolge/bestellungen');
+        break;
+      case 5:
+        navigate('/belegfolge/eingangslieferscheine');
+        break;
+      default:
+        navigate('/belegfolge');
+    }
+  }, [navigate]);
 
   const handleCreateNew = useCallback((type: string) => {
     navigate(`/belegfolge/${type}/neu`);
   }, [navigate]);
 
-  const handleViewAll = useCallback((type: string) => {
-    navigate(`/belegfolge/${type}`);
-  }, [navigate]);
-
-  // Verkaufsprozess-Karten
-  const verkaufsprozessCards = useMemo(() => (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Angebote" 
-            count={belegData.angebote} 
-            icon={<AngebotIcon sx={{ color: theme.palette.primary.main }} />} 
-            path="angebote"
-            color={theme.palette.primary.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Aufträge" 
-            count={belegData.auftraege} 
-            icon={<AuftragIcon sx={{ color: theme.palette.success.main }} />} 
-            path="auftraege"
-            color={theme.palette.success.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Lieferscheine" 
-            count={belegData.lieferscheine} 
-            icon={<LieferscheinIcon sx={{ color: theme.palette.info.main }} />} 
-            path="lieferscheine"
-            color={theme.palette.info.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Rechnungen" 
-            count={belegData.rechnungen} 
-            icon={<RechnungIcon sx={{ color: theme.palette.warning.main }} />} 
-            path="rechnungen"
-            color={theme.palette.warning.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-    </Grid>
-  ), [loading, belegData, theme, handleCreateNew, handleViewAll]);
-
-  // Einkaufsprozess-Karten
-  const einkaufsprozessCards = useMemo(() => (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Bestellungen" 
-            count={belegData.bestellungen} 
-            icon={<BestellungIcon sx={{ color: theme.palette.secondary.main }} />} 
-            path="bestellungen"
-            color={theme.palette.secondary.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Eingangslieferscheine" 
-            count={belegData.eingangslieferscheine} 
-            icon={<EingangslieferscheinIcon sx={{ color: theme.palette.error.main }} />} 
-            path="eingangslieferscheine"
-            color={theme.palette.error.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-    </Grid>
-  ), [loading, belegData, theme, handleCreateNew, handleViewAll]);
-
-  // Alle Karten
-  const allCards = useMemo(() => (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Angebote" 
-            count={belegData.angebote} 
-            icon={<AngebotIcon sx={{ color: theme.palette.primary.main }} />} 
-            path="angebote"
-            color={theme.palette.primary.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Aufträge" 
-            count={belegData.auftraege} 
-            icon={<AuftragIcon sx={{ color: theme.palette.success.main }} />} 
-            path="auftraege"
-            color={theme.palette.success.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Lieferscheine" 
-            count={belegData.lieferscheine} 
-            icon={<LieferscheinIcon sx={{ color: theme.palette.info.main }} />} 
-            path="lieferscheine"
-            color={theme.palette.info.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Rechnungen" 
-            count={belegData.rechnungen} 
-            icon={<RechnungIcon sx={{ color: theme.palette.warning.main }} />} 
-            path="rechnungen"
-            color={theme.palette.warning.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Bestellungen" 
-            count={belegData.bestellungen} 
-            icon={<BestellungIcon sx={{ color: theme.palette.secondary.main }} />} 
-            path="bestellungen"
-            color={theme.palette.secondary.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        {loading ? <BelegCardSkeleton /> : (
-          <BelegCard 
-            title="Eingangslieferscheine" 
-            count={belegData.eingangslieferscheine} 
-            icon={<EingangslieferscheinIcon sx={{ color: theme.palette.error.main }} />} 
-            path="eingangslieferscheine"
-            color={theme.palette.error.main}
-            onCreateNew={handleCreateNew}
-            onViewAll={handleViewAll}
-          />
-        )}
-      </Grid>
-    </Grid>
-  ), [loading, belegData, theme, handleCreateNew, handleViewAll]);
-
   return (
-    <Box>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
-          Belegfolge Dashboard
-        </Typography>
-      </Box>
-
-      <Paper sx={{ mb: 3 }}>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          indicatorColor="primary"
+    <Box sx={{ flexGrow: 1 }}>
+      {/* Belegfolge-Navigation */}
+      <Paper 
+        elevation={2} 
+        square 
+        sx={{ 
+          mb: 3, 
+          position: 'sticky', 
+          top: 0, 
+          zIndex: 1000, 
+          borderBottom: `1px solid ${theme.palette.divider}` 
+        }}
+      >
+        <Tabs 
+          value={activeTab} 
+          onChange={handleTabChange} 
+          variant="scrollable"
+          scrollButtons="auto"
           textColor="primary"
-          variant="fullWidth"
+          indicatorColor="primary"
+          sx={{ 
+            '& .MuiTab-root': { 
+              minHeight: '56px',
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              '& .MuiSvgIcon-root': {
+                marginRight: 1,
+                marginBottom: '0 !important'
+              }
+            } 
+          }}
         >
-          <Tab label="Alle Belege" />
-          <Tab label="Verkaufsprozess" />
-          <Tab label="Einkaufsprozess" />
+          <Tab icon={<AngebotIcon />} label="Angebote" iconPosition="start" />
+          <Tab icon={<AuftragIcon />} label="Aufträge" iconPosition="start" />
+          <Tab icon={<LieferscheinIcon />} label="Lieferscheine" iconPosition="start" />
+          <Tab icon={<RechnungIcon />} label="Rechnungen" iconPosition="start" />
+          <Tab icon={<BestellungIcon />} label="Bestellungen" iconPosition="start" />
+          <Tab icon={<EingangslieferscheinIcon />} label="Eingangslieferscheine" iconPosition="start" />
         </Tabs>
       </Paper>
 
-      {activeTab === 0 && allCards}
-      {activeTab === 1 && verkaufsprozessCards}
-      {activeTab === 2 && einkaufsprozessCards}
+      <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
+        Belegfolge Übersicht
+      </Typography>
+
+      {/* Vorhandener Dashboard-Inhalt */}
+      {loading ? (
+        <Grid container spacing={3}>
+          {[...Array(6)].map((_, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <BelegCardSkeleton />
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={4}>
+            <BelegCard 
+              title="Angebote" 
+              count={belegData.angebote} 
+              icon={<AngebotIcon sx={{ color: theme.palette.primary.main }} />} 
+              path="angebote"
+              color={theme.palette.primary.main}
+              onCreateNew={handleCreateNew}
+              onViewAll={(path) => navigate(`/belegfolge/${path}`)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <BelegCard 
+              title="Aufträge" 
+              count={belegData.auftraege} 
+              icon={<AuftragIcon sx={{ color: theme.palette.secondary.main }} />} 
+              path="auftraege"
+              color={theme.palette.secondary.main}
+              onCreateNew={handleCreateNew}
+              onViewAll={(path) => navigate(`/belegfolge/${path}`)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <BelegCard 
+              title="Lieferscheine" 
+              count={belegData.lieferscheine} 
+              icon={<LieferscheinIcon sx={{ color: theme.palette.success.main }} />} 
+              path="lieferscheine"
+              color={theme.palette.success.main}
+              onCreateNew={handleCreateNew}
+              onViewAll={(path) => navigate(`/belegfolge/${path}`)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <BelegCard 
+              title="Rechnungen" 
+              count={belegData.rechnungen} 
+              icon={<RechnungIcon sx={{ color: theme.palette.info.main }} />} 
+              path="rechnungen"
+              color={theme.palette.info.main}
+              onCreateNew={handleCreateNew}
+              onViewAll={(path) => navigate(`/belegfolge/${path}`)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <BelegCard 
+              title="Bestellungen" 
+              count={belegData.bestellungen} 
+              icon={<BestellungIcon sx={{ color: theme.palette.warning.main }} />} 
+              path="bestellungen"
+              color={theme.palette.warning.main}
+              onCreateNew={handleCreateNew}
+              onViewAll={(path) => navigate(`/belegfolge/${path}`)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <BelegCard 
+              title="Eingangslieferscheine" 
+              count={belegData.eingangslieferscheine} 
+              icon={<EingangslieferscheinIcon sx={{ color: theme.palette.error.main }} />} 
+              path="eingangslieferscheine"
+              color={theme.palette.error.main}
+              onCreateNew={handleCreateNew}
+              onViewAll={(path) => navigate(`/belegfolge/${path}`)}
+            />
+          </Grid>
+        </Grid>
+      )}
     </Box>
   );
 };

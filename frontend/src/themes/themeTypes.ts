@@ -63,6 +63,16 @@ export const DEFAULT_THEME_CONFIG: ThemeConfig = {
   },
 };
 
+// Benutzerdefiniertes Theme-Interface
+export interface CustomTheme {
+  id: string;
+  name: string;
+  themeConfig: ThemeConfig;
+  isPublic: boolean;
+  createdBy?: string;
+  createdAt: string;
+}
+
 // Theme-Context-Typ-Definition
 export interface ThemeContextType {
   currentThemeConfig: ThemeConfig;
@@ -70,6 +80,8 @@ export interface ThemeContextType {
   setThemeVariant: (variant: ThemeVariant) => void;
   updateThemeParameters: (params: Partial<ThemeParameters>) => void;
   resetTheme: () => void;
+  createCustomTheme?: (name: string, isPublic?: boolean) => Promise<string>;
+  loadPublicThemes?: () => Promise<Array<{ id: string; name: string; themeConfig: ThemeConfig }>>;
 }
 
 // Theme-KI-Befehle

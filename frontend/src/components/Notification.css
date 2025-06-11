@@ -1,0 +1,109 @@
+/* VALEO-Design Notification Styles */
+.notification {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.3s ease-in-out;
+  background-color: #fff;
+  border-left: 4px solid #3498db;
+  max-width: 400px;
+}
+
+.notification-success {
+  border-left-color: #27ae60;
+}
+
+.notification-error {
+  border-left-color: #e74c3c;
+}
+
+.notification-warning {
+  border-left-color: #f39c12;
+}
+
+.notification-info {
+  border-left-color: #3498db;
+}
+
+.notification-icon {
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.notification-success .notification-icon {
+  color: #27ae60;
+}
+
+.notification-error .notification-icon {
+  color: #e74c3c;
+}
+
+.notification-warning .notification-icon {
+  color: #f39c12;
+}
+
+.notification-info .notification-icon {
+  color: #3498db;
+}
+
+.notification-content {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  color: #777;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 10px;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+
+.notification-close:hover {
+  color: #333;
+}
+
+/* Animation für das Einblenden */
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Container für mehrere Benachrichtigungen */
+.notification-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .notification {
+    max-width: calc(100vw - 40px);
+  }
+  
+  .notification-container {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+} 

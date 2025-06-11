@@ -1,48 +1,32 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { HashRouter } from 'react-router-dom';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { ThemeProvider } from './themes/ThemeProvider';
+import { startOwlApp } from './components/StandaloneOwl';
+import { Component } from '@odoo/owl';
 
-// Fehlerbehandlung für die Anwendung
-const handleError = (error) => {
-  console.error('Anwendungsfehler:', error);
-  // Zeige Fallback-Element an
-  const fallbackContainer = document.querySelector('.fallback-container');
-  if (fallbackContainer) {
-    fallbackContainer.style.display = 'flex';
-    const fallbackContent = fallbackContainer.querySelector('.fallback-content');
-    if (fallbackContent) {
-      fallbackContent.innerHTML = `
-        <h1>Folkerts Landhandel ERP-System</h1>
-        <p>Es ist ein Fehler aufgetreten:</p>
-        <pre style="color: red; text-align: left; overflow: auto;">${error.message || 'Unbekannter Fehler'}</pre>
-        <p>Bitte laden Sie die Seite neu oder kontaktieren Sie den Support.</p>
-      `;
-    }
-  }
+// Debug-Informationen global verfügbar machen
+window.__OWL__ = { Component };
+
+// DevTools Hook bereitstellen
+window.__OWL_DEVTOOLS_HOOK__ = {
+  Component,
+  componentsById: new Map(),
+  componentsTree: []
 };
 
-try {
-  console.log('Versuche, React-App zu initialisieren...');
-  const root = ReactDOM.createRoot(document.getElementById('root'));
-  
-  root.render(
-    <React.StrictMode>
-      <ThemeProvider>
-        <HashRouter>
-          <App />
-        </HashRouter>
-      </ThemeProvider>
-    </React.StrictMode>
-  );
-  
-  console.log('React wurde erfolgreich initialisiert');
+console.log('Owl Framework (Version 2.7.0) wurde initialisiert');
+console.log('Debug-Modus wurde aktiviert');
 
-  // Performance-Messung, falls benötigt
-  reportWebVitals(console.log);
-} catch (error) {
-  handleError(error);
+// Hauptfunktion zum Starten der Anwendung
+function main() {
+  const owlContainer = document.getElementById('owl-app');
+  if (owlContainer) {
+    startOwlApp(owlContainer);
+  } else {
+    console.log('Kein #owl-app Element gefunden. Owl-Anwendung wurde nicht gestartet.');
+  }
+}
+
+// Starte die Anwendung, wenn das DOM geladen ist
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', main);
+} else {
+  main();
 } 

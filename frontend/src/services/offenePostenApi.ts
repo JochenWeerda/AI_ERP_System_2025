@@ -1,5 +1,8 @@
 import axios from 'axios';
-import { API_BASE_URL } from './api';
+// Direkte Definition statt Import
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? '/api' 
+  : 'http://localhost:8085/api';
 
 // Typdefinitionen für Offene Posten
 export interface OffenePostenMetadaten {

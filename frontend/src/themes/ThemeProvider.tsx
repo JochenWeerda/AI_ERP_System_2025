@@ -3,6 +3,7 @@ import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeConfig, ThemeContextType, ThemeMode, ThemeVariant, ThemeParameters, DEFAULT_THEME_CONFIG } from './themeTypes';
 import themeService from './themeService';
+import { useAuth } from '../contexts/AuthContext';
 
 // Erstellen des Theme-Kontexts
 export const ThemeContext = createContext<ThemeContextType | null>(null);
@@ -10,13 +11,21 @@ export const ThemeContext = createContext<ThemeContextType | null>(null);
 interface ThemeProviderProps {
   children: React.ReactNode;
   initialTheme?: Partial<ThemeConfig>;
+  enableServerSync?: boolean;
 }
 
 /**
  * Theme Provider Komponente
  * Stellt das Theme und Theme-Funktionen für die Anwendung bereit
  */
-const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialTheme }) => {
+const ThemeProvider: React.FC<ThemeProviderProps> = ({ 
+  children, 
+  initialTheme,
+  enableServerSync = true
+}) => {
+  // Auth-Kontext für Benutzer-ID
+  const auth = useAuth();
+  
   // Initialen Theme-Zustand laden
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() => {
     const storedConfig = themeService.getCurrentConfig();
@@ -36,6 +45,20 @@ const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialTheme })
   useEffect(() => {
     themeService.setThemeConfig(themeConfig);
   }, [themeConfig]);
+  
+  // Synchronisation mit dem Server aktivieren/deaktivieren
+  useEffect(() => {
+    themeService.enableSynchronization(enableServerSync);
+  }, [enableServerSync]);
+  
+  // Benutzer-ID setzen, wenn sich der Auth-Status ändert
+  useEffect(() => {
+    if (auth && auth.isAuthenticated && auth.user) {
+      themeService.setCurrentUser(auth.user.id);
+    } else {
+      themeService.setCurrentUser(null);
+    }
+  }, [auth?.isAuthenticated, auth?.user]);
   
   // Material-UI Theme basierend auf der aktuellen Konfiguration erstellen
   const theme = useMemo(() => {
@@ -94,13 +117,35 @@ const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialTheme })
     setThemeConfig(DEFAULT_THEME_CONFIG);
   };
   
+  // Benutzerdefiniertes Theme erstellen und hochladen
+  const createCustomTheme = async (name: string, isPublic: boolean = false) => {
+    try {
+      return await themeService.createCustomTheme(name, isPublic);
+    } catch (error) {
+      console.error('Fehler beim Erstellen eines benutzerdefinierten Themes:', error);
+      throw error;
+    }
+  };
+  
+  // Öffentliche benutzerdefinierte Themes laden
+  const loadPublicThemes = async () => {
+    try {
+      return await themeService.getPublicCustomThemes();
+    } catch (error) {
+      console.error('Fehler beim Laden öffentlicher Themes:', error);
+      return [];
+    }
+  };
+  
   // Context-Wert
   const contextValue: ThemeContextType = {
     currentThemeConfig: themeConfig,
     setThemeMode,
     setThemeVariant,
     updateThemeParameters,
-    resetTheme
+    resetTheme,
+    createCustomTheme,
+    loadPublicThemes
   };
   
   return (

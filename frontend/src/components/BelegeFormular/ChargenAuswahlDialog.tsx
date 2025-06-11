@@ -30,7 +30,7 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { ChargeProperties, BuchungsregelType } from '../../types/articleTypes';
-import chargenService from '../../services/chargenService';
+import { chargenService } from '../../services/chargenService';
 
 // Definiert das Format der ausgewählten Chargen, die zurückgegeben werden
 export interface SelectedCharge {

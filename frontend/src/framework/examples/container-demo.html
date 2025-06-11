@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Containerisierte Module - Demo</title>
+  
+  <!-- CSS-Stylesheets -->
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f7fa;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .header {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .module-selector {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f8fafc;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .module-selector h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #2d3748;
+    }
+    
+    .module-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .module-btn {
+      padding: 10px 15px;
+      background-color: #edf2f7;
+      border: 1px solid #cbd5e0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .module-btn:hover {
+      background-color: #e2e8f0;
+    }
+    
+    .module-btn.active {
+      background-color: #4299e1;
+      color: white;
+      border-color: #3182ce;
+    }
+    
+    #module-container {
+      min-height: 500px;
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background-color: #fff;
+    }
+    
+    .module-container {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .module-error {
+      padding: 20px;
+      background-color: #fed7d7;
+      border-radius: 6px;
+      color: #c53030;
+    }
+    
+    .log-container {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #2d3748;
+      color: #e2e8f0;
+      border-radius: 6px;
+      font-family: monospace;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .log-entry {
+      margin: 5px 0;
+      padding: 5px;
+      border-bottom: 1px solid #4a5568;
+    }
+    
+    .log-entry.info {
+      color: #4299e1;
+    }
+    
+    .log-entry.success {
+      color: #48bb78;
+    }
+    
+    .log-entry.error {
+      color: #f56565;
+    }
+    
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background-color: #4299e1;
+      color: white;
+    }
+    
+    .btn-secondary {
+      background-color: #edf2f7;
+      border: 1px solid #cbd5e0;
+      color: #2d3748;
+    }
+    
+    .btn-danger {
+      background-color: #f56565;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Containerisierte Module - Demo</h1>
+      <p>Demonstration der Containerisierung und des dynamischen Ladens von OWL-Modulen</p>
+    </div>
+    
+    <div class="module-selector">
+      <h3>Module auswählen</h3>
+      <div class="module-list" id="module-list">
+        <!-- Modul-Buttons werden hier dynamisch eingefügt -->
+      </div>
+    </div>
+    
+    <div id="module-container">
+      <!-- Module werden hier geladen -->
+      <div class="empty-state">
+        <h3>Kein Modul geladen</h3>
+        <p>Bitte wählen Sie ein Modul aus der Liste oben aus.</p>
+      </div>
+    </div>
+    
+    <div class="actions">
+      <button id="reload-btn" class="btn btn-secondary" disabled>Modul neu laden</button>
+      <button id="unload-btn" class="btn btn-danger" disabled>Modul entladen</button>
+    </div>
+    
+    <div class="log-container" id="log">
+      <div class="log-entry info">Container-Demo gestartet...</div>
+    </div>
+  </div>
+  
+  <!-- OWL und andere Abhängigkeiten laden -->
+  <script src="../../node_modules/@odoo/owl/dist/owl.iife.js"></script>
+  
+  <!-- Module und Container-Loader laden -->
+  <script type="module">
+    import { createContainerLoader, exampleLoaderConfig } from './ContainerLoader.js';
+    
+    // Logging-Funktion
+    function log(message, type = 'info') {
+      const logContainer = document.getElementById('log');
+      const logEntry = document.createElement('div');
+      logEntry.className = `log-entry ${type}`;
+      logEntry.textContent = message;
+      logContainer.appendChild(logEntry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    // Aktuell geladenes Modul
+    let currentModuleId = null;
+    
+    // Container-Loader erstellen
+    const loaderConfig = {
+      ...exampleLoaderConfig,
+      onModuleEvent: (event) => {
+        log(`Modul-Event: ${event.type} von ${event.moduleId}`, 'info');
+        
+        // Spezifische Event-Behandlung
+        if (event.type === 'module-action') {
+          log(`Aktion: ${event.action.action}`, 'info');
+          
+          // Je nach Aktion verschiedene Behandlungen
+          switch (event.action.action) {
+            case 'view':
+            case 'edit':
+            case 'delete':
+              log(`Daten: ${JSON.stringify(event.action.data)}`, 'info');
+              break;
+          }
+        }
+      }
+    };
+    
+    let containerLoader;
+    
+    // Seite initialisieren
+    async function initPage() {
+      try {
+        log('Container-Loader wird initialisiert...', 'info');
+        
+        // Container-Loader erstellen
+        containerLoader = createContainerLoader(loaderConfig);
+        
+        // Alle Module laden und registrieren
+        await containerLoader.loadAllModules();
+        log('Alle Module wurden registriert', 'success');
+        
+        // Modul-Liste erstellen
+        createModuleList();
+        
+        // Button-Event-Handler registrieren
+        document.getElementById('reload-btn').addEventListener('click', reloadCurrentModule);
+        document.getElementById('unload-btn').addEventListener('click', unloadCurrentModule);
+        
+        log('Initialisierung abgeschlossen', 'success');
+      } catch (error) {
+        log(`Fehler bei der Initialisierung: ${error.message}`, 'error');
+        console.error('Initialisierungsfehler:', error);
+      }
+    }
+    
+    // Modul-Liste erstellen
+    function createModuleList() {
+      const moduleList = document.getElementById('module-list');
+      moduleList.innerHTML = '';
+      
+      loaderConfig.availableModules.forEach(moduleInfo => {
+        const moduleBtn = document.createElement('button');
+        moduleBtn.className = 'module-btn';
+        moduleBtn.dataset.moduleId = moduleInfo.id;
+        moduleBtn.textContent = moduleInfo.title;
+        
+        moduleBtn.addEventListener('click', () => loadModule(moduleInfo.id));
+        
+        moduleList.appendChild(moduleBtn);
+      });
+    }
+    
+    // Modul laden
+    async function loadModule(moduleId) {
+      try {
+        // Aktives Modul markieren
+        updateActiveModule(moduleId);
+        
+        // Buttons aktualisieren
+        updateButtons(true);
+        
+        log(`Modul '${moduleId}' wird geladen...`, 'info');
+        
+        // Vorheriges Modul entladen, falls vorhanden
+        if (currentModuleId && currentModuleId !== moduleId) {
+          await containerLoader.unloadModule(currentModuleId);
+        }
+        
+        // Neues Modul laden
+        await containerLoader.loadModule(moduleId);
+        
+        // Aktuelles Modul aktualisieren
+        currentModuleId = moduleId;
+        
+        log(`Modul '${moduleId}' wurde erfolgreich geladen`, 'success');
+      } catch (error) {
+        log(`Fehler beim Laden des Moduls '${moduleId}': ${error.message}`, 'error');
+        console.error(`Fehler beim Laden des Moduls '${moduleId}':`, error);
+        
+        // Buttons aktualisieren
+        updateButtons(false);
+      }
+    }
+    
+    // Aktuelles Modul neu laden
+    async function reloadCurrentModule() {
+      if (!currentModuleId) return;
+      
+      try {
+        log(`Modul '${currentModuleId}' wird neu geladen...`, 'info');
+        
+        // Modul neu laden
+        await containerLoader.reloadModule(currentModuleId);
+        
+        log(`Modul '${currentModuleId}' wurde erfolgreich neu geladen`, 'success');
+      } catch (error) {
+        log(`Fehler beim Neuladen des Moduls '${currentModuleId}': ${error.message}`, 'error');
+        console.error(`Fehler beim Neuladen des Moduls:`, error);
+      }
+    }
+    
+    // Aktuelles Modul entladen
+    async function unloadCurrentModule() {
+      if (!currentModuleId) return;
+      
+      try {
+        log(`Modul '${currentModuleId}' wird entladen...`, 'info');
+        
+        // Modul entladen
+        await containerLoader.unloadModule(currentModuleId);
+        
+        // Aktuelles Modul zurücksetzen
+        const oldModuleId = currentModuleId;
+        currentModuleId = null;
+        
+        // Aktives Modul zurücksetzen
+        updateActiveModule(null);
+        
+        // Buttons aktualisieren
+        updateButtons(false);
+        
+        // Container leeren
+        document.getElementById('module-container').innerHTML = `
+          <div class="empty-state">
+            <h3>Kein Modul geladen</h3>
+            <p>Bitte wählen Sie ein Modul aus der Liste oben aus.</p>
+          </div>
+        `;
+        
+        log(`Modul '${oldModuleId}' wurde erfolgreich entladen`, 'success');
+      } catch (error) {
+        log(`Fehler beim Entladen des Moduls '${currentModuleId}': ${error.message}`, 'error');
+        console.error(`Fehler beim Entladen des Moduls:`, error);
+      }
+    }
+    
+    // Aktives Modul in der Liste markieren
+    function updateActiveModule(moduleId) {
+      const moduleButtons = document.querySelectorAll('.module-btn');
+      
+      moduleButtons.forEach(btn => {
+        if (btn.dataset.moduleId === moduleId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+    
+    // Buttons aktivieren/deaktivieren
+    function updateButtons(enabled) {
+      document.getElementById('reload-btn').disabled = !enabled;
+      document.getElementById('unload-btn').disabled = !enabled;
+    }
+    
+    // Seite initialisieren
+    document.addEventListener('DOMContentLoaded', initPage);
+  </script>
+</body>
+</html>

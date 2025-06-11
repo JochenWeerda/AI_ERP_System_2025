@@ -10,13 +10,22 @@ import {
   Tabs,
   Tab,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Button
 } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import de from 'date-fns/locale/de';
+import {
+  FeaturedPlayList as AngebotIcon,
+  Assignment as AuftragIcon,
+  LocalShipping as LieferscheinIcon,
+  Receipt as RechnungIcon,
+  ShoppingBasket as BestellungIcon,
+  Sync as EingangslieferscheinIcon
+} from '@mui/icons-material';
 
 // Eigene Komponenten
 import BelegFormBase from './BelegFormBase';
@@ -119,7 +128,9 @@ interface Kunde {
 const RechnungFormular: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState(0);
+  const [activeBelegTyp, setActiveBelegTyp] = useState(3); // Rechnung ist standardmäßig ausgewählt
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rechnung, setRechnung] = useState<Rechnung>({
@@ -132,6 +143,7 @@ const RechnungFormular: React.FC = () => {
   const [selectedKunde, setSelectedKunde] = useState<Kunde | null>(null);
   const [lieferscheine, setLieferscheine] = useState<Lieferschein[]>([]);
   const [selectedLieferschein, setSelectedLieferschein] = useState<Lieferschein | null>(null);
+  const [kundentyp, setKundentyp] = useState<'B2B' | 'B2C'>('B2B'); // Standard: B2B
 
   // Rechnung aus der API laden, wenn ID vorhanden
   useEffect(() => {
@@ -205,6 +217,35 @@ const RechnungFormular: React.FC = () => {
     }
   }, [id]);
 
+  // Handler für Belegtyp-Wechsel in der Navigationsleiste
+  const handleBelegTypChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveBelegTyp(newValue);
+    
+    // Zur entsprechenden Route navigieren
+    switch (newValue) {
+      case 0:
+        navigate('/belegfolge/angebote');
+        break;
+      case 1:
+        navigate('/belegfolge/auftraege');
+        break;
+      case 2:
+        navigate('/belegfolge/lieferscheine');
+        break;
+      case 3:
+        navigate('/belegfolge/rechnungen');
+        break;
+      case 4:
+        navigate('/belegfolge/bestellungen');
+        break;
+      case 5:
+        navigate('/belegfolge/eingangslieferscheine');
+        break;
+      default:
+        navigate('/belegfolge');
+    }
+  };
+
   // Handler für Tab-Wechsel
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -238,6 +279,22 @@ const RechnungFormular: React.FC = () => {
       ...rechnung,
       positionen,
       gesamtsumme
+    });
+  };
+
+  // Handler für Kundentyp-Änderung
+  const handleKundentypChange = (typ: 'B2B' | 'B2C') => {
+    setKundentyp(typ);
+    
+    // Alle Positionen mit dem neuen Kundentyp aktualisieren
+    const updatedPositionen = rechnung.positionen.map(position => ({
+      ...position,
+      kundentyp: typ
+    }));
+    
+    setRechnung({
+      ...rechnung,
+      positionen: updatedPositionen
     });
   };
 
@@ -367,235 +424,307 @@ const RechnungFormular: React.FC = () => {
   );
 
   return (
-    <BelegFormBase
-      title={rechnung.id ? `Rechnung ${rechnung.nummer}` : 'Neue Rechnung'}
-      belegData={rechnung}
-      onSave={handleSave}
-      onBack={handleBack}
-      loading={loading}
-      error={error || undefined}
-    >
-      <Box sx={{ mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={6}>
-            <Box display="flex" alignItems="center">
-              {rechnung.status && (
-                <StatusBadge
-                  status={rechnung.status}
-                  belegTyp="rechnung"
-                  showLabel
-                  style={{ marginRight: '16px' }}
-                />
-              )}
-              {rechnung.lieferscheinNummer && (
-                <Typography variant="body2">
-                  Basierend auf Lieferschein: <strong>{rechnung.lieferscheinNummer}</strong>
-                </Typography>
-              )}
-            </Box>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Box display="flex" justifyContent="flex-end">
-              <BelegAktionenLeiste
-                aktionen={aktionen}
-                belegTyp="rechnung"
-                loading={loading}
-              />
-            </Box>
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
+      <Box>
+        {/* Belegfolge-Navigation */}
+        <Paper 
+          elevation={2} 
+          square 
+          sx={{ 
+            mb: 3, 
+            position: 'sticky', 
+            top: 0, 
+            zIndex: 1000, 
+            borderBottom: '1px solid rgba(0, 0, 0, 0.12)' 
+          }}
+        >
+          <Tabs 
+            value={activeBelegTyp} 
+            onChange={handleBelegTypChange} 
+            variant="scrollable"
+            scrollButtons="auto"
+            textColor="primary"
+            indicatorColor="primary"
+            sx={{ 
+              '& .MuiTab-root': { 
+                minHeight: '56px',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                '& .MuiSvgIcon-root': {
+                  marginRight: 1,
+                  marginBottom: '0 !important'
+                }
+              } 
+            }}
+          >
+            <Tab icon={<AngebotIcon />} label="Angebote" iconPosition="start" />
+            <Tab icon={<AuftragIcon />} label="Aufträge" iconPosition="start" />
+            <Tab icon={<LieferscheinIcon />} label="Lieferscheine" iconPosition="start" />
+            <Tab icon={<RechnungIcon />} label="Rechnungen" iconPosition="start" />
+            <Tab icon={<BestellungIcon />} label="Bestellungen" iconPosition="start" />
+            <Tab icon={<EingangslieferscheinIcon />} label="Eingangslieferscheine" iconPosition="start" />
+          </Tabs>
+        </Paper>
+
+        {/* Ursprünglicher Inhalt */}
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <BelegFormBase
+              title={rechnung.id ? `Rechnung ${rechnung.nummer}` : 'Neue Rechnung'}
+              belegData={rechnung}
+              onSave={handleSave}
+              onBack={handleBack}
+              loading={loading}
+              error={error || undefined}
+            >
+              <Box sx={{ mb: 3 }}>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} sm={6}>
+                    <Box display="flex" alignItems="center">
+                      {rechnung.status && (
+                        <StatusBadge
+                          status={rechnung.status}
+                          belegTyp="rechnung"
+                          showLabel
+                          style={{ marginRight: '16px' }}
+                        />
+                      )}
+                      {rechnung.lieferscheinNummer && (
+                        <Typography variant="body2">
+                          Basierend auf Lieferschein: <strong>{rechnung.lieferscheinNummer}</strong>
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box display="flex" justifyContent="flex-end" alignItems="center">
+                      {/* Kundentyp-Umschalter */}
+                      <Box mr={2}>
+                        <Button
+                          variant={kundentyp === 'B2B' ? 'contained' : 'outlined'}
+                          size="small"
+                          onClick={() => handleKundentypChange('B2B')}
+                          sx={{ mr: 1 }}
+                          disabled={loading || rechnung.status === RECHNUNG_STATUS.STORNIERT || rechnung.status === RECHNUNG_STATUS.BEZAHLT}
+                        >
+                          B2B (Netto)
+                        </Button>
+                        <Button
+                          variant={kundentyp === 'B2C' ? 'contained' : 'outlined'}
+                          size="small"
+                          onClick={() => handleKundentypChange('B2C')}
+                          disabled={loading || rechnung.status === RECHNUNG_STATUS.STORNIERT || rechnung.status === RECHNUNG_STATUS.BEZAHLT}
+                        >
+                          B2C (Brutto)
+                        </Button>
+                      </Box>
+                      <BelegAktionenLeiste
+                        aktionen={aktionen}
+                        belegTyp="rechnung"
+                        loading={loading}
+                      />
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Paper sx={{ mb: 3 }}>
+                <Tabs
+                  value={activeTab}
+                  onChange={handleTabChange}
+                  indicatorColor="primary"
+                  textColor="primary"
+                  variant="fullWidth"
+                >
+                  <Tab label="Basisdaten" />
+                  <Tab label="Positionen" />
+                  <Tab label="Zahlungen" />
+                  <Tab label="Historie" />
+                </Tabs>
+
+                <TabPanel value={activeTab} index={0}>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="h6" sx={{ mb: 2 }}>Kundendaten</Typography>
+                      
+                      {!rechnung.id && (
+                        <Box sx={{ mb: 2 }}>
+                          <Autocomplete
+                            options={lieferscheine}
+                            getOptionLabel={(option) => `${option.nummer} - ${option.kunde.name}`}
+                            onChange={(event, value) => handleLieferscheinAuswahl(value)}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Lieferschein auswählen"
+                                variant="outlined"
+                                fullWidth
+                              />
+                            )}
+                          />
+                        </Box>
+                      )}
+                      
+                      {selectedKunde && (
+                        <Box>
+                          <Paper variant="outlined" sx={{ p: 2 }}>
+                            <Typography variant="subtitle2">{selectedKunde.name}</Typography>
+                            {selectedKunde.ansprechpartner && (
+                              <Typography variant="body2">
+                                <strong>Ansprechpartner:</strong> {selectedKunde.ansprechpartner}
+                              </Typography>
+                            )}
+                            {selectedKunde.adresse && (
+                              <Typography variant="body2">
+                                <strong>Adresse:</strong> {selectedKunde.adresse}
+                              </Typography>
+                            )}
+                            {selectedKunde.ust_id && (
+                              <Typography variant="body2">
+                                <strong>USt-ID:</strong> {selectedKunde.ust_id}
+                              </Typography>
+                            )}
+                          </Paper>
+                        </Box>
+                      )}
+                    </Grid>
+                    
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="h6" sx={{ mb: 2 }}>Rechnungsdaten</Typography>
+                      
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
+                            <DatePicker
+                              label="Rechnungsdatum"
+                              value={rechnung.rechnungsdatum ? new Date(rechnung.rechnungsdatum) : null}
+                              onChange={handleDateChange('rechnungsdatum')}
+                              slotProps={{ textField: { fullWidth: true, variant: 'outlined' } }}
+                              disabled={loading}
+                            />
+                          </LocalizationProvider>
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={6}>
+                          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
+                            <DatePicker
+                              label="Fälligkeitsdatum"
+                              value={rechnung.faelligkeitsDatum ? new Date(rechnung.faelligkeitsDatum) : null}
+                              onChange={handleDateChange('faelligkeitsDatum')}
+                              slotProps={{ textField: { fullWidth: true, variant: 'outlined' } }}
+                              disabled={loading}
+                            />
+                          </LocalizationProvider>
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            label="Zahlungsbedingungen"
+                            value={rechnung.zahlungsbedingungen || ''}
+                            onChange={handleTextChange('zahlungsbedingungen')}
+                            fullWidth
+                            variant="outlined"
+                            disabled={loading}
+                          />
+                        </Grid>
+                        
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            label="Zahlungsart"
+                            value={rechnung.zahlungsart || ''}
+                            onChange={handleTextChange('zahlungsart')}
+                            fullWidth
+                            variant="outlined"
+                            disabled={loading}
+                          />
+                        </Grid>
+                        
+                        <Grid item xs={12}>
+                          <TextField
+                            label="Bankverbindung"
+                            value={rechnung.bankverbindung || ''}
+                            onChange={handleTextChange('bankverbindung')}
+                            fullWidth
+                            variant="outlined"
+                            disabled={loading}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                      <Divider sx={{ my: 2 }} />
+                      
+                      <TextField
+                        label="Bemerkungen"
+                        value={rechnung.bemerkungen || ''}
+                        onChange={handleTextChange('bemerkungen')}
+                        fullWidth
+                        variant="outlined"
+                        multiline
+                        rows={4}
+                        disabled={loading}
+                        helperText="Diese Bemerkungen werden auf der Rechnung angezeigt"
+                      />
+                    </Grid>
+                  </Grid>
+                </TabPanel>
+
+                <TabPanel value={activeTab} index={1}>
+                  <PositionenTabelle
+                    positionen={rechnung.positionen}
+                    onPositionenChange={handlePositionenChange}
+                    readOnly={loading || rechnung.status === RECHNUNG_STATUS.STORNIERT || rechnung.status === RECHNUNG_STATUS.BEZAHLT}
+                    showMwst={true}
+                    showRabatt={true}
+                    showSummary={true}
+                    defaultKundentyp={kundentyp}
+                    allowKundentypChange={false} // Wir verwenden unseren eigenen Toggle oben
+                  />
+                </TabPanel>
+
+                <TabPanel value={activeTab} index={2}>
+                  {rechnung.zahlungen && rechnung.zahlungen.length > 0 ? (
+                    <Paper>
+                      <Box p={2}>
+                        <Typography variant="h6" gutterBottom>Zahlungsinformationen</Typography>
+                        {rechnung.zahlungen.map((zahlung, index) => (
+                          <Box key={index} mb={2} p={2} border={1} borderColor="divider" borderRadius={1}>
+                            <Typography variant="subtitle1">Zahlung vom {new Date(zahlung.datum).toLocaleDateString('de-DE')}</Typography>
+                            <Typography>Betrag: {zahlung.betrag.toFixed(2)} €</Typography>
+                            <Typography>Zahlungsart: {zahlung.zahlungsart}</Typography>
+                            {zahlung.referenz && <Typography>Referenz: {zahlung.referenz}</Typography>}
+                          </Box>
+                        ))}
+                      </Box>
+                    </Paper>
+                  ) : (
+                    <Alert severity="info">
+                      Keine Zahlungen erfasst.
+                    </Alert>
+                  )}
+                </TabPanel>
+
+                <TabPanel value={activeTab} index={3}>
+                  {rechnung.historie ? (
+                    <BelegHistorie
+                      eintraege={rechnung.historie}
+                      title="Rechnungshistorie"
+                      showAll={true}
+                    />
+                  ) : (
+                    <Alert severity="info">
+                      Keine Historieneinträge vorhanden.
+                    </Alert>
+                  )}
+                </TabPanel>
+              </Paper>
+            </BelegFormBase>
           </Grid>
         </Grid>
       </Box>
-
-      <Paper sx={{ mb: 3 }}>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          indicatorColor="primary"
-          textColor="primary"
-          variant="fullWidth"
-        >
-          <Tab label="Basisdaten" />
-          <Tab label="Positionen" />
-          <Tab label="Zahlungen" />
-          <Tab label="Historie" />
-        </Tabs>
-
-        <TabPanel value={activeTab} index={0}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Kundendaten</Typography>
-              
-              {!rechnung.id && (
-                <Box sx={{ mb: 2 }}>
-                  <Autocomplete
-                    options={lieferscheine}
-                    getOptionLabel={(option) => `${option.nummer} - ${option.kunde.name}`}
-                    onChange={(event, value) => handleLieferscheinAuswahl(value)}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Lieferschein auswählen"
-                        variant="outlined"
-                        fullWidth
-                      />
-                    )}
-                  />
-                </Box>
-              )}
-              
-              {selectedKunde && (
-                <Box>
-                  <Paper variant="outlined" sx={{ p: 2 }}>
-                    <Typography variant="subtitle2">{selectedKunde.name}</Typography>
-                    {selectedKunde.ansprechpartner && (
-                      <Typography variant="body2">
-                        <strong>Ansprechpartner:</strong> {selectedKunde.ansprechpartner}
-                      </Typography>
-                    )}
-                    {selectedKunde.adresse && (
-                      <Typography variant="body2">
-                        <strong>Adresse:</strong> {selectedKunde.adresse}
-                      </Typography>
-                    )}
-                    {selectedKunde.ust_id && (
-                      <Typography variant="body2">
-                        <strong>USt-ID:</strong> {selectedKunde.ust_id}
-                      </Typography>
-                    )}
-                  </Paper>
-                </Box>
-              )}
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Rechnungsdaten</Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
-                    <DatePicker
-                      label="Rechnungsdatum"
-                      value={rechnung.rechnungsdatum ? new Date(rechnung.rechnungsdatum) : null}
-                      onChange={handleDateChange('rechnungsdatum')}
-                      slotProps={{ textField: { fullWidth: true, variant: 'outlined' } }}
-                      disabled={loading}
-                    />
-                  </LocalizationProvider>
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
-                    <DatePicker
-                      label="Fälligkeitsdatum"
-                      value={rechnung.faelligkeitsDatum ? new Date(rechnung.faelligkeitsDatum) : null}
-                      onChange={handleDateChange('faelligkeitsDatum')}
-                      slotProps={{ textField: { fullWidth: true, variant: 'outlined' } }}
-                      disabled={loading}
-                    />
-                  </LocalizationProvider>
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Zahlungsbedingungen"
-                    value={rechnung.zahlungsbedingungen || ''}
-                    onChange={handleTextChange('zahlungsbedingungen')}
-                    fullWidth
-                    variant="outlined"
-                    disabled={loading}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Zahlungsart"
-                    value={rechnung.zahlungsart || ''}
-                    onChange={handleTextChange('zahlungsart')}
-                    fullWidth
-                    variant="outlined"
-                    disabled={loading}
-                  />
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <TextField
-                    label="Bankverbindung"
-                    value={rechnung.bankverbindung || ''}
-                    onChange={handleTextChange('bankverbindung')}
-                    fullWidth
-                    variant="outlined"
-                    disabled={loading}
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              
-              <TextField
-                label="Bemerkungen"
-                value={rechnung.bemerkungen || ''}
-                onChange={handleTextChange('bemerkungen')}
-                fullWidth
-                variant="outlined"
-                multiline
-                rows={4}
-                disabled={loading}
-                helperText="Diese Bemerkungen werden auf der Rechnung angezeigt"
-              />
-            </Grid>
-          </Grid>
-        </TabPanel>
-
-        <TabPanel value={activeTab} index={1}>
-          <PositionenTabelle
-            positionen={rechnung.positionen}
-            onPositionenChange={handlePositionenChange}
-            readOnly={loading || rechnung.status === RECHNUNG_STATUS.STORNIERT || rechnung.status === RECHNUNG_STATUS.BEZAHLT}
-            showMwst={true}
-            showRabatt={true}
-            showSummary={true}
-          />
-        </TabPanel>
-
-        <TabPanel value={activeTab} index={2}>
-          {rechnung.zahlungen && rechnung.zahlungen.length > 0 ? (
-            <Paper>
-              <Box p={2}>
-                <Typography variant="h6" gutterBottom>Zahlungsinformationen</Typography>
-                {rechnung.zahlungen.map((zahlung, index) => (
-                  <Box key={index} mb={2} p={2} border={1} borderColor="divider" borderRadius={1}>
-                    <Typography variant="subtitle1">Zahlung vom {new Date(zahlung.datum).toLocaleDateString('de-DE')}</Typography>
-                    <Typography>Betrag: {zahlung.betrag.toFixed(2)} €</Typography>
-                    <Typography>Zahlungsart: {zahlung.zahlungsart}</Typography>
-                    {zahlung.referenz && <Typography>Referenz: {zahlung.referenz}</Typography>}
-                  </Box>
-                ))}
-              </Box>
-            </Paper>
-          ) : (
-            <Alert severity="info">
-              Keine Zahlungen erfasst.
-            </Alert>
-          )}
-        </TabPanel>
-
-        <TabPanel value={activeTab} index={3}>
-          {rechnung.historie ? (
-            <BelegHistorie
-              eintraege={rechnung.historie}
-              title="Rechnungshistorie"
-              showAll={true}
-            />
-          ) : (
-            <Alert severity="info">
-              Keine Historieneinträge vorhanden.
-            </Alert>
-          )}
-        </TabPanel>
-      </Paper>
-    </BelegFormBase>
+    </LocalizationProvider>
   );
 };
 

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modul-Integration - OWL Framework</title>
+  
+  <!-- CSS-Stylesheets -->
+  <link rel="stylesheet" href="../styles/framework.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f7fa;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .header {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .module-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    
+    .module-container {
+      margin-top: 20px;
+      min-height: 300px;
+      border: 1px dashed #cbd5e0;
+      border-radius: 4px;
+      padding: 10px;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active {
+      border-bottom: 2px solid #4299e1;
+      color: #4299e1;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Modul-Integration</h1>
+      <p>Integration verschiedener Module in das OWL-Framework</p>
+    </div>
+    
+    <div class="tabs">
+      <div class="tab active" data-tab="stammdaten">Stammdaten</div>
+      <div class="tab" data-tab="belegfolge">Belegfolge</div>
+      <div class="tab" data-tab="auswertung">Auswertungen</div>
+    </div>
+    
+    <div class="tab-content active" id="stammdaten-tab">
+      <div class="module-section">
+        <h2>Artikelverwaltung</h2>
+        <div id="artikel-module-container" class="module-container"></div>
+      </div>
+      
+      <div class="module-section">
+        <h2>Lagerverwaltung</h2>
+        <div id="lager-module-container" class="module-container"></div>
+      </div>
+      
+      <div class="module-section">
+        <h2>Partnerverwaltung</h2>
+        <div id="partner-module-container" class="module-container"></div>
+      </div>
+    </div>
+    
+    <div class="tab-content" id="belegfolge-tab">
+      <div class="module-section">
+        <h2>Verkaufsbelege</h2>
+        <div id="verkauf-module-container" class="module-container"></div>
+      </div>
+      
+      <div class="module-section">
+        <h2>Einkaufsbelege</h2>
+        <div id="einkauf-module-container" class="module-container"></div>
+      </div>
+    </div>
+    
+    <div class="tab-content" id="auswertung-tab">
+      <div class="module-section">
+        <h2>Finanzauswertungen</h2>
+        <div id="finanz-module-container" class="module-container"></div>
+      </div>
+      
+      <div class="module-section">
+        <h2>Lagerauswertungen</h2>
+        <div id="lager-auswertung-container" class="module-container"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- OWL und andere Abhängigkeiten laden -->
+  <script src="../../node_modules/@odoo/owl/dist/owl.iife.js"></script>
+  
+  <!-- OWL Framework -->
+  <script type="module">
+    import { initFramework, ModuleBase, registerModule, ModuleLoader } from '../index.js';
+    import { ExampleModule } from './ExampleModule.js';
+    
+    // Framework initialisieren
+    const framework = initFramework({
+      debug: true,
+      devTools: true
+    });
+    
+    console.log('Framework initialisiert');
+    
+    // Tabs Funktionalität
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Aktiven Tab entfernen
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        // Neuen Tab aktivieren
+        tab.classList.add('active');
+        const tabId = `${tab.dataset.tab}-tab`;
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+    
+    // Module als Platzhalter registrieren und mounten
+    class PlaceholderModule extends ModuleBase {
+      static template = `
+        <div class="placeholder-module">
+          <h3><t t-esc="props.title"/></h3>
+          <p><t t-esc="props.description"/></p>
+          <div class="actions">
+            <button class="btn" t-on-click="openModule">Modul öffnen</button>
+          </div>
+        </div>
+      `;
+      
+      openModule() {
+        console.log(`Modul '${this.props.moduleId}' wird geöffnet...`);
+      }
+    }
+    
+    // Module registrieren
+    const modules = [
+      {
+        id: 'artikel-module',
+        title: 'Artikelverwaltung',
+        description: 'Verwaltung von Artikeln und Produkten',
+        container: 'artikel-module-container'
+      },
+      {
+        id: 'lager-module',
+        title: 'Lagerverwaltung',
+        description: 'Verwaltung von Lagerbeständen und -bewegungen',
+        container: 'lager-module-container'
+      },
+      {
+        id: 'partner-module',
+        title: 'Partnerverwaltung',
+        description: 'Verwaltung von Kunden und Lieferanten',
+        container: 'partner-module-container'
+      },
+      {
+        id: 'verkauf-module',
+        title: 'Verkaufsbelege',
+        description: 'Erstellung und Verwaltung von Verkaufsbelegen',
+        container: 'verkauf-module-container'
+      },
+      {
+        id: 'einkauf-module',
+        title: 'Einkaufsbelege',
+        description: 'Erstellung und Verwaltung von Einkaufsbelegen',
+        container: 'einkauf-module-container'
+      },
+      {
+        id: 'finanz-module',
+        title: 'Finanzauswertungen',
+        description: 'Auswertungen zu Finanzdaten',
+        container: 'finanz-module-container'
+      },
+      {
+        id: 'lager-auswertung-module',
+        title: 'Lagerauswertungen',
+        description: 'Auswertungen zu Lagerbeständen und -bewegungen',
+        container: 'lager-auswertung-container'
+      }
+    ];
+    
+    // Module registrieren und mounten
+    modules.forEach(module => {
+      registerModule(module.id, PlaceholderModule);
+      
+      const { mount } = owl;
+      mount(PlaceholderModule, document.getElementById(module.container), {
+        props: {
+          moduleId: module.id,
+          title: module.title,
+          description: module.description
+        }
+      });
+    });
+  </script>
+</body>
+</html> 

@@ -9,6 +9,7 @@ import {
   DEFAULT_THEME_CONFIG,
   ThemeStorage
 } from './themeTypes';
+import ThemeRestAPIService from './themeRestAPI';
 
 // Theme-Varianten importieren
 import defaultTheme from './variants/defaultTheme';
@@ -28,6 +29,8 @@ export class ThemeService {
   private static instance: ThemeService;
   private currentConfig: ThemeConfig;
   private storage: ThemeStorage;
+  private currentUserId: string | null = null;
+  private synchronizationEnabled: boolean = false;
   
   private constructor() {
     this.storage = {
@@ -44,6 +47,11 @@ export class ThemeService {
       storeTheme: (config: ThemeConfig) => {
         try {
           localStorage.setItem('erp_theme_config', JSON.stringify(config));
+          
+          // Falls ein Benutzer angemeldet ist und Synchronisierung aktiviert ist, auf den Server synchronisieren
+          if (this.currentUserId && this.synchronizationEnabled) {
+            this.syncWithServer(config);
+          }
         } catch (error) {
           console.error('Fehler beim Speichern des Themes:', error);
         }
@@ -135,6 +143,66 @@ export class ThemeService {
   }
   
   /**
+   * Benutzer-ID setzen für serverseitige Synchronisation
+   * @param userId ID des angemeldeten Benutzers
+   */
+  public setCurrentUser(userId: string | null): void {
+    this.currentUserId = userId;
+    
+    // Wenn ein Benutzer gesetzt wurde, Theme vom Server laden
+    if (userId) {
+      this.loadThemeFromServer(userId);
+    }
+  }
+  
+  /**
+   * Server-Synchronisation aktivieren oder deaktivieren
+   * @param enabled Ob die Synchronisation aktiviert werden soll
+   */
+  public enableSynchronization(enabled: boolean): void {
+    this.synchronizationEnabled = enabled;
+  }
+  
+  /**
+   * Theme vom Server laden
+   * @param userId Benutzer-ID
+   */
+  private async loadThemeFromServer(userId: string): Promise<void> {
+    try {
+      const serverTheme = await ThemeRestAPIService.getUserTheme(userId);
+      
+      // Nur aktualisieren, wenn vom Server ein Theme zurückgegeben wurde
+      if (serverTheme) {
+        this.currentConfig = serverTheme;
+        
+        // Lokalen Speicher aktualisieren, aber keine Serverpersistenz auslösen
+        const tempSync = this.synchronizationEnabled;
+        this.synchronizationEnabled = false;
+        this.storage.storeTheme(this.currentConfig);
+        this.synchronizationEnabled = tempSync;
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden des Themes vom Server:', error);
+      // Bei Fehlern die lokale Konfiguration beibehalten
+    }
+  }
+  
+  /**
+   * Theme auf den Server synchronisieren
+   * @param config Theme-Konfiguration, die synchronisiert werden soll
+   */
+  private async syncWithServer(config: ThemeConfig): Promise<void> {
+    if (!this.currentUserId) return;
+    
+    try {
+      await ThemeRestAPIService.saveUserTheme(this.currentUserId, config);
+    } catch (error) {
+      console.error('Fehler beim Synchronisieren des Themes mit dem Server:', error);
+      // Bei Fehlern einfach weitermachen, die lokale Konfiguration ist bereits gespeichert
+    }
+  }
+  
+  /**
    * Theme-Objekt für Material-UI basierend auf der aktuellen Konfiguration erstellen
    * @returns Material-UI Theme-Objekt
    */
@@ -221,6 +289,48 @@ export class ThemeService {
         --font-size: ${theme.typography.fontSize}px;
       }
     `;
+  }
+  
+  /**
+   * Laden der verfügbaren Theme-Varianten vom Server
+   * @returns Liste der verfügbaren Theme-Varianten
+   */
+  public async getAvailableVariants(): Promise<ThemeVariant[]> {
+    try {
+      return await ThemeRestAPIService.getAvailableVariants();
+    } catch (error) {
+      console.error('Fehler beim Laden der verfügbaren Theme-Varianten:', error);
+      // Fallback zu statischen Varianten
+      return ['default', 'odoo', 'modern', 'classic'];
+    }
+  }
+  
+  /**
+   * Benutzerdefiniertes Theme erstellen und auf den Server hochladen
+   * @param name Name des Themes
+   * @param isPublic Ob das Theme öffentlich verfügbar sein soll
+   * @returns ID des erstellten Themes
+   */
+  public async createCustomTheme(name: string, isPublic: boolean = false): Promise<string> {
+    try {
+      return await ThemeRestAPIService.createCustomTheme(name, this.currentConfig, isPublic);
+    } catch (error) {
+      console.error('Fehler beim Erstellen eines benutzerdefinierten Themes:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Laden aller öffentlichen benutzerdefinierten Themes
+   * @returns Liste aller öffentlichen benutzerdefinierten Themes
+   */
+  public async getPublicCustomThemes(): Promise<Array<{ id: string; name: string; themeConfig: ThemeConfig }>> {
+    try {
+      return await ThemeRestAPIService.getPublicCustomThemes();
+    } catch (error) {
+      console.error('Fehler beim Laden der öffentlichen benutzerdefinierten Themes:', error);
+      return [];
+    }
   }
 }
 

@@ -1,129 +1,204 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import AppsPage from './pages/AppsPage';
-import CustomerListPage from './pages/CustomerListPage';
-import CustomerDetail from './pages/CustomerDetail';
-import CustomerForm from './pages/CustomerForm';
-import SupplierListPage from './pages/SupplierListPage';
-import SupplierDetail from './pages/SupplierDetail';
-import SupplierForm from './pages/SupplierForm';
-import EmployeeListPage from './pages/EmployeeListPage';
-import EmployeeDetail from './pages/EmployeeDetail';
-import EmployeeForm from './pages/EmployeeForm';
-import CPDAccountsListPage from './pages/CPDAccountsListPage';
-import CPDAccountForm from './pages/CPDAccountForm';
-import SettingsPage from './pages/SettingsPage';
-import HealthConnectors from './pages/HealthConnectors';
-import QSFuttermittelDashboard from './pages/QSFuttermittelDashboard';
-import EmergencyDashboard from './pages/EmergencyDashboard';
-import NotificationCenter from './pages/NotificationCenter';
-import AnomalyDashboard from './pages/AnomalyDashboard';
-import EcommerceOrders from './pages/EcommerceOrders';
-import AI from './pages/AI';
-import Ecommerce from './pages/Ecommerce';
-import Login from './pages/Login';
-import { ChargenPage, ChargenBerichtePage } from './pages/inventory';
-import Test from './Test';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './themes/ThemeProvider';
+import ToastContainer from './components/notifications/ToastContainer';
+import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import ChatPanel from './components/chat/ChatPanel';
+import Home from './pages/Home';
+import './App.css';
+import ChargenIntegrationDemo from './pages/inventory/ChargenIntegrationDemo';
 
-// Platzhalter-Komponenten fÃ¼r die fehlenden Routen
-const PlaceholderPage = ({ title }) => (
-  <div style={{ padding: '2rem', textAlign: 'center' }}>
-    <h1 style={{ color: '#4a7c59' }}>{title}</h1>
-    <p>Diese Seite ist noch in Entwicklung.</p>
-    <button 
-      onClick={() => window.history.back()} 
-      style={{ 
-        background: '#4a7c59', 
-        color: 'white', 
-        border: 'none', 
-        padding: '0.5rem 1rem', 
-        borderRadius: '4px',
-        cursor: 'pointer',
-        marginTop: '1rem'
-      }}
-    >
-      ZurÃ¼ck
-    </button>
+// Lazy Loading für bessere Performance
+const EmergencyDashboard = React.lazy(() => import('./pages/EmergencyDashboard'));
+const FinanzbuchhaltungExportPage = React.lazy(() => import('./pages/FinanzbuchhaltungExportPage'));
+const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
+const NotificationCenter = React.lazy(() => import('./pages/NotificationCenter'));
+const AppsPage = React.lazy(() => import('./pages/AppsPage'));
+
+// Für zukünftige Implementierung
+// const SystemStatusPage = React.lazy(() => import('./pages/system/SystemStatusPage'));
+const DruckerModulPage = React.lazy(() => import('./pages/system/DruckerModulPage'));
+
+// Stammdaten-Seiten
+const CustomerListPage = React.lazy(() => import('./pages/CustomerListPage'));
+const CustomerDetail = React.lazy(() => import('./pages/CustomerDetail'));
+const CustomerForm = React.lazy(() => import('./pages/CustomerForm'));
+const SupplierListPage = React.lazy(() => import('./pages/SupplierListPage'));
+const SupplierDetail = React.lazy(() => import('./pages/SupplierDetail'));
+const SupplierForm = React.lazy(() => import('./pages/SupplierForm'));
+const ArtikelListePage = React.lazy(() => import('./pages/ArtikelListePage'));
+const ArtikelDetailPage = React.lazy(() => import('./pages/ArtikelDetailPage'));
+const ArtikelCreatePage = React.lazy(() => import('./pages/ArtikelCreatePage'));
+const EmployeeListPage = React.lazy(() => import('./pages/EmployeeListPage'));
+const EmployeeDetail = React.lazy(() => import('./pages/EmployeeDetail'));
+const EmployeeForm = React.lazy(() => import('./pages/EmployeeForm'));
+
+// Finanzen-Seiten
+const FinanzDashboardPage = React.lazy(() => import('./pages/FinanzDashboardPage'));
+const InterneFinanzbuchhaltungPage = React.lazy(() => import('./pages/InterneFinanzbuchhaltungPage'));
+const OffenePostenPage = React.lazy(() => import('./pages/OffenePostenPage'));
+const KassenImportPage = React.lazy(() => import('./pages/KassenImportPage'));
+
+// Lager-Seiten
+const ChargenPage = React.lazy(() => import('./pages/inventory/ChargenPage'));
+const LagerbestandPage = React.lazy(() => import('./pages/inventory/LagerbestandPage'));
+const InventurPage = React.lazy(() => import('./pages/inventory/InventurPage'));
+const ChargenQualitaetPage = React.lazy(() => import('./pages/chargen/ChargenQualitaetPage'));
+
+// KI-Seiten
+const AIAssistantPage = React.lazy(() => import('./pages/AIAssistantPage'));
+const AnalyticsPage = React.lazy(() => import('./pages/AnalyticsPage'));
+const OntologyExplorerPage = React.lazy(() => import('./pages/OntologyExplorerPage'));
+const BelegePage = React.lazy(() => import('./pages/BelegePage'));
+
+// Belegfolge-Komponenten
+const BelegfolgeDashboard = React.lazy(() => import('./components/BelegeFormular/BelegfolgeDashboard'));
+const RechnungFormular = React.lazy(() => import('./components/BelegeFormular/RechnungFormular'));
+const AngebotFormular = React.lazy(() => import('./components/BelegeFormular/AngebotFormular'));
+const AuftragFormular = React.lazy(() => import('./components/BelegeFormular/AuftragFormular'));
+const LieferscheinFormular = React.lazy(() => import('./components/BelegeFormular/LieferscheinFormular'));
+
+// Weitere Module
+const EcommercePage = React.lazy(() => import('./pages/Ecommerce'));
+const EcommerceOrdersPage = React.lazy(() => import('./pages/EcommerceOrders'));
+const AnomalyDashboard = React.lazy(() => import('./pages/AnomalyDashboard'));
+const QSFuttermittelDashboard = React.lazy(() => import('./pages/QSFuttermittelDashboard'));
+
+// Chat-Seiten
+const TeamChatPage = React.lazy(() => import('./pages/chat/TeamChatPage'));
+const CustomerChatPage = React.lazy(() => import('./pages/chat/CustomerChatPage'));
+
+// Fallback-Komponente für Lazy Loading
+const LazyLoadingFallback = () => (
+  <div className="lazy-loading-fallback">
+    <div className="spinner"></div>
+    <p>Lade Modul...</p>
   </div>
 );
 
 /**
- * App-Komponente mit allen Routen fÃ¼r die verschiedenen App-Bereiche
+ * Hauptkomponente der Anwendung
  */
-function App() {
-  console.log("App-Komponente wird gerendert");
-  
+const App = () => {
   return (
-    <Routes>
-      <Route exact path="/" element={<Navigate to="/apps" replace />} />
-      <Route exact path="/apps" element={<><AppsPage /><Test /></>} />
-      
-      {/* Stammdaten */}
-      <Route exact path="/kunden" element={<CustomerListPage />} />
-      <Route exact path="/kunden/neu" element={<CustomerForm />} />
-      <Route exact path="/kunden/:id" element={<CustomerDetail />} />
-      <Route exact path="/cpd-konten" element={<CPDAccountsListPage />} />
-      <Route exact path="/cpd-konten/neu" element={<CPDAccountForm />} />
-      <Route exact path="/artikel" element={<PlaceholderPage title="Artikel" />} />
-      <Route exact path="/lieferanten" element={<SupplierListPage />} />
-      <Route exact path="/lieferanten/neu" element={<SupplierForm />} />
-      <Route exact path="/lieferanten/:id" element={<SupplierDetail />} />
-      <Route exact path="/mitarbeiter" element={<EmployeeListPage />} />
-      <Route exact path="/mitarbeiter/neu" element={<EmployeeForm />} />
-      <Route exact path="/mitarbeiter/:id" element={<EmployeeDetail />} />
-      
-      {/* System */}
-      <Route exact path="/settings" element={<SettingsPage />} />
-      <Route exact path="/health-connectors" element={<HealthConnectors />} />
-      <Route exact path="/benachrichtigungen" element={<NotificationCenter />} />
-      <Route exact path="/anomalien" element={<AnomalyDashboard />} />
-      <Route exact path="/notfall" element={<EmergencyDashboard />} />
-      <Route exact path="/ai" element={<AI />} />
-      <Route exact path="/login" element={<Login />} />
-      
-      {/* Prozesse */}
-      <Route exact path="/verkauf" element={<PlaceholderPage title="Verkauf" />} />
-      <Route exact path="/angebote" element={<PlaceholderPage title="Angebote" />} />
-      <Route exact path="/auftraege" element={<PlaceholderPage title="AuftrÃ¤ge" />} />
-      <Route exact path="/rechnungen" element={<PlaceholderPage title="Rechnungen" />} />
-      <Route exact path="/bestellungen" element={<PlaceholderPage title="Bestellungen" />} />
-      <Route exact path="/wareneingang" element={<PlaceholderPage title="Wareneingang" />} />
-      <Route exact path="/lieferantenrechnungen" element={<PlaceholderPage title="Lieferantenrechnungen" />} />
-      <Route exact path="/zahlungen" element={<PlaceholderPage title="Zahlungen" />} />
-      <Route exact path="/ecommerce" element={<Ecommerce />} />
-      <Route exact path="/ecommerce/bestellungen" element={<EcommerceOrders />} />
-      
-      {/* Logistik */}
-      <Route exact path="/lagerbestand" element={<PlaceholderPage title="Lagerbestand" />} />
-      <Route exact path="/lagerorte" element={<PlaceholderPage title="Lagerorte" />} />
-      <Route exact path="/chargen" element={<ChargenPage />} />
-      <Route exact path="/chargen/berichte" element={<ChargenBerichtePage />} />
-      <Route exact path="/ladelisten" element={<PlaceholderPage title="Ladelisten" />} />
-      <Route exact path="/touren" element={<PlaceholderPage title="Tourenplanung" />} />
-      
-      {/* Fachbereiche */}
-      <Route exact path="/waage" element={<PlaceholderPage title="Waage" />} />
-      <Route exact path="/getreideannahme" element={<PlaceholderPage title="Getreideannahme" />} />
-      <Route exact path="/pflanzenschutz" element={<PlaceholderPage title="Pflanzenschutz" />} />
-      <Route exact path="/thg-erfassung" element={<PlaceholderPage title="THG-Erfassung" />} />
-      <Route exact path="/qs-futtermittel" element={<QSFuttermittelDashboard />} />
-      
-      {/* Finanzen */}
-      <Route exact path="/kontenplan" element={<PlaceholderPage title="Kontenplan" />} />
-      <Route exact path="/buchungen" element={<PlaceholderPage title="Buchungen" />} />
-      <Route exact path="/bwa" element={<PlaceholderPage title="BWA" />} />
-      <Route exact path="/datev-export" element={<PlaceholderPage title="DATEV-Export" />} />
-      
-      {/* Reporting */}
-      <Route exact path="/dashboards" element={<PlaceholderPage title="Dashboards" />} />
-      <Route exact path="/berichte" element={<PlaceholderPage title="Berichte" />} />
-      <Route exact path="/analysen" element={<PlaceholderPage title="Analysen" />} />
-      <Route exact path="/auswertungen" element={<PlaceholderPage title="Auswertungen" />} />
-      
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/apps" replace />} />
-    </Routes>
+    <ThemeProvider>
+      <Router>
+        <div className="app">
+          {/* Toast-Nachrichten-Container */}
+          <ToastContainer />
+          
+          {/* Header */}
+          <Header />
+          
+          <div className="app-container">
+            {/* Sidebar */}
+            <Sidebar />
+            
+            {/* Hauptinhalt */}
+            <main className="main-content">
+              <React.Suspense fallback={<LazyLoadingFallback />}>
+                <Routes>
+                  {/* Home als Standardseite */}
+                  <Route path="/" element={<Home />} />
+                  <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                  <Route path="/apps" element={<AppsPage />} />
+                  
+                  {/* Stammdaten-Routen */}
+                  <Route path="/kunden" element={<CustomerListPage />} />
+                  <Route path="/kunden/:id" element={<CustomerDetail />} />
+                  <Route path="/kunden/neu" element={<CustomerForm />} />
+                  <Route path="/lieferanten" element={<SupplierListPage />} />
+                  <Route path="/lieferanten/:id" element={<SupplierDetail />} />
+                  <Route path="/lieferanten/neu" element={<SupplierForm />} />
+                  <Route path="/artikel" element={<ArtikelListePage />} />
+                  <Route path="/artikel/:id" element={<ArtikelDetailPage />} />
+                  <Route path="/artikel/neu" element={<ArtikelCreatePage />} />
+                  <Route path="/mitarbeiter" element={<EmployeeListPage />} />
+                  <Route path="/mitarbeiter/:id" element={<EmployeeDetail />} />
+                  <Route path="/mitarbeiter/neu" element={<EmployeeForm />} />
+                  
+                  {/* Stammdaten-Module */}
+                  <Route path="/stammdaten/artikel" element={<ArtikelListePage />} />
+                  <Route path="/stammdaten/artikel/:id" element={<ArtikelDetailPage />} />
+                  <Route path="/stammdaten/artikel/neu" element={<ArtikelCreatePage />} />
+                  
+                  {/* Finanzen-Routen */}
+                  <Route path="/finanzen/buchhaltung" element={<InterneFinanzbuchhaltungPage />} />
+                  <Route path="/finanzen/rechnungen" element={<OffenePostenPage />} />
+                  <Route path="/finanzen/export" element={<FinanzbuchhaltungExportPage />} />
+                  <Route path="/finanzen/dashboard" element={<FinanzDashboardPage />} />
+                  <Route path="/finanzen/kasse" element={<KassenImportPage />} />
+                  
+                  {/* Lager-Routen */}
+                  <Route path="/lager/bestand" element={<LagerbestandPage />} />
+                  <Route path="/lager/chargen" element={<ChargenPage />} />
+                  <Route path="/lager/orte" element={<InventurPage />} />
+                  <Route path="/lager/qualitaet" element={<ChargenQualitaetPage />} />
+                  
+                  {/* Belege-Route */}
+                  <Route path="/belege" element={<BelegePage />} />
+                  
+                  {/* Belegfolge-Routen */}
+                  <Route path="/belegfolge" element={<BelegfolgeDashboard />} />
+                  <Route path="/belegfolge/rechnungen" element={<RechnungFormular />} />
+                  <Route path="/belegfolge/rechnungen/:id" element={<RechnungFormular />} />
+                  <Route path="/belegfolge/angebote" element={<AngebotFormular />} />
+                  <Route path="/belegfolge/angebote/:id" element={<AngebotFormular />} />
+                  <Route path="/belegfolge/auftraege" element={<AuftragFormular />} />
+                  <Route path="/belegfolge/lieferscheine" element={<LieferscheinFormular />} />
+                  
+                  {/* E-Commerce */}
+                  <Route path="/verkauf/online-shop" element={<EcommercePage />} />
+                  <Route path="/verkauf/auftraege" element={<EcommerceOrdersPage />} />
+                  
+                  {/* KI-Assistenten-Routen */}
+                  <Route path="/ai-assistant" element={<AIAssistantPage />} />
+                  <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/anomalien" element={<AnomalyDashboard />} />
+                  <Route path="/ontology" element={<OntologyExplorerPage />} />
+                  
+                  {/* Chat-Routen */}
+                  <Route path="/chat/team" element={<TeamChatPage />} />
+                  <Route path="/chat/kunden" element={<CustomerChatPage />} />
+                  
+                  {/* Weitere Routen mit Lazy Loading */}
+                  <Route path="/notfallplan" element={<EmergencyDashboard />} />
+                  <Route path="/einstellungen" element={<SettingsPage />} />
+                  <Route path="/benachrichtigungen" element={<NotificationCenter />} />
+                  <Route path="/qualitaet/futtermittel" element={<QSFuttermittelDashboard />} />
+                  
+                  {/* Neue Routen */}
+                  <Route path="/inventory/chargen-integration" element={<ChargenIntegrationDemo />} />
+                  
+                  {/* Zukünftige System-Status-Seite */}
+                  {/* <Route path="/system/status" element={<SystemStatusPage />} /> */}
+                  <Route path="/system/drucker" element={<DruckerModulPage />} />
+                  
+                  {/* Fallback für nicht gefundene Routen */}
+                  <Route path="*" element={
+                    <div className="not-found">
+                      <h1>404 - Seite nicht gefunden</h1>
+                      <p>Die angeforderte Seite konnte nicht gefunden werden.</p>
+                    </div>
+                  } />
+                </Routes>
+              </React.Suspense>
+            </main>
+            
+            {/* Chat-Panel */}
+            {/* <ChatPanel /> */}
+          </div>
+          
+          {/* Fallback-Container für Fehler */}
+          <div className="fallback-container" style={{ display: 'none' }}>
+            <div className="fallback-container"></div>
+          </div>
+        </div>
+      </Router>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;
+

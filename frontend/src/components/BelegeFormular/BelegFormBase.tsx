@@ -37,6 +37,10 @@ export interface BelegFormBaseProps {
   loading?: boolean;
   error?: string;
   readOnly?: boolean;
+  tabs?: React.ReactNode;
+  status?: string;
+  statusBadge?: React.ReactNode;
+  actions?: React.ReactNode;
 }
 
 const BelegFormBase: React.FC<BelegFormBaseProps> = ({
@@ -52,7 +56,11 @@ const BelegFormBase: React.FC<BelegFormBaseProps> = ({
   setActiveStep,
   loading = false,
   error,
-  readOnly = false
+  readOnly = false,
+  tabs,
+  status,
+  statusBadge,
+  actions
 }) => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
@@ -144,6 +152,24 @@ const BelegFormBase: React.FC<BelegFormBaseProps> = ({
             </Box>
           ) : (
             <>
+              {statusBadge && (
+                <Box sx={{ mb: 2 }}>
+                  {statusBadge}
+                </Box>
+              )}
+              
+              {actions && (
+                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                  {actions}
+                </Box>
+              )}
+              
+              {tabs && (
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                  {tabs}
+                </Box>
+              )}
+              
               {children}
               
               {steps && steps.length > 0 && (

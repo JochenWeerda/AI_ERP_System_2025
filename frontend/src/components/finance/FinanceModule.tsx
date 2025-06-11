@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import AccountList from './AccountList';
 import AccountDetail from './AccountDetail';
+import FinanceDashboard from './FinanceDashboard';
 
 // Interface für die Tab-Panel-Props
 interface TabPanelProps {
@@ -170,12 +171,7 @@ const FinanceModule: React.FC = () => {
         
         {/* Dashboard Tab */}
         <TabPanel value={tabValue} index={0}>
-          <Typography variant="h6">Finanz-Dashboard</Typography>
-          <Box sx={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography variant="body1" color="textSecondary">
-              Dashboard-Komponente wird hier integriert
-            </Typography>
-          </Box>
+          <FinanceDashboard />
         </TabPanel>
         
         {/* Kontenplan Tab */}

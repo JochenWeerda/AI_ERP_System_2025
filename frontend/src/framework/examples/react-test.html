@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OWL Framework React Integration Test</title>
+  
+  <!-- CSS-Stylesheets -->
+  <link rel="stylesheet" href="../styles/framework.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f7fa;
+    }
+    
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .app-header {
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+    
+    .app-header h1 {
+      margin: 0;
+      color: #2d3748;
+    }
+    
+    .app-header p {
+      color: #4a5568;
+      margin-top: 8px;
+    }
+    
+    .app-content {
+      margin-bottom: 30px;
+    }
+    
+    .content-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    
+    .content-column {
+      flex: 1;
+      min-width: 300px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
+    
+    .module-test-container h2,
+    .hook-example h2 {
+      margin-top: 0;
+      color: #2d3748;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .module-wrapper {
+      margin-bottom: 20px;
+      min-height: 300px;
+    }
+    
+    .logs-panel {
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    
+    .logs-panel h3 {
+      margin-top: 0;
+      color: #4a5568;
+      font-size: 16px;
+    }
+    
+    .logs-container {
+      background-color: #2d3748;
+      color: #e2e8f0;
+      border-radius: 6px;
+      padding: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    
+    .logs-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .log-item {
+      padding: 5px;
+      border-bottom: 1px solid #4a5568;
+    }
+    
+    .log-time {
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    
+    .log-item.info {
+      color: #4299e1;
+    }
+    
+    .log-item.success {
+      color: #48bb78;
+    }
+    
+    .log-item.error {
+      color: #f56565;
+    }
+    
+    .no-logs {
+      text-align: center;
+      color: #718096;
+      padding: 20px;
+    }
+    
+    .hook-example .owl-container {
+      min-height: 300px;
+      border: 1px dashed #cbd5e0;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .hook-controls {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .app-footer {
+      text-align: center;
+      padding: 20px;
+      color: #718096;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- React wird hier gerendert -->
+    <div class="app-loading">
+      Laden...
+    </div>
+  </div>
+  
+  <!-- OWL und React laden -->
+  <script src="../../node_modules/@odoo/owl/dist/owl.iife.js"></script>
+  <script src="../../node_modules/react/umd/react.development.js"></script>
+  <script src="../../node_modules/react-dom/umd/react-dom.development.js"></script>
+  
+  <!-- Babel für JSX-Unterstützung -->
+  <script src="../../node_modules/@babel/standalone/babel.min.js"></script>
+  
+  <!-- React-Integration -->
+  <script type="text/babel" src="./react-test.jsx"></script>
+</body>
+</html>

@@ -3,691 +3,552 @@ import {
   Box,
   Paper,
   Typography,
+  IconButton,
   Divider,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
-  Chip,
+  Collapse,
   TextField,
   Button,
   CircularProgress,
-  Collapse,
-  IconButton,
-  Card,
-  CardContent,
-  Alert,
-  Tooltip
+  Tooltip,
+  Chip
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import LightbulbIcon from '@mui/icons-material/Lightbulb';
-import SendIcon from '@mui/icons-material/Send';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import TimelineIcon from '@mui/icons-material/Timeline';
-import MoneyIcon from '@mui/icons-material/Money';
-import CalculateIcon from '@mui/icons-material/Calculate';
-import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import { styled } from '@mui/material/styles';
+import {
+  AutoAwesome as AutoAwesomeIcon,
+  Close as CloseIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  Lightbulb as LightbulbIcon,
+  Send as SendIcon,
+  PriceCheck as PriceCheckIcon,
+  Schedule as ScheduleIcon,
+  LocalShipping as LocalShippingIcon,
+  CreditScore as CreditScoreIcon,
+  ShoppingBasket as ShoppingBasketIcon,
+  MoreVert as MoreVertIcon
+} from '@mui/icons-material';
 
-import { LLMService } from '../../services/llmService';
-import * as belegAssistentService from '../../services/belegAssistentService';
-import { Angebot, Auftrag, Lieferschein, Rechnung, Bestellung } from '../../services/belegeApi';
+// Import für die Dienste
+// import { requestAssistance } from '../../services/belegAssistentService';
+// import { sendChatMessage } from '../../services/llmService';
 
-// Typen der unterstützten Belegarten
-type BelegTyp = 'angebot' | 'auftrag' | 'lieferschein' | 'rechnung' | 'bestellung';
+// Interface für die Vorschläge
+interface AssistantSuggestion {
+  id: string;
+  type: 'price' | 'delivery' | 'route' | 'payment' | 'order';
+  title: string;
+  description: string;
+  value: string;
+  confidence: number;
+  icon: React.ReactNode;
+}
+
+// Interface für Chat-Nachrichten
+interface ChatMessage {
+  id: string;
+  sender: 'user' | 'assistant';
+  text: string;
+  timestamp: Date;
+}
 
 // Props für die Komponente
 interface BelegAssistentProps {
-  belegTyp: BelegTyp;
-  belegDaten: any;
-  onApplyPreisvorschlag?: (artikelId: string, neuerPreis: number, rabatt?: number) => void;
-  onApplyLiefertermin?: (liefertermin: string) => void;
-  onApplyRoutenoptimierung?: (reihenfolge: any[]) => void;
-  expanded?: boolean;
-  toggleExpanded?: () => void;
+  belegTyp: 'angebot' | 'auftrag' | 'lieferschein' | 'rechnung' | 'bestellung';
+  belegDaten?: any;
+  onSuggestionApply?: (suggestion: AssistantSuggestion) => void;
 }
-
-// Styled-Komponente für den ausklappbaren Header
-const AssistentHeader = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: theme.spacing(1.5),
-  borderBottom: expanded => expanded ? `1px solid ${theme.palette.divider}` : 'none',
-  cursor: 'pointer',
-  '&:hover': {
-    backgroundColor: theme.palette.action.hover,
-  },
-}));
-
-// Styled-Komponente für Vorschlagskarten
-const VorschlagCard = styled(Card)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  border: `1px solid ${theme.palette.divider}`,
-  '&:hover': {
-    boxShadow: theme.shadows[3],
-  },
-}));
 
 const BelegAssistent: React.FC<BelegAssistentProps> = ({
   belegTyp,
   belegDaten,
-  onApplyPreisvorschlag,
-  onApplyLiefertermin,
-  onApplyRoutenoptimierung,
-  expanded = false,
-  toggleExpanded
+  onSuggestionApply
 }) => {
-  const [isExpanded, setIsExpanded] = useState(expanded);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [preisvorschlaege, setPreisvorschlaege] = useState<belegAssistentService.PreisVorschlag[]>([]);
-  const [lieferterminPrognose, setLieferterminPrognose] = useState<belegAssistentService.LieferterminPrognose | null>(null);
-  const [routenOptimierung, setRoutenOptimierung] = useState<belegAssistentService.RoutenOptimierung | null>(null);
-  const [zahlungsPrognose, setZahlungsPrognose] = useState<belegAssistentService.ZahlungsPrognose | null>(null);
-  const [bedarfsErmittlung, setBedarfsErmittlung] = useState<belegAssistentService.BedarfsErmittlung | null>(null);
-  const [qualitaetsAnalyse, setQualitaetsAnalyse] = useState<belegAssistentService.QualitaetsAnalyse | null>(null);
-  
-  const [userInput, setUserInput] = useState('');
-  const [chatMessages, setChatMessages] = useState<Array<{text: string, sender: 'user' | 'assistant'}>>([]);
-  const [sendingMessage, setSendingMessage] = useState(false);
+  // State
+  const [open, setOpen] = useState<boolean>(false);
+  const [expanded, setExpanded] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [suggestions, setSuggestions] = useState<AssistantSuggestion[]>([]);
+  const [chatOpen, setChatOpen] = useState<boolean>(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [userInput, setUserInput] = useState<string>('');
+  const [chatLoading, setChatLoading] = useState<boolean>(false);
 
-  // Wenn toggleExpanded als Prop übergeben wird, nutze diese Funktion
-  const handleToggleExpand = () => {
-    if (toggleExpanded) {
-      toggleExpanded();
-    } else {
-      setIsExpanded(!isExpanded);
+  // Typspezifische Konfiguration
+  const getAssistantConfig = () => {
+    switch (belegTyp) {
+      case 'angebot':
+        return {
+          title: 'Angebots-Assistent',
+          description: 'KI-gestützte Empfehlungen für Ihr Angebot',
+          suggestionTypes: ['price']
+        };
+      case 'auftrag':
+        return {
+          title: 'Auftrags-Assistent',
+          description: 'KI-gestützte Empfehlungen für Ihren Auftrag',
+          suggestionTypes: ['delivery']
+        };
+      case 'lieferschein':
+        return {
+          title: 'Lieferschein-Assistent',
+          description: 'KI-gestützte Empfehlungen für Ihren Lieferschein',
+          suggestionTypes: ['route']
+        };
+      case 'rechnung':
+        return {
+          title: 'Rechnungs-Assistent',
+          description: 'KI-gestützte Empfehlungen für Ihre Rechnung',
+          suggestionTypes: ['payment']
+        };
+      case 'bestellung':
+        return {
+          title: 'Bestellungs-Assistent',
+          description: 'KI-gestützte Empfehlungen für Ihre Bestellung',
+          suggestionTypes: ['order']
+        };
+      default:
+        return {
+          title: 'Beleg-Assistent',
+          description: 'KI-gestützte Empfehlungen für Ihren Beleg',
+          suggestionTypes: []
+        };
     }
   };
 
-  // Lade die relevanten KI-Vorschläge basierend auf dem Belegtyp
+  // Lade Vorschläge basierend auf dem Belegtyp
   useEffect(() => {
-    if (!isExpanded) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    const loadAssistantData = async () => {
-      try {
-        // Je nach Belegtyp verschiedene Empfehlungen laden
-        switch(belegTyp) {
-          case 'angebot':
-            const vorschlaege = await belegAssistentService.getPreisvorschlaege(belegDaten as Angebot);
-            setPreisvorschlaege(vorschlaege);
-            break;
-            
-          case 'auftrag':
-            const prognose = await belegAssistentService.getLieferterminPrognose(belegDaten as Auftrag);
-            setLieferterminPrognose(prognose);
-            break;
-            
-          case 'lieferschein':
-            const optimierung = await belegAssistentService.getRoutenoptimierung(belegDaten as Lieferschein);
-            setRoutenOptimierung(optimierung);
-            break;
-            
-          case 'rechnung':
-            const zahlungsInfo = await belegAssistentService.getZahlungsprognose(belegDaten as Rechnung);
-            setZahlungsPrognose(zahlungsInfo);
-            break;
-            
-          case 'bestellung':
-            const artikelIds = (belegDaten as Bestellung).positionen.map(pos => pos.artikelId);
-            const bedarfsInfo = await belegAssistentService.getBedarfsermittlung(artikelIds);
-            setBedarfsErmittlung(bedarfsInfo);
-            break;
-        }
-      } catch (err: any) {
-        setError(`Fehler beim Laden der KI-Vorschläge: ${err.message}`);
-        console.error('KI-Assistent Fehler:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadAssistantData();
-  }, [belegTyp, belegDaten, isExpanded]);
+    if (open && belegDaten) {
+      loadSuggestions();
+    }
+  }, [open, belegTyp, belegDaten]);
 
-  // Handler zum Senden von Benutzeranfragen an den LLM-Service
-  const handleSendMessage = async () => {
+  // Hilfsfunktion zum Laden der Vorschläge
+  const loadSuggestions = async () => {
+    setLoading(true);
+    try {
+      // In einer realen Anwendung würde hier ein API-Aufruf erfolgen
+      // const response = await requestAssistance(belegTyp, belegDaten);
+      // setSuggestions(response.suggestions);
+      
+      // Mock-Daten für Demozwecke
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const mockSuggestions: AssistantSuggestion[] = getMockSuggestions();
+      setSuggestions(mockSuggestions);
+    } catch (error) {
+      console.error('Fehler beim Laden der Vorschläge:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock-Vorschläge je nach Belegtyp
+  const getMockSuggestions = (): AssistantSuggestion[] => {
+    switch (belegTyp) {
+      case 'angebot':
+        return [
+          {
+            id: '1',
+            type: 'price',
+            title: 'Optimaler Preis',
+            description: 'Basierend auf Marktanalysen empfehlen wir einen Preis von 67,90 € pro Einheit',
+            value: '67.90',
+            confidence: 87,
+            icon: <PriceCheckIcon />
+          },
+          {
+            id: '2',
+            type: 'price',
+            title: 'Mengenrabatt',
+            description: 'Ein Mengenrabatt von 5% ab 50 Stück könnte den Auftragswert steigern',
+            value: '5',
+            confidence: 75,
+            icon: <PriceCheckIcon />
+          }
+        ];
+      case 'auftrag':
+        return [
+          {
+            id: '1',
+            type: 'delivery',
+            title: 'Optimaler Liefertermin',
+            description: 'Der empfohlene Liefertermin unter Berücksichtigung aller Faktoren ist der 15.06.2024',
+            value: '2024-06-15',
+            confidence: 92,
+            icon: <ScheduleIcon />
+          }
+        ];
+      case 'lieferschein':
+        return [
+          {
+            id: '1',
+            type: 'route',
+            title: 'Optimierte Route',
+            description: 'Die optimale Route spart 12km und reduziert die Lieferzeit um ca. 20 Minuten',
+            value: 'route_1',
+            confidence: 88,
+            icon: <LocalShippingIcon />
+          }
+        ];
+      case 'rechnung':
+        return [
+          {
+            id: '1',
+            type: 'payment',
+            title: 'Zahlungsprognose',
+            description: 'Die voraussichtliche Zahlung erfolgt innerhalb von 12 Tagen mit 94% Wahrscheinlichkeit',
+            value: '12',
+            confidence: 94,
+            icon: <CreditScoreIcon />
+          }
+        ];
+      case 'bestellung':
+        return [
+          {
+            id: '1',
+            type: 'order',
+            title: 'Bestellmenge optimieren',
+            description: 'Die optimale Bestellmenge unter Berücksichtigung der Lagerkosten beträgt 150 Einheiten',
+            value: '150',
+            confidence: 85,
+            icon: <ShoppingBasketIcon />
+          }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  // Chat-Nachricht senden
+  const sendMessage = async () => {
     if (!userInput.trim()) return;
     
-    const userMessage = userInput.trim();
-    setChatMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: userInput,
+      timestamp: new Date()
+    };
+    
+    setChatMessages(prev => [...prev, userMessage]);
     setUserInput('');
-    setSendingMessage(true);
+    setChatLoading(true);
     
     try {
-      // Kontext zum Beleg hinzufügen
-      const contextedQuery = `Im Kontext des ${getBelegTypName(belegTyp)}s mit ${belegDaten.positionen?.length || 0} Positionen: ${userMessage}`;
-      const response = await LLMService.sendQuery(contextedQuery);
+      // In einer realen Anwendung würde hier ein API-Aufruf erfolgen
+      // const response = await sendChatMessage(userMessage.text, belegTyp, belegDaten);
       
-      setChatMessages(prev => [...prev, { text: response, sender: 'assistant' }]);
-    } catch (err: any) {
-      setError(`Fehler bei der Kommunikation mit dem KI-Assistenten: ${err.message}`);
+      // Mock-Antwort für Demozwecke
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        sender: 'assistant',
+        text: getMockResponse(userInput, belegTyp),
+        timestamp: new Date()
+      };
+      
+      setChatMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Fehler beim Senden der Nachricht:', error);
+      
+      // Fehlermeldung als Chat-Nachricht
+      const errorMessage: ChatMessage = {
+        id: `assistant-error-${Date.now()}`,
+        sender: 'assistant',
+        text: 'Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten. Bitte versuchen Sie es später erneut.',
+        timestamp: new Date()
+      };
+      
+      setChatMessages(prev => [...prev, errorMessage]);
     } finally {
-      setSendingMessage(false);
+      setChatLoading(false);
     }
   };
 
-  // Hilfsfunktion zur Bestimmung des Belegtyp-Namens
-  const getBelegTypName = (typ: BelegTyp): string => {
-    switch(typ) {
-      case 'angebot': return 'Angebot';
-      case 'auftrag': return 'Auftrag';
-      case 'lieferschein': return 'Lieferschein';
-      case 'rechnung': return 'Rechnung';
-      case 'bestellung': return 'Bestellung';
-      default: return 'Beleg';
+  // Mock-Antwort für den Chat
+  const getMockResponse = (input: string, type: string): string => {
+    const lowercaseInput = input.toLowerCase();
+    
+    if (lowercaseInput.includes('preis') || lowercaseInput.includes('rabatt')) {
+      return 'Basierend auf den aktuellen Marktdaten und dem Kundenprofil empfehle ich einen Preis von 67,90 € pro Einheit. Dies liegt 3% über Ihren Kosten, ist aber noch konkurrenzfähig im aktuellen Marktumfeld.';
+    }
+    
+    if (lowercaseInput.includes('lieferung') || lowercaseInput.includes('termin')) {
+      return 'Für diesen Kunden empfehle ich einen Liefertermin am 15.06.2024. Dies berücksichtigt sowohl Ihre aktuelle Produktionsauslastung als auch die üblichen Lieferzeiten für diese Region.';
+    }
+    
+    if (lowercaseInput.includes('zahlung') || lowercaseInput.includes('frist')) {
+      return 'Basierend auf der Zahlungshistorie dieses Kunden erwarte ich eine Zahlung innerhalb von 12 Tagen, obwohl das Zahlungsziel bei 14 Tagen liegt. Die Wahrscheinlichkeit einer pünktlichen Zahlung liegt bei 94%.';
+    }
+    
+    return `Ich habe Ihre Anfrage zu "${input}" erhalten. Als ${type}-Assistent kann ich Ihnen helfen, optimale Entscheidungen zu treffen. Was möchten Sie genauer wissen?`;
+  };
+
+  // Vorschlag anwenden
+  const applySuggestion = (suggestion: AssistantSuggestion) => {
+    if (onSuggestionApply) {
+      onSuggestionApply(suggestion);
     }
   };
 
-  // Rendert den Inhalt basierend auf dem Belegtyp
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <Box display="flex" justifyContent="center" alignItems="center" p={3}>
-          <CircularProgress size={40} />
-          <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
-            KI-Assistent analysiert den Beleg...
+  // Konfiguration basierend auf dem Belegtyp
+  const config = getAssistantConfig();
+
+  return (
+    <Box 
+      sx={{ 
+        position: 'fixed',
+        right: open ? 0 : -340,
+        top: 64,
+        bottom: 0,
+        width: 340,
+        transition: 'right 0.3s ease-in-out',
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      {/* Tab zum Öffnen/Schließen */}
+      <Paper
+        elevation={3}
+        sx={{
+          position: 'absolute',
+          left: -40,
+          top: 20,
+          borderTopRightRadius: 0,
+          borderBottomRightRadius: 0,
+          cursor: 'pointer',
+          p: 1
+        }}
+        onClick={() => setOpen(!open)}
+      >
+        <Tooltip title={open ? "Assistent schließen" : "Assistent öffnen"}>
+          <IconButton size="small" color="primary">
+            {open ? <CloseIcon /> : <AutoAwesomeIcon />}
+          </IconButton>
+        </Tooltip>
+      </Paper>
+      
+      {/* Hauptpanel */}
+      <Paper
+        elevation={4}
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <AutoAwesomeIcon sx={{ mr: 1 }} />
+            <Typography variant="h6">{config.title}</Typography>
+          </Box>
+          <IconButton size="small" color="inherit" onClick={() => setOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
+        {/* Beschreibung */}
+        <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
+          <Typography variant="body2" color="text.secondary">
+            {config.description}
           </Typography>
         </Box>
-      );
-    }
-
-    if (error) {
-      return (
-        <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>
-      );
-    }
-
-    // Je nach Belegtyp verschiedene Inhalte anzeigen
-    switch(belegTyp) {
-      case 'angebot':
-        return renderPreisvorschlaege();
-      case 'auftrag':
-        return renderLieferterminPrognose();
-      case 'lieferschein':
-        return renderRoutenOptimierung();
-      case 'rechnung':
-        return renderZahlungsPrognose();
-      case 'bestellung':
-        return renderBedarfsermittlung();
-      default:
-        return (
-          <Typography variant="body2" color="textSecondary" sx={{ p: 2 }}>
-            Keine spezifischen Vorschläge für diesen Belegtyp verfügbar.
-          </Typography>
-        );
-    }
-  };
-
-  // Rendert Preisvorschläge für Angebote
-  const renderPreisvorschlaege = () => {
-    if (preisvorschlaege.length === 0) {
-      return (
-        <Typography variant="body2" color="textSecondary" sx={{ p: 2 }}>
-          Keine Preisvorschläge verfügbar.
-        </Typography>
-      );
-    }
-
-    return (
-      <Box p={2}>
-        <Typography variant="subtitle1" gutterBottom>
-          Preisvorschläge basierend auf Marktanalyse
-        </Typography>
         
-        {preisvorschlaege.map((vorschlag, index) => (
-          <VorschlagCard key={index}>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                <Typography variant="subtitle2">{vorschlag.artikelBezeichnung}</Typography>
-                <Chip 
-                  label={`${vorschlag.konfidenz}% Konfidenz`}
-                  color={vorschlag.konfidenz > 80 ? "success" : "primary"}
-                  size="small"
-                />
-              </Box>
-              
-              <Box display="flex" alignItems="center" mb={1}>
-                <Typography variant="body2" color="textSecondary" sx={{ mr: 1 }}>
-                  Original: {vorschlag.originalPreis.toFixed(2)} €
-                </Typography>
-                <Typography variant="body1" fontWeight="bold" color="primary">
-                  → {vorschlag.vorgeschlagenerPreis.toFixed(2)} €
-                </Typography>
-                {vorschlag.rabatt && (
-                  <Chip 
-                    label={`${vorschlag.rabatt}% Rabatt`}
-                    size="small"
-                    sx={{ ml: 1 }}
-                  />
+        <Divider />
+        
+        {/* Hauptinhalt mit Vorschlägen */}
+        <Box
+          sx={{
+            flexGrow: 1,
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          {/* Vorschläge-Sektion */}
+          <Box sx={{ p: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                px: 1,
+                cursor: 'pointer'
+              }}
+              onClick={() => setExpanded(!expanded)}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                <LightbulbIcon sx={{ mr: 1, color: 'warning.main' }} />
+                Vorschläge
+              </Typography>
+              <IconButton size="small">
+                {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Box>
+            
+            <Collapse in={expanded} timeout="auto" unmountOnExit>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : suggestions.length > 0 ? (
+                <List dense>
+                  {suggestions.map(suggestion => (
+                    <ListItem
+                      key={suggestion.id}
+                      sx={{
+                        mb: 1,
+                        bgcolor: 'background.default',
+                        borderRadius: 1,
+                        '&:hover': { bgcolor: 'action.hover' }
+                      }}
+                      secondaryAction={
+                        <Tooltip title="Vorschlag übernehmen">
+                          <IconButton edge="end" onClick={() => applySuggestion(suggestion)}>
+                            <AutoAwesomeIcon fontSize="small" color="primary" />
+                          </IconButton>
+                        </Tooltip>
+                      }
+                    >
+                      <ListItemIcon>
+                        {suggestion.icon}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {suggestion.title}
+                            <Chip 
+                              label={`${suggestion.confidence}%`} 
+                              size="small" 
+                              color={suggestion.confidence > 85 ? "success" : "warning"}
+                              sx={{ ml: 1, height: 20, '& .MuiChip-label': { px: 1, fontSize: '0.7rem' } }}
+                            />
+                          </Box>
+                        }
+                        secondary={suggestion.description}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Box sx={{ p: 2, textAlign: 'center' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Keine Vorschläge verfügbar.
+                  </Typography>
+                </Box>
+              )}
+            </Collapse>
+          </Box>
+          
+          <Divider />
+          
+          {/* Chat-Sektion */}
+          <Box sx={{ p: 1, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                px: 1,
+                cursor: 'pointer'
+              }}
+              onClick={() => setChatOpen(!chatOpen)}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                <AutoAwesomeIcon sx={{ mr: 1, color: 'info.main' }} />
+                KI-Assistent Chat
+              </Typography>
+              <IconButton size="small">
+                {chatOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Box>
+            
+            <Collapse in={chatOpen} timeout="auto" unmountOnExit sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              {/* Chat-Nachrichten */}
+              <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1, mt: 1 }}>
+                {chatMessages.length > 0 ? (
+                  chatMessages.map(message => (
+                    <Box
+                      key={message.id}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start',
+                        mb: 1
+                      }}
+                    >
+                      <Paper
+                        sx={{
+                          p: 1,
+                          maxWidth: '80%',
+                          bgcolor: message.sender === 'user' ? 'primary.light' : 'background.default',
+                          color: message.sender === 'user' ? 'primary.contrastText' : 'text.primary'
+                        }}
+                      >
+                        <Typography variant="body2">{message.text}</Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', textAlign: 'right', mt: 0.5 }}>
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Typography>
+                      </Paper>
+                    </Box>
+                  ))
+                ) : (
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Stellen Sie eine Frage an den KI-Assistenten.
+                    </Typography>
+                  </Box>
+                )}
+                {chatLoading && (
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
+                    <Paper sx={{ p: 1, bgcolor: 'background.default' }}>
+                      <CircularProgress size={20} />
+                    </Paper>
+                  </Box>
                 )}
               </Box>
               
-              <Typography variant="body2" color="textSecondary" paragraph>
-                {vorschlag.begruendung}
-              </Typography>
-              
-              {onApplyPreisvorschlag && (
-                <Button 
-                  variant="outlined" 
+              {/* Chat-Eingabe */}
+              <Box sx={{ p: 1, display: 'flex', alignItems: 'center' }}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
                   size="small"
-                  onClick={() => onApplyPreisvorschlag(
-                    vorschlag.artikelId, 
-                    vorschlag.vorgeschlagenerPreis,
-                    vorschlag.rabatt
-                  )}
+                  placeholder="Frage an den Assistenten..."
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  disabled={chatLoading}
+                  sx={{ mr: 1 }}
+                />
+                <IconButton 
+                  color="primary" 
+                  onClick={sendMessage} 
+                  disabled={!userInput.trim() || chatLoading}
                 >
-                  Vorschlag übernehmen
-                </Button>
-              )}
-            </CardContent>
-          </VorschlagCard>
-        ))}
-      </Box>
-    );
-  };
-
-  // Rendert Lieferterminprognose für Aufträge
-  const renderLieferterminPrognose = () => {
-    if (!lieferterminPrognose) {
-      return (
-        <Typography variant="body2" color="textSecondary" sx={{ p: 2 }}>
-          Keine Lieferterminprognose verfügbar.
-        </Typography>
-      );
-    }
-
-    const prognoseDatum = new Date(lieferterminPrognose.geschaetztesDatum);
-
-    return (
-      <Box p={2}>
-        <Typography variant="subtitle1" gutterBottom>
-          Lieferterminprognose
-        </Typography>
-        
-        <VorschlagCard>
-          <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-              <Typography variant="subtitle2">Geschätzter Liefertermin</Typography>
-              <Chip 
-                label={`${lieferterminPrognose.konfidenz}% Konfidenz`}
-                color={lieferterminPrognose.konfidenz > 80 ? "success" : "primary"}
-                size="small"
-              />
-            </Box>
-            
-            <Typography variant="h6" color="primary" gutterBottom>
-              {prognoseDatum.toLocaleDateString('de-DE')}
-            </Typography>
-            
-            <Typography variant="body2" color="textSecondary">
-              Lieferzeit: {lieferterminPrognose.minimaleDauer} bis {lieferterminPrognose.maximaleDauer} Tage
-            </Typography>
-            
-            <Box mt={1} mb={2}>
-              <Chip 
-                icon={<LocalShippingIcon />}
-                label={`Einflussfaktor: ${lieferterminPrognose.einflussbereich}`}
-                size="small"
-              />
-            </Box>
-            
-            <Typography variant="body2" paragraph>
-              {lieferterminPrognose.begruendung}
-            </Typography>
-            
-            {lieferterminPrognose.alternativen && lieferterminPrognose.alternativen.length > 0 && (
-              <>
-                <Typography variant="subtitle2" gutterBottom>
-                  Alternative Lieferoptionen:
-                </Typography>
-                <List dense>
-                  {lieferterminPrognose.alternativen.map((alt, index) => (
-                    <ListItem key={index}>
-                      <ListItemText
-                        primary={new Date(alt.datum).toLocaleDateString('de-DE')}
-                        secondary={alt.beschreibung}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </>
-            )}
-            
-            {onApplyLiefertermin && (
-              <Button 
-                variant="outlined" 
-                size="small"
-                onClick={() => onApplyLiefertermin(lieferterminPrognose.geschaetztesDatum)}
-              >
-                Prognosetermin übernehmen
-              </Button>
-            )}
-          </CardContent>
-        </VorschlagCard>
-      </Box>
-    );
-  };
-
-  // Rendert Routenoptimierung für Lieferscheine
-  const renderRoutenOptimierung = () => {
-    if (!routenOptimierung) {
-      return (
-        <Typography variant="body2" color="textSecondary" sx={{ p: 2 }}>
-          Keine Routenoptimierung verfügbar.
-        </Typography>
-      );
-    }
-
-    return (
-      <Box p={2}>
-        <Typography variant="subtitle1" gutterBottom>
-          Optimierte Lieferroute
-        </Typography>
-        
-        <VorschlagCard>
-          <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-              <Typography variant="subtitle2">Routenvorschlag</Typography>
-              <Chip 
-                icon={<TimelineIcon />}
-                label={`${routenOptimierung.einsparpotential}% Einsparpotential`}
-                color="success"
-                size="small"
-              />
-            </Box>
-            
-            <Typography variant="body2" color="textSecondary" gutterBottom>
-              Gesamtentfernung: {routenOptimierung.gesamtEntfernung} km | 
-              Gesamtzeit: {Math.floor(routenOptimierung.gesamtZeit / 60)}h {routenOptimierung.gesamtZeit % 60}min
-            </Typography>
-            
-            <List dense>
-              {routenOptimierung.optimierteReihenfolge.map((station, index) => (
-                <ListItem key={index}>
-                  <ListItemIcon>
-                    <Chip label={index + 1} size="small" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={station.kundenName}
-                    secondary={station.lieferadresse}
-                  />
-                  <Typography variant="body2" color="textSecondary">
-                    {station.entfernung} km | {station.geschaetzteZeit} min
-                  </Typography>
-                </ListItem>
-              ))}
-            </List>
-            
-            <Typography variant="body2" paragraph>
-              {routenOptimierung.begruendung}
-            </Typography>
-            
-            {onApplyRoutenoptimierung && (
-              <Button 
-                variant="outlined" 
-                size="small"
-                onClick={() => onApplyRoutenoptimierung(routenOptimierung.optimierteReihenfolge)}
-              >
-                Routenvorschlag übernehmen
-              </Button>
-            )}
-          </CardContent>
-        </VorschlagCard>
-      </Box>
-    );
-  };
-
-  // Rendert Zahlungsprognose für Rechnungen
-  const renderZahlungsPrognose = () => {
-    if (!zahlungsPrognose) {
-      return (
-        <Typography variant="body2" color="textSecondary" sx={{ p: 2 }}>
-          Keine Zahlungsprognose verfügbar.
-        </Typography>
-      );
-    }
-
-    const prognoseDatum = new Date(zahlungsPrognose.wahrscheinlichesDatum);
-
-    return (
-      <Box p={2}>
-        <Typography variant="subtitle1" gutterBottom>
-          Zahlungsprognose
-        </Typography>
-        
-        <VorschlagCard>
-          <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-              <Typography variant="subtitle2">Erwarteter Zahlungseingang</Typography>
-              <Chip 
-                icon={<MoneyIcon />}
-                label={`${zahlungsPrognose.zahlungswahrscheinlichkeit}% Wahrscheinlichkeit`}
-                color={zahlungsPrognose.zahlungswahrscheinlichkeit > 75 ? "success" : 
-                      zahlungsPrognose.zahlungswahrscheinlichkeit > 50 ? "warning" : "error"}
-                size="small"
-              />
-            </Box>
-            
-            <Typography variant="h6" color="primary" gutterBottom>
-              {prognoseDatum.toLocaleDateString('de-DE')}
-            </Typography>
-            
-            <Typography variant="body2" color="textSecondary" gutterBottom>
-              Ausfallrisiko: {zahlungsPrognose.ausfallrisiko}%
-            </Typography>
-            
-            {zahlungsPrognose.empfehlung && (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                {zahlungsPrognose.empfehlung}
-              </Alert>
-            )}
-            
-            <Typography variant="body2" paragraph>
-              {zahlungsPrognose.begruendung}
-            </Typography>
-          </CardContent>
-        </VorschlagCard>
-      </Box>
-    );
-  };
-
-  // Rendert Bedarfsermittlung für Bestellungen
-  const renderBedarfsermittlung = () => {
-    if (!bedarfsErmittlung) {
-      return (
-        <Typography variant="body2" color="textSecondary" sx={{ p: 2 }}>
-          Keine Bedarfsermittlung verfügbar.
-        </Typography>
-      );
-    }
-
-    return (
-      <Box p={2}>
-        <Typography variant="subtitle1" gutterBottom>
-          Bedarfsanalyse
-        </Typography>
-        
-        <VorschlagCard>
-          <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-              <Typography variant="subtitle2">Bestellbedarf</Typography>
-              <Chip 
-                icon={<CalculateIcon />}
-                label={`Gesamtkosten: ${bedarfsErmittlung.gesamtkosten.toFixed(2)} €`}
-                color="primary"
-                size="small"
-              />
-            </Box>
-            
-            <List dense>
-              {bedarfsErmittlung.artikel.map((artikel, index) => (
-                <ListItem key={index} alignItems="flex-start">
-                  <ListItemIcon>
-                    <Chip 
-                      label={artikel.bestelldringlichkeit}
-                      color={artikel.bestelldringlichkeit === 'kritisch' ? 'error' : 
-                             artikel.bestelldringlichkeit === 'hoch' ? 'warning' : 'default'}
-                      size="small" 
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={artikel.artikelBezeichnung}
-                    secondary={
-                      <>
-                        <Typography component="span" variant="body2" color="textPrimary">
-                          Fehlmenge: {artikel.fehlmenge} | Optimale Bestellmenge: {artikel.optimaleBestellmenge}
-                        </Typography>
-                        <br />
-                        <Typography component="span" variant="body2" color="textSecondary">
-                          Lieferzeit: ca. {artikel.lieferzeit} Tage
-                        </Typography>
-                      </>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-            
-            {bedarfsErmittlung.lieferanten.length > 0 && (
-              <>
-                <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-                  Empfohlene Lieferanten:
-                </Typography>
-                <List dense>
-                  {bedarfsErmittlung.lieferanten.map((lieferant, index) => (
-                    <ListItem key={index}>
-                      <ListItemText
-                        primary={lieferant.lieferantenName}
-                        secondary={`Bewertung: ${lieferant.bewertung}/100 | ${lieferant.artikelAnzahl} Artikel`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </>
-            )}
-          </CardContent>
-        </VorschlagCard>
-      </Box>
-    );
-  };
-
-  // Chat-Bereich für freie Anfragen
-  const renderChat = () => {
-    return (
-      <Box p={2}>
-        <Typography variant="subtitle1" gutterBottom>
-          Fragen Sie den KI-Assistenten
-        </Typography>
-        
-        <Box 
-          sx={{ 
-            minHeight: '150px', 
-            maxHeight: '300px', 
-            overflowY: 'auto',
-            mb: 2,
-            p: 1,
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 1
-          }}
-        >
-          {chatMessages.length === 0 ? (
-            <Typography variant="body2" color="textSecondary" align="center" sx={{ mt: 5 }}>
-              Stellen Sie eine Frage zum aktuellen Beleg
-            </Typography>
-          ) : (
-            chatMessages.map((msg, index) => (
-              <Box 
-                key={index}
-                sx={{
-                  display: 'flex',
-                  justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                  mb: 1
-                }}
-              >
-                <Paper
-                  sx={{
-                    p: 1,
-                    maxWidth: '80%',
-                    bgcolor: msg.sender === 'user' ? 'primary.light' : 'background.paper',
-                    color: msg.sender === 'user' ? 'primary.contrastText' : 'text.primary'
-                  }}
-                >
-                  <Typography variant="body2">
-                    {msg.text}
-                  </Typography>
-                </Paper>
+                  <SendIcon />
+                </IconButton>
               </Box>
-            ))
-          )}
+            </Collapse>
+          </Box>
         </Box>
-        
-        <Box display="flex" alignItems="center">
-          <TextField
-            fullWidth
-            size="small"
-            variant="outlined"
-            placeholder="Stellen Sie eine Frage..."
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            disabled={sendingMessage}
-          />
-          <IconButton 
-            color="primary" 
-            onClick={handleSendMessage}
-            disabled={sendingMessage || !userInput.trim()}
-            sx={{ ml: 1 }}
-          >
-            {sendingMessage ? <CircularProgress size={24} /> : <SendIcon />}
-          </IconButton>
-        </Box>
-      </Box>
-    );
-  };
-
-  // Rendert die gesamte Komponente
-  return (
-    <Paper 
-      sx={{ 
-        mt: 2, 
-        mb: 2, 
-        overflow: 'hidden',
-        border: '1px solid',
-        borderColor: 'divider',
-      }}
-    >
-      <AssistentHeader onClick={handleToggleExpand}>
-        <Box display="flex" alignItems="center">
-          <LightbulbIcon color="primary" sx={{ mr: 1.5 }} />
-          <Typography variant="subtitle1">
-            KI-Assistent für {getBelegTypName(belegTyp)}
-          </Typography>
-          {belegTyp === 'angebot' && <LocalOfferIcon fontSize="small" sx={{ ml: 1, color: 'text.secondary' }} />}
-          {belegTyp === 'auftrag' && <FormatListNumberedIcon fontSize="small" sx={{ ml: 1, color: 'text.secondary' }} />}
-          {belegTyp === 'lieferschein' && <LocalShippingIcon fontSize="small" sx={{ ml: 1, color: 'text.secondary' }} />}
-          {belegTyp === 'rechnung' && <MoneyIcon fontSize="small" sx={{ ml: 1, color: 'text.secondary' }} />}
-          {belegTyp === 'bestellung' && <CalculateIcon fontSize="small" sx={{ ml: 1, color: 'text.secondary' }} />}
-        </Box>
-        <IconButton size="small" onClick={handleToggleExpand}>
-          {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </IconButton>
-      </AssistentHeader>
-      
-      <Collapse in={isExpanded}>
-        <Divider />
-        {renderContent()}
-        <Divider />
-        {renderChat()}
-      </Collapse>
-    </Paper>
+      </Paper>
+    </Box>
   );
 };
 

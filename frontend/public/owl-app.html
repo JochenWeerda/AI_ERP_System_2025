@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owl Framework Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .owl-container {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    .counter {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fff;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button:nth-child(3) {
+      background-color: #f44336;
+    }
+    button:nth-child(3):hover {
+      background-color: #d32f2f;
+    }
+    .debug-info {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Standalone Owl App</h1>
+  <p>Diese Seite lädt eine eigenständige Owl-Anwendung. Wenn die DevTools installiert sind, sollten sie die Owl-Komponenten auf dieser Seite erkennen.</p>
+  
+  <div class="debug-info">
+    <p>Öffnen Sie die Browser-Konsole, um Debug-Informationen zu sehen.</p>
+    <div id="debug-status"></div>
+  </div>
+  
+  <!-- Container für Owl-Anwendung -->
+  <div id="owl-root"></div>
+  
+  <script type="module">
+    // Debug-Modus aktivieren
+    import { owlDebugEnabled } from '/src/owl-debug.js';
+    import { startApp } from '/src/owl-main.js';
+    
+    // Debug-Status anzeigen
+    document.addEventListener('DOMContentLoaded', () => {
+      const debugStatus = document.getElementById('debug-status');
+      if (debugStatus) {
+        debugStatus.innerHTML = `
+          <p>Owl Debug-Modus: ${owlDebugEnabled ? '<span style="color:green">Aktiviert</span>' : '<span style="color:red">Deaktiviert</span>'}</p>
+          <p>Überprüfen Sie, ob das Owl-Tab in den DevTools angezeigt wird.</p>
+        `;
+      }
+    });
+  </script>
+</body>
+</html> 

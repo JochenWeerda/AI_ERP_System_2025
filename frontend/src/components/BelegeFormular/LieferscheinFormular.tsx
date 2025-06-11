@@ -24,7 +24,7 @@ import de from 'date-fns/locale/de';
 import PositionenTabelle, { Position } from './PositionenTabelle';
 import BelegHistorie from './BelegHistorie';
 import StatusBadge from './StatusBadge';
-import belegService from '../../services/belegService';
+import belegeApi from '../../services/belegeApi';
 import { BelegStatus } from '../../types/belegTypes';
 import BelegketteVisualisierung from './BelegketteVisualisierung';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -96,7 +96,7 @@ const LieferscheinFormular: React.FC<LieferscheinFormularProps> = ({
     if (id && id !== 'neu') {
       const loadLieferschein = async () => {
         try {
-          const result = await belegService.getLieferschein(id);
+          const result = await belegeApi.getLieferschein(id);
           setLieferschein(result);
         } catch (error) {
           setErrorMessage('Fehler beim Laden des Lieferscheins');
@@ -108,7 +108,7 @@ const LieferscheinFormular: React.FC<LieferscheinFormularProps> = ({
       const loadAuftrag = async () => {
         try {
           const auftragId = (location.state as any).auftragId;
-          const auftrag = await belegService.getAuftrag(auftragId);
+          const auftrag = await belegeApi.getAuftrag(auftragId);
           
           setLieferschein({
             ...initialLieferschein,
@@ -133,7 +133,7 @@ const LieferscheinFormular: React.FC<LieferscheinFormularProps> = ({
       const searchKunden = async () => {
         setKundenLoading(true);
         try {
-          const result = await belegService.searchKunden(kundenSuche);
+          const result = await belegeApi.searchKunden(kundenSuche);
           setKunden(result);
         } catch (error) {
           setErrorMessage('Fehler bei der Kundensuche');
@@ -156,7 +156,7 @@ const LieferscheinFormular: React.FC<LieferscheinFormularProps> = ({
       const loadAuftraege = async () => {
         setAuftraegeLoading(true);
         try {
-          const result = await belegService.getAuftraegeForKunde(lieferschein.kundeId);
+          const result = await belegeApi.getAuftraegeForKunde(lieferschein.kundeId);
           setAuftraege(result);
         } catch (error) {
           setErrorMessage('Fehler beim Laden der Aufträge');
@@ -172,7 +172,7 @@ const LieferscheinFormular: React.FC<LieferscheinFormularProps> = ({
   // Artikelsuche Callback für die PositionenTabelle
   const handleArtikelSearch = useCallback(async (suchbegriff: string) => {
     try {
-      return await belegService.searchArtikel(suchbegriff);
+      return await belegeApi.searchArtikel(suchbegriff);
     } catch (error) {
       setErrorMessage('Fehler bei der Artikelsuche');
       return [];
@@ -182,7 +182,7 @@ const LieferscheinFormular: React.FC<LieferscheinFormularProps> = ({
   // Einheitensuche Callback für die PositionenTabelle
   const handleEinheitenSearch = useCallback(async (suchbegriff: string) => {
     try {
-      return await belegService.getEinheiten();
+      return await belegeApi.getEinheiten();
     } catch (error) {
       setErrorMessage('Fehler beim Laden der Einheiten');
       return [];
@@ -214,9 +214,9 @@ const LieferscheinFormular: React.FC<LieferscheinFormularProps> = ({
     try {
       let result;
       if (lieferschein.id) {
-        result = await belegService.updateLieferschein(lieferschein.id, lieferschein);
+        result = await belegeApi.updateLieferschein(lieferschein.id, lieferschein);
       } else {
-        result = await belegService.createLieferschein(lieferschein);
+        result = await belegeApi.createLieferschein(lieferschein);
       }
       
       if (onSave) {
@@ -241,10 +241,10 @@ const LieferscheinFormular: React.FC<LieferscheinFormularProps> = ({
       let result;
       
       if (lieferschein.id) {
-        result = await belegService.updateLieferscheinStatus(lieferschein.id, neuerStatus);
+        result = await belegeApi.updateLieferscheinStatus(lieferschein.id, neuerStatus);
       } else {
         // Wenn der Lieferschein noch nicht gespeichert wurde, zuerst speichern
-        result = await belegService.createLieferschein(updatedLieferschein);
+        result = await belegeApi.createLieferschein(updatedLieferschein);
       }
       
       setLieferschein(result);
@@ -267,7 +267,7 @@ const LieferscheinFormular: React.FC<LieferscheinFormularProps> = ({
   // Auftrag auswählen und Positionen übernehmen
   const handleAuftragSelect = async (auftragId: string) => {
     try {
-      const auftrag = await belegService.getAuftrag(auftragId);
+      const auftrag = await belegeApi.getAuftrag(auftragId);
       
       setLieferschein(prev => ({
         ...prev,

@@ -198,6 +198,101 @@ const getBuchungsregelnForLagerplatz = async (lagerplatzId: string): Promise<{
   }
 };
 
+// Neue Funktionen für ChargenAuswahlDialog
+const getOptimaleBuchungsregel = async (artikelId: string, lagerplatz?: string): Promise<'FIFO' | 'LIFO' | 'MIX'> => {
+  try {
+    const params: any = { artikel_id: artikelId };
+    if (lagerplatz) params.lagerplatz = lagerplatz;
+    
+    const response = await axios.get('/api/v1/chargen/buchungsregel', { params });
+    return response.data.regel;
+  } catch (error) {
+    console.error(`Fehler beim Ermitteln der optimalen Buchungsregel für Artikel ${artikelId}:`, error);
+    
+    // Fallback für Entwicklung/Demo
+    return 'FIFO';
+  }
+};
+
+const getVerfügbareChargen = async (artikelId: string, buchungsregel: 'FIFO' | 'LIFO' | 'MIX', mindestmenge?: number): Promise<any[]> => {
+  try {
+    const params: any = { 
+      artikel_id: artikelId,
+      buchungsregel,
+      mindestmenge
+    };
+    
+    const response = await axios.get('/api/v1/chargen/verfuegbar', { params });
+    return response.data;
+  } catch (error) {
+    console.error(`Fehler beim Abrufen der verfügbaren Chargen für Artikel ${artikelId}:`, error);
+    
+    // Fallback für Entwicklung/Demo
+    const chargen = await getChargenBestand(artikelId);
+    const verfügbareChargen = chargen
+      .filter(charge => charge.qualitaetsstatus === 'freigegeben' && charge.menge > 0)
+      .map(charge => ({
+        id: charge.id,
+        chargennummer: charge.chargennummer,
+        menge: charge.menge,
+        mhd: charge.mindesthaltbarkeitsdatum,
+        lagerplatz: charge.lagerplatz,
+        eingang_datum: charge.eingang_datum
+      }));
+    
+    // Sortiere nach der Buchungsregel
+    if (buchungsregel === 'FIFO') {
+      verfügbareChargen.sort((a, b) => 
+        new Date(a.eingang_datum || '').getTime() - new Date(b.eingang_datum || '').getTime()
+      );
+    } else if (buchungsregel === 'LIFO') {
+      verfügbareChargen.sort((a, b) => 
+        new Date(b.eingang_datum || '').getTime() - new Date(a.eingang_datum || '').getTime()
+      );
+    }
+    
+    return verfügbareChargen;
+  }
+};
+
+const erstelleAutomatischeZuordnung = async (artikelId: string, benötigteMenge: number, lagerplatz?: string): Promise<any[]> => {
+  try {
+    const params: any = {
+      artikel_id: artikelId,
+      menge: benötigteMenge
+    };
+    if (lagerplatz) params.lagerplatz = lagerplatz;
+    
+    const response = await axios.get('/api/v1/chargen/zuordnung', { params });
+    return response.data;
+  } catch (error) {
+    console.error(`Fehler bei der automatischen Zuordnung für Artikel ${artikelId}:`, error);
+    
+    // Fallback für Entwicklung/Demo
+    const regel = await getOptimaleBuchungsregel(artikelId, lagerplatz);
+    const verfügbareChargen = await getVerfügbareChargen(artikelId, regel);
+    
+    let restMenge = benötigteMenge;
+    const zuordnung = [];
+    
+    for (const charge of verfügbareChargen) {
+      if (restMenge <= 0) break;
+      
+      const zuVerwendendeMenge = Math.min(charge.menge, restMenge);
+      zuordnung.push({
+        chargennummer: charge.chargennummer,
+        menge: zuVerwendendeMenge,
+        mhd: charge.mhd,
+        lagerplatz: charge.lagerplatz
+      });
+      
+      restMenge -= zuVerwendendeMenge;
+    }
+    
+    return zuordnung;
+  }
+};
+
 // Service-Objekt
 export const chargenService = {
   getChargeById,
@@ -206,5 +301,8 @@ export const chargenService = {
   updateCharge,
   generateQRCode,
   getChargenBestand,
-  getBuchungsregelnForLagerplatz
-}; 
+  getBuchungsregelnForLagerplatz,
+  getOptimaleBuchungsregel,
+  getVerfügbareChargen,
+  erstelleAutomatischeZuordnung
+};

@@ -27,7 +27,8 @@ import {
   Chip,
   Tooltip,
   Badge,
-  LinearProgress
+  LinearProgress,
+  Divider
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -50,15 +51,18 @@ export interface Position {
   menge: number;
   einheit: string;
   einzelpreis: number;
+  bruttoPreis?: number; // Brutto-Einzelpreis für B2C
   mwstSatz: number;
   rabatt?: number;
   rabattProzent?: number;
   mehrwertsteuerProzent?: number;
   gesamtpreis?: number;
+  gesamtpreisBrutto?: number; // Brutto-Gesamtpreis für B2C
   chargennummern?: string[];
   mhd?: string;
   buchungsregel?: 'FIFO' | 'LIFO' | 'MIX';
   lagerplatz?: string;
+  kundentyp?: 'B2B' | 'B2C'; // Kundentyp für die Preisberechnung
   [key: string]: any; // Für belegspezifische Zusatzfelder
 }
 
@@ -85,6 +89,8 @@ export interface PositionenTabelleProps {
   onPositionDelete?: (positionId: string) => void;
   showSummary?: boolean;
   maxPositionen?: number;
+  defaultKundentyp?: 'B2B' | 'B2C'; // Standard-Kundentyp
+  allowKundentypChange?: boolean; // Erlaubt das Umschalten zwischen B2B und B2C
 }
 
 const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
@@ -104,7 +110,9 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
   onPositionAdd,
   onPositionDelete,
   showSummary = true,
-  maxPositionen
+  maxPositionen,
+  defaultKundentyp = 'B2B',
+  allowKundentypChange = true
 }) => {
   const [editingPosition, setEditingPosition] = useState<Position | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -117,7 +125,8 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
     einzelpreis: 0,
     mwstSatz: 19,
     rabatt: 0,
-    gesamtpreis: 0
+    gesamtpreis: 0,
+    kundentyp: defaultKundentyp
   });
   const [artikelSuche, setArtikelSuche] = useState('');
   const [artikelOptions, setArtikelOptions] = useState<any[]>([]);
@@ -131,6 +140,7 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
     lagerplatz?: string;
     einlagerungsdatum?: string;
   }>>([]);
+  const [aktiverKundentyp, setAktiverKundentyp] = useState<'B2B' | 'B2C'>(defaultKundentyp);
 
   // Suche nach Artikeln, wenn sich die Sucheingabe ändert
   useEffect(() => {
@@ -160,25 +170,34 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
     }
   }, [onEinheitenSearch]);
 
-  // Berechnet den Gesamtpreis einer Position
-  const berechneGesamtpreis = (position: Position): number => {
+  // Berechnet den Gesamtpreis einer Position je nach Kundentyp
+  const berechneGesamtpreis = (position: Position): { netto: number, brutto: number } => {
     const menge = parseFloat(position.menge.toString()) || 0;
     const einzelpreis = parseFloat(position.einzelpreis.toString()) || 0;
     const rabatt = parseFloat(position.rabatt?.toString() || '0') || 0;
+    const mwstSatz = parseFloat(position.mwstSatz.toString()) || 0;
     
     const gesamtpreisOhneRabatt = menge * einzelpreis;
     const rabattBetrag = gesamtpreisOhneRabatt * (rabatt / 100);
-    return gesamtpreisOhneRabatt - rabattBetrag;
+    const nettoPreis = gesamtpreisOhneRabatt - rabattBetrag;
+    const bruttoPreis = nettoPreis * (1 + mwstSatz / 100);
+    
+    return { netto: nettoPreis, brutto: bruttoPreis };
   };
 
   // Berechnet Gesamtpreise für alle Positionen
   const berechneAlleGesamtpreise = (posList: Position[]): Position[] => {
     if (!recalculatePositions) return posList;
     
-    return posList.map(pos => ({
-      ...pos,
-      gesamtpreis: berechneGesamtpreis(pos)
-    }));
+    return posList.map(pos => {
+      const preise = berechneGesamtpreis(pos);
+      return {
+        ...pos,
+        gesamtpreis: preise.netto,
+        gesamtpreisBrutto: preise.brutto,
+        bruttoPreis: pos.einzelpreis * (1 + (pos.mwstSatz / 100))
+      };
+    });
   };
 
   // Position bearbeiten
@@ -194,7 +213,9 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
       const neueListe = [...positionen];
       neueListe[editingIndex] = {
         ...editingPosition,
-        gesamtpreis: berechneGesamtpreis(editingPosition)
+        gesamtpreis: berechneGesamtpreis(editingPosition).netto,
+        gesamtpreisBrutto: berechneGesamtpreis(editingPosition).brutto,
+        bruttoPreis: editingPosition.einzelpreis * (1 + (editingPosition.mwstSatz / 100))
       };
       
       onPositionenChange(berechneAlleGesamtpreise(neueListe));
@@ -228,7 +249,8 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
       einzelpreis: 0,
       mwstSatz: 19,
       rabatt: 0,
-      gesamtpreis: 0
+      gesamtpreis: 0,
+      kundentyp: defaultKundentyp
     });
     setShowPositionDialog(true);
   };
@@ -237,7 +259,9 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
   const handleSaveNewPosition = () => {
     const positionMitGesamtpreis = {
       ...newPosition,
-      gesamtpreis: berechneGesamtpreis(newPosition)
+      gesamtpreis: berechneGesamtpreis(newPosition).netto,
+      gesamtpreisBrutto: berechneGesamtpreis(newPosition).brutto,
+      bruttoPreis: newPosition.einzelpreis * (1 + (newPosition.mwstSatz / 100))
     };
     
     const neueListe = [...positionen, positionMitGesamtpreis];
@@ -262,13 +286,19 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
     if (editingPosition) {
       const updatedPosition = { ...editingPosition, [field]: value };
       if (recalculatePositions && (field === 'menge' || field === 'einzelpreis' || field === 'rabatt')) {
-        updatedPosition.gesamtpreis = berechneGesamtpreis(updatedPosition);
+        const preise = berechneGesamtpreis(updatedPosition);
+        updatedPosition.gesamtpreis = preise.netto;
+        updatedPosition.gesamtpreisBrutto = preise.brutto;
+        updatedPosition.bruttoPreis = updatedPosition.einzelpreis * (1 + (updatedPosition.mwstSatz / 100));
       }
       setEditingPosition(updatedPosition);
     } else {
       const updatedPosition = { ...newPosition, [field]: value };
       if (recalculatePositions && (field === 'menge' || field === 'einzelpreis' || field === 'rabatt')) {
-        updatedPosition.gesamtpreis = berechneGesamtpreis(updatedPosition);
+        const preise = berechneGesamtpreis(updatedPosition);
+        updatedPosition.gesamtpreis = preise.netto;
+        updatedPosition.gesamtpreisBrutto = preise.brutto;
+        updatedPosition.bruttoPreis = updatedPosition.einzelpreis * (1 + (updatedPosition.mwstSatz / 100));
       }
       setNewPosition(updatedPosition);
     }
@@ -381,7 +411,7 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
         lagerplatz: selectedChargen[0].lagerplatz // Wir nehmen auch den Lagerplatz der ersten Charge
       };
       
-      onPositionenChange(updatedPositionen);
+      onPositionenChange(berechneAlleGesamtpreise(updatedPositionen));
       setShowChargenDialog(false);
       setSelectedPositionIndex(null);
     }
@@ -600,6 +630,39 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
     );
   });
 
+  // Kundentyp ändern
+  const handleKundentypChange = (neuKundentyp: 'B2B' | 'B2C') => {
+    setAktiverKundentyp(neuKundentyp);
+    
+    // Alle Positionen mit dem neuen Kundentyp aktualisieren
+    const updatedPositionen = positionen.map(position => ({
+      ...position,
+      kundentyp: neuKundentyp
+    }));
+    
+    onPositionenChange(berechneAlleGesamtpreise(updatedPositionen));
+  };
+
+  // Summenwerte für die Tabelle
+  const tabellenSummenwerte = useMemo(() => {
+    const summenwerte = positionen.reduce(
+      (acc, position) => {
+        const nettoSumme = position.gesamtpreis || 0;
+        const mwstBetrag = nettoSumme * (position.mwstSatz / 100);
+        const bruttoSumme = position.gesamtpreisBrutto || nettoSumme + mwstBetrag;
+        
+        return {
+          netto: acc.netto + nettoSumme,
+          mwst: acc.mwst + mwstBetrag,
+          brutto: acc.brutto + bruttoSumme
+        };
+      },
+      { netto: 0, mwst: 0, brutto: 0 }
+    );
+    
+    return summenwerte;
+  }, [positionen]);
+
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -616,18 +679,43 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
         )}
       </Box>
       
+      {/* Kundentyp-Umschalter */}
+      {allowKundentypChange && !readOnly && (
+        <Box mb={2} display="flex" justifyContent="flex-end" alignItems="center">
+          <Typography variant="body2" sx={{ mr: 1 }}>Kundentyp:</Typography>
+          <Button
+            variant={aktiverKundentyp === 'B2B' ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => handleKundentypChange('B2B')}
+            sx={{ mr: 1 }}
+          >
+            B2B (Netto)
+          </Button>
+          <Button
+            variant={aktiverKundentyp === 'B2C' ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => handleKundentypChange('B2C')}
+          >
+            B2C (Brutto)
+          </Button>
+        </Box>
+      )}
+
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Artikel</TableCell>
-              <TableCell align="right">Menge</TableCell>
-              <TableCell>Einheit</TableCell>
-              <TableCell align="right">Einzelpreis</TableCell>
-              {showRabatt && <TableCell align="right">Rabatt (%)</TableCell>}
-              {showMwst && <TableCell align="right">MwSt (%)</TableCell>}
-              <TableCell align="right">Gesamtpreis</TableCell>
-              {!readOnly && <TableCell align="center">Aktionen</TableCell>}
+              <TableCell width="5%">Nr.</TableCell>
+              <TableCell width="35%">Artikel</TableCell>
+              <TableCell width="10%" align="right">Menge</TableCell>
+              <TableCell width="10%" align="right">
+                {aktiverKundentyp === 'B2B' ? 'Netto-Preis' : 'Brutto-Preis'}
+              </TableCell>
+              {showRabatt && <TableCell width="10%" align="right">Rabatt</TableCell>}
+              {showMwst && <TableCell width="10%" align="right">MwSt.</TableCell>}
+              <TableCell width="10%" align="right">Gesamt</TableCell>
+              <TableCell width="5%"></TableCell>
+              <TableCell width="5%"></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -655,27 +743,48 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
         </Table>
       </TableContainer>
 
+      {/* Zeige Summen an */}
+      {showSummary && positionen.length > 0 && (
+        <Box mt={2} p={2} component={Paper} variant="outlined">
+          <Grid container spacing={1}>
+            <Grid item xs={12} container justifyContent="space-between">
+              <Typography variant="subtitle1">Netto-Summe:</Typography>
+              <Typography variant="subtitle1">{formatCurrency(tabellenSummenwerte.netto)}</Typography>
+            </Grid>
+            <Grid item xs={12} container justifyContent="space-between">
+              <Typography variant="subtitle1">MwSt.:</Typography>
+              <Typography variant="subtitle1">{formatCurrency(tabellenSummenwerte.mwst)}</Typography>
+            </Grid>
+            <Divider sx={{ width: '100%', my: 1 }} />
+            <Grid item xs={12} container justifyContent="space-between">
+              <Typography variant="h6">Brutto-Summe:</Typography>
+              <Typography variant="h6">{formatCurrency(tabellenSummenwerte.brutto)}</Typography>
+            </Grid>
+          </Grid>
+        </Box>
+      )}
+
       <Dialog open={showPositionDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
-          {editingPosition ? 'Position bearbeiten' : 'Neue Position hinzufügen'}
+          {editingIndex !== null ? 'Position bearbeiten' : 'Neue Position'}
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
               <Autocomplete
-                disabled={readOnly || disableArtikelAenderung}
                 options={artikelOptions}
-                getOptionLabel={(option) => option.bezeichnung || ''}
                 loading={artikelSearchLoading}
-                onChange={(_, value) => value && handleArtikelSelect(value)}
-                onInputChange={(_, value) => setArtikelSuche(value)}
+                getOptionLabel={(option) => 
+                  typeof option === 'string' ? option : `${option.bezeichnung} (${option.artikelnummer || '-'})`
+                }
+                onInputChange={(event, newValue) => setArtikelSuche(newValue)}
+                onChange={(event, value) => value && handleArtikelSelect(value)}
                 renderInput={(params) => (
-                  <TextField 
-                    {...params} 
-                    label="Artikel" 
-                    fullWidth 
+                  <TextField
+                    {...params}
+                    label="Artikel"
                     variant="outlined"
-                    value={editingPosition?.artikelBezeichnung || newPosition.artikelBezeichnung}
+                    fullWidth
                     InputProps={{
                       ...params.InputProps,
                       endAdornment: (
@@ -687,202 +796,160 @@ const PositionenTabelle: React.FC<PositionenTabelleProps> = ({
                     }}
                   />
                 )}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                label="Beschreibung"
-                fullWidth
-                multiline
-                rows={2}
-                variant="outlined"
-                value={editingPosition?.artikelBeschreibung || newPosition.artikelBeschreibung || ''}
-                onChange={(e) => handleDialogChange('artikelBeschreibung', e.target.value)}
-                disabled={readOnly}
-              />
-            </Grid>
-            
-            <Grid item xs={4}>
-              <TextField
-                label="Menge"
-                fullWidth
-                type="number"
-                inputProps={{ min: 0, step: 0.01 }}
-                variant="outlined"
-                value={editingPosition?.menge || newPosition.menge}
-                onChange={(e) => handleDialogChange('menge', parseFloat(e.target.value) || 0)}
-                disabled={readOnly || disableMengenAenderung}
-              />
-            </Grid>
-            
-            <Grid item xs={4}>
-              {onEinheitenSearch ? (
-                <Autocomplete
-                  disabled={readOnly}
-                  options={einheitenOptions}
-                  getOptionLabel={(option) => option.bezeichnung || ''}
-                  loading={einheitenSearchLoading}
-                  value={einheitenOptions.find(e => e.code === (editingPosition?.einheit || newPosition.einheit)) || null}
-                  onChange={(_, value) => value && handleDialogChange('einheit', value.code)}
-                  renderInput={(params) => (
-                    <TextField 
-                      {...params} 
-                      label="Einheit" 
-                      fullWidth 
-                      variant="outlined"
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <>
-                            {einheitenSearchLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                />
-              ) : (
-                <TextField
-                  label="Einheit"
-                  fullWidth
-                  variant="outlined"
-                  value={editingPosition?.einheit || newPosition.einheit}
-                  onChange={(e) => handleDialogChange('einheit', e.target.value)}
-                  disabled={readOnly}
-                />
-              )}
-            </Grid>
-            
-            <Grid item xs={4}>
-              <TextField
-                label="Einzelpreis"
-                fullWidth
-                type="number"
-                inputProps={{ min: 0, step: 0.01 }}
-                variant="outlined"
-                value={editingPosition?.einzelpreis || newPosition.einzelpreis}
-                onChange={(e) => handleDialogChange('einzelpreis', parseFloat(e.target.value) || 0)}
-                disabled={readOnly}
-              />
-            </Grid>
-            
-            {showRabatt && (
-              <Grid item xs={4}>
-                <TextField
-                  label="Rabatt (%)"
-                  fullWidth
-                  type="number"
-                  inputProps={{ min: 0, max: 100, step: 0.1 }}
-                  variant="outlined"
-                  value={editingPosition?.rabatt || newPosition.rabatt || 0}
-                  onChange={(e) => handleDialogChange('rabatt', parseFloat(e.target.value) || 0)}
-                  disabled={readOnly}
-                />
-              </Grid>
-            )}
-            
-            {showMwst && (
-              <Grid item xs={4}>
-                <TextField
-                  label="MwSt (%)"
-                  fullWidth
-                  type="number"
-                  inputProps={{ min: 0, max: 100, step: 0.1 }}
-                  variant="outlined"
-                  value={editingPosition?.mwstSatz || newPosition.mwstSatz}
-                  onChange={(e) => handleDialogChange('mwstSatz', parseFloat(e.target.value) || 0)}
-                  disabled={readOnly}
-                />
-              </Grid>
-            )}
-            
-            <Grid item xs={4}>
-              <TextField
-                label="Gesamtpreis"
-                fullWidth
-                type="number"
-                variant="outlined"
-                value={
-                  (editingPosition ? 
-                    berechneGesamtpreis(editingPosition) : 
-                    berechneGesamtpreis(newPosition)
-                  ).toFixed(2)
-                }
-                disabled={true}
+                disabled={readOnly || disableArtikelAenderung}
               />
             </Grid>
 
-            {/* Zusätzliche Felder */}
-            {extraFields.map((field) => (
-              <Grid item xs={6} key={field.name}>
-                {field.type === 'select' ? (
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel>{field.label}</InputLabel>
-                    <Select
-                      value={
-                        editingPosition 
-                          ? (editingPosition[field.name] || '') 
-                          : (newPosition[field.name] || '')
-                      }
-                      onChange={(e) => handleDialogChange(field.name, e.target.value)}
-                      label={field.label}
-                      disabled={readOnly}
-                    >
-                      {field.options?.map(option => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                ) : field.type === 'date' ? (
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Bezeichnung"
+                value={editingPosition ? editingPosition.artikelBezeichnung : newPosition.artikelBezeichnung}
+                onChange={(e) => 
+                  handleDialogChange('artikelBezeichnung', e.target.value)
+                }
+                fullWidth
+                variant="outlined"
+                disabled={readOnly}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Beschreibung (optional)"
+                value={
+                  editingPosition 
+                    ? editingPosition.artikelBeschreibung || '' 
+                    : newPosition.artikelBeschreibung || ''
+                }
+                onChange={(e) => 
+                  handleDialogChange('artikelBeschreibung', e.target.value)
+                }
+                fullWidth
+                variant="outlined"
+                multiline
+                rows={1}
+                disabled={readOnly}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Menge"
+                type="number"
+                value={editingPosition ? editingPosition.menge : newPosition.menge}
+                onChange={(e) => 
+                  handleDialogChange('menge', parseFloat(e.target.value) || 0)
+                }
+                fullWidth
+                variant="outlined"
+                InputProps={{ inputProps: { min: 0, step: 0.01 } }}
+                disabled={readOnly || disableMengenAenderung}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <Autocomplete
+                options={einheitenOptions}
+                loading={einheitenSearchLoading}
+                getOptionLabel={(option) => 
+                  typeof option === 'string' ? option : option.name || option.bezeichnung
+                }
+                value={
+                  editingPosition 
+                    ? { name: editingPosition.einheit } 
+                    : { name: newPosition.einheit }
+                }
+                onChange={(event, value) => 
+                  handleDialogChange('einheit', value ? value.name || value.bezeichnung : 'Stk')
+                }
+                renderInput={(params) => (
                   <TextField
-                    label={field.label}
-                    type="date"
-                    fullWidth
+                    {...params}
+                    label="Einheit"
                     variant="outlined"
-                    InputLabelProps={{ shrink: true }}
-                    value={
-                      editingPosition 
-                        ? (editingPosition[field.name] || '') 
-                        : (newPosition[field.name] || '')
-                    }
-                    onChange={(e) => handleDialogChange(field.name, e.target.value)}
-                    disabled={readOnly}
-                  />
-                ) : (
-                  <TextField
-                    label={field.label}
-                    type={field.type}
                     fullWidth
-                    variant="outlined"
-                    value={
-                      editingPosition 
-                        ? (editingPosition[field.name] || '') 
-                        : (newPosition[field.name] || '')
-                    }
-                    onChange={(e) => handleDialogChange(
-                      field.name, 
-                      field.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value
-                    )}
-                    disabled={readOnly}
                   />
                 )}
-              </Grid>
-            ))}
+                disabled={readOnly}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Kundentyp</InputLabel>
+                <Select
+                  value={editingPosition ? editingPosition.kundentyp || 'B2B' : newPosition.kundentyp || 'B2B'}
+                  onChange={(e) => handleDialogChange('kundentyp', e.target.value)}
+                  label="Kundentyp"
+                  disabled={readOnly || !allowKundentypChange}
+                >
+                  <MenuItem value="B2B">B2B (Netto)</MenuItem>
+                  <MenuItem value="B2C">B2C (Brutto)</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label={`${(editingPosition?.kundentyp || newPosition.kundentyp) === 'B2C' ? 'Brutto' : 'Netto'}-Einzelpreis`}
+                type="number"
+                value={
+                  (editingPosition?.kundentyp || newPosition.kundentyp) === 'B2C'
+                    ? (editingPosition ? editingPosition.bruttoPreis || 0 : newPosition.bruttoPreis || 0)
+                    : (editingPosition ? editingPosition.einzelpreis : newPosition.einzelpreis)
+                }
+                onChange={(e) => {
+                  const wert = parseFloat(e.target.value) || 0;
+                  const kundentyp = editingPosition?.kundentyp || newPosition.kundentyp;
+                  const mwstSatz = editingPosition ? editingPosition.mwstSatz : newPosition.mwstSatz;
+                  
+                  if (kundentyp === 'B2C') {
+                    // Bei B2C wird der Brutto-Preis eingegeben, wir berechnen den Netto-Preis
+                    const nettoPreis = wert / (1 + (mwstSatz / 100));
+                    if (editingPosition) {
+                      handleDialogChange('einzelpreis', nettoPreis);
+                      handleDialogChange('bruttoPreis', wert);
+                    } else {
+                      handleDialogChange('einzelpreis', nettoPreis);
+                      handleDialogChange('bruttoPreis', wert);
+                    }
+                  } else {
+                    // Bei B2B wird der Netto-Preis eingegeben
+                    const bruttoPreis = wert * (1 + (mwstSatz / 100));
+                    if (editingPosition) {
+                      handleDialogChange('einzelpreis', wert);
+                      handleDialogChange('bruttoPreis', bruttoPreis);
+                    } else {
+                      handleDialogChange('einzelpreis', wert);
+                      handleDialogChange('bruttoPreis', bruttoPreis);
+                    }
+                  }
+                }}
+                fullWidth
+                variant="outlined"
+                InputProps={{ 
+                  inputProps: { min: 0, step: 0.01 },
+                  startAdornment: <Box component="span" mr={1}>€</Box>
+                }}
+                disabled={readOnly}
+              />
+            </Grid>
+
+            {/* ... existing fields ... */}
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} color="primary">
+          <Button onClick={handleCloseDialog} color="inherit">
             Abbrechen
           </Button>
           <Button 
-            onClick={editingPosition ? handleSave : handleSaveNewPosition}
+            onClick={editingIndex !== null ? handleSave : handleSaveNewPosition}
+            variant="contained" 
             color="primary"
-            variant="contained"
-            disabled={!editingPosition?.artikelId && !newPosition.artikelId}
+            disabled={
+              (editingPosition && !editingPosition.artikelBezeichnung) || 
+              (!editingPosition && !newPosition.artikelBezeichnung)
+            }
           >
             Speichern
           </Button>

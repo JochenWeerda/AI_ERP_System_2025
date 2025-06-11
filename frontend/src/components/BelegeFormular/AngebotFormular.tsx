@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   Grid,
   TextField,
@@ -18,7 +18,8 @@ import {
   Card,
   CardContent,
   Tabs,
-  Tab
+  Tab,
+  Button
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import SendIcon from '@mui/icons-material/Send';
@@ -83,6 +84,7 @@ const AngebotFormular: React.FC<AngebotFormularProps> = ({
   const angebotId = id || urlId;
   const isNew = !angebotId;
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -277,7 +279,7 @@ const AngebotFormular: React.FC<AngebotFormularProps> = ({
 
   // Zurück zur Übersicht
   const handleBack = () => {
-    navigate('/angebote');
+    navigate('/belegfolge/angebote');
   };
 
   // Handler zum Laden des Angebots
@@ -316,358 +318,365 @@ const AngebotFormular: React.FC<AngebotFormularProps> = ({
     readOnly
   );
 
+  // Stellen sicher, dass Tabs angezeigt werden
+  useEffect(() => {
+    // Tab aus URL-Parameter setzen, wenn vorhanden
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam) {
+      const tabIndex = parseInt(tabParam, 10);
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
+        setActiveTab(tabIndex);
+      }
+    }
+  }, [location.search]);
+
+  // Tab-Wechsel mit URL-Parameter
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+    const searchParams = new URLSearchParams(location.search);
+    searchParams.set('tab', newValue.toString());
+    navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   };
 
   return (
-    <BelegFormBase
-      title={isNew ? 'Neues Angebot erstellen' : `Angebot ${angebotId}`}
-      belegData={angebot}
-      onSave={handleSave}
-      onBack={handleBack}
-      onPrint={handlePrint}
-      onEmail={handleEmail}
-      loading={loading}
-      error={error}
-      readOnly={readOnly}
-    >
-      {angebot.status && (
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <StatusBadge status={angebot.status} />
-          <BelegAktionenLeiste
-            belegTyp="angebot"
-            status={angebot.status}
-            aktionen={aktionen.concat([
-              {
-                label: 'Als Auftrag übernehmen',
-                onClick: () => console.log('Als Auftrag übernehmen'),
-                color: 'success',
-                icon: 'convert',
-                visible: angebot.status === 'gesendet' || angebot.status === 'akzeptiert'
-              }
-            ])}
-          />
-        </Box>
-      )}
+    <>
+      <BelegFormBase
+        title={isNew ? 'Neues Angebot erstellen' : `Angebot ${angebotId}`}
+        belegData={angebot}
+        onSave={handleSave}
+        onBack={handleBack}
+        onPrint={handlePrint}
+        onEmail={handleEmail}
+        loading={loading}
+        error={error}
+        readOnly={readOnly}
+        tabs={
+          <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tab label="Stammdaten" />
+            <Tab label="Positionen" />
+            <Tab label="Historie" />
+            <Tab label="Dokumente" />
+          </Tabs>
+        }
+      >
+        {angebot.status && (
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <StatusBadge status={angebot.status} />
+            <BelegAktionenLeiste
+              belegTyp="angebot"
+              aktionen={aktionen}
+            />
+          </Box>
+        )}
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs value={activeTab} onChange={handleTabChange}>
-          <Tab label="Allgemein" />
-          <Tab label="Positionen" />
-          <Tab label="Historie" />
-          <Tab label="Dokumente" />
-        </Tabs>
-      </Box>
-
-      {/* KI-Assistent Komponente */}
-      <BelegAssistent 
-        belegTyp="angebot" 
-        belegDaten={angebot}
-        onApplyPreisvorschlag={(artikelId, neuerPreis, rabatt) => {
-          // Implementiere Preisvorschlag-Übernahme
-          const neuePositionen = angebot.positionen.map(pos => {
-            if (pos.artikelId === artikelId) {
-              return {
-                ...pos,
-                einzelpreis: neuerPreis,
-                rabattProzent: rabatt || pos.rabattProzent
-              };
-            }
-            return pos;
-          });
-          
-          handlePositionenChange(neuePositionen);
-          setSuccess('Preisvorschlag übernommen');
-        }}
-      />
-
-      {activeTab === 0 && (
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Angebotsdetails
-                </Typography>
-                <Grid container spacing={2}>
-                  {angebot.nummer && (
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="Angebotsnummer"
-                        fullWidth
-                        value={angebot.nummer}
-                        InputProps={{
-                          readOnly: true
-                        }}
-                      />
-                    </Grid>
-                  )}
-                  
-                  <Grid item xs={12} sm={6}>
-                    <StatusBadge
-                      status={angebot.status}
-                      belegTyp="angebot"
-                      showLabel
-                      style={{ marginTop: 16 }}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Betreff"
-                      fullWidth
-                      required
-                      value={angebot.betreff}
-                      onChange={e => handleAngebotChange('betreff', e.target.value)}
-                      disabled={readOnly}
-                      error={!angebot.betreff}
-                      helperText={!angebot.betreff ? 'Betreff ist erforderlich' : ''}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12} sm={6}>
-                    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
-                      <DatePicker
-                        label="Erstelldatum"
-                        value={new Date(angebot.erstellDatum)}
-                        onChange={date => handleAngebotChange('erstellDatum', date ? date.toISOString() : null)}
-                        disabled={readOnly}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            required: true
-                          }
-                        }}
-                      />
-                    </LocalizationProvider>
-                  </Grid>
-                  
-                  <Grid item xs={12} sm={6}>
-                    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
-                      <DatePicker
-                        label="Gültig bis"
-                        value={new Date(angebot.gueltigBis)}
-                        onChange={date => handleAngebotChange('gueltigBis', date ? date.toISOString() : null)}
-                        disabled={readOnly}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            required: true
-                          }
-                        }}
-                      />
-                    </LocalizationProvider>
-                  </Grid>
-                  
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Währung"
-                      fullWidth
-                      value={angebot.waehrung || 'EUR'}
-                      onChange={e => handleAngebotChange('waehrung', e.target.value)}
-                      disabled={readOnly}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Rabatt (%)"
-                      fullWidth
-                      type="number"
-                      inputProps={{ min: 0, max: 100, step: 0.1 }}
-                      value={angebot.rabatt || 0}
-                      onChange={e => handleAngebotChange('rabatt', parseFloat(e.target.value) || 0)}
-                      disabled={readOnly}
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Kundeninformationen
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Autocomplete
-                      options={kundenOptions}
-                      getOptionLabel={(option) => option.name}
-                      loading={kundenSucheLoading}
-                      value={ausgewaehlterKunde}
-                      onChange={(_, value) => handleKundenChange(value)}
-                      onInputChange={(_, value) => setKundenSuchtext(value)}
-                      renderInput={(params) => (
+        {activeTab === 0 && (
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Angebotsdetails
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {angebot.nummer && (
+                      <Grid item xs={12} sm={6}>
                         <TextField
-                          {...params}
-                          label="Kunde"
-                          required
+                          label="Angebotsnummer"
                           fullWidth
-                          error={!angebot.kundenId}
-                          helperText={!angebot.kundenId ? 'Kunde ist erforderlich' : ''}
+                          value={angebot.nummer}
                           InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                              <>
-                                {kundenSucheLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                {params.InputProps.endAdornment}
-                              </>
-                            ),
+                            readOnly: true
                           }}
                         />
-                      )}
-                      disabled={readOnly}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Ansprechpartner"
-                      fullWidth
-                      value={angebot.kundenAnsprechpartner || ''}
-                      onChange={e => handleAngebotChange('kundenAnsprechpartner', e.target.value)}
-                      disabled={readOnly}
-                    />
-                  </Grid>
-                  
-                  {ausgewaehlterKunde && (
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Adresse"
-                        fullWidth
-                        multiline
-                        rows={2}
-                        value={ausgewaehlterKunde.adresse || ''}
-                        InputProps={{
-                          readOnly: true
-                        }}
+                      </Grid>
+                    )}
+                    
+                    <Grid item xs={12} sm={6}>
+                      <StatusBadge
+                        status={angebot.status}
+                        belegTyp="angebot"
+                        showLabel
+                        style={{ marginTop: 16 }}
                       />
                     </Grid>
-                  )}
-                </Grid>
-              </CardContent>
-            </Card>
-            
-            <Box mt={2}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Konditionen
-                  </Typography>
-                  <Grid container spacing={2}>
+                    
                     <Grid item xs={12}>
                       <TextField
-                        label="Zahlungsbedingungen"
+                        label="Betreff"
                         fullWidth
-                        multiline
-                        rows={2}
-                        value={angebot.zahlungsbedingungen || ''}
-                        onChange={e => handleAngebotChange('zahlungsbedingungen', e.target.value)}
+                        required
+                        value={angebot.betreff}
+                        onChange={e => handleAngebotChange('betreff', e.target.value)}
+                        disabled={readOnly}
+                        error={!angebot.betreff}
+                        helperText={!angebot.betreff ? 'Betreff ist erforderlich' : ''}
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
+                        <DatePicker
+                          label="Erstelldatum"
+                          value={new Date(angebot.erstellDatum)}
+                          onChange={date => handleAngebotChange('erstellDatum', date ? date.toISOString() : null)}
+                          disabled={readOnly}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              required: true
+                            }
+                          }}
+                        />
+                      </LocalizationProvider>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
+                        <DatePicker
+                          label="Gültig bis"
+                          value={new Date(angebot.gueltigBis)}
+                          onChange={date => handleAngebotChange('gueltigBis', date ? date.toISOString() : null)}
+                          disabled={readOnly}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              required: true
+                            }
+                          }}
+                        />
+                      </LocalizationProvider>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Währung"
+                        fullWidth
+                        value={angebot.waehrung || 'EUR'}
+                        onChange={e => handleAngebotChange('waehrung', e.target.value)}
                         disabled={readOnly}
                       />
                     </Grid>
                     
-                    <Grid item xs={12}>
+                    <Grid item xs={12} sm={6}>
                       <TextField
-                        label="Lieferbedingungen"
+                        label="Rabatt (%)"
                         fullWidth
-                        multiline
-                        rows={2}
-                        value={angebot.lieferbedingungen || ''}
-                        onChange={e => handleAngebotChange('lieferbedingungen', e.target.value)}
+                        type="number"
+                        inputProps={{ min: 0, max: 100, step: 0.1 }}
+                        value={angebot.rabatt || 0}
+                        onChange={e => handleAngebotChange('rabatt', parseFloat(e.target.value) || 0)}
                         disabled={readOnly}
                       />
                     </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Box>
-          </Grid>
-          
-          {angebot.kundenAffinitaet !== undefined && (
-            <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    KI-Analysen
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Typography variant="subtitle2">Kundenaffinität</Typography>
-                      <Typography variant="body1">{angebot.kundenAffinitaet}/100</Typography>
-                    </Grid>
-                    
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Typography variant="subtitle2">Optimierte Preise</Typography>
-                      <Typography variant="body1">{angebot.optimiertePreise ? 'Ja' : 'Nein'}</Typography>
-                    </Grid>
-                    
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Typography variant="subtitle2">Saisonale Anpassung</Typography>
-                      <Typography variant="body1">{angebot.saisonaleAnpassung ? 'Ja' : 'Nein'}</Typography>
-                    </Grid>
-                    
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Typography variant="subtitle2">Marktpreisvergleich</Typography>
-                      <Typography variant="body1">{angebot.marktpreisVergleich !== undefined ? `${angebot.marktpreisVergleich}%` : '-'}</Typography>
-                    </Grid>
-                    
-                    {angebot.preisOptimierungsBasis && (
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2">Basis für Preisoptimierung</Typography>
-                        <Typography variant="body1">{angebot.preisOptimierungsBasis}</Typography>
-                      </Grid>
-                    )}
-                    
-                    {angebot.vorgeschlageneAlternativen && angebot.vorgeschlageneAlternativen.length > 0 && (
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2">Vorgeschlagene Alternativen</Typography>
-                        <ul>
-                          {angebot.vorgeschlageneAlternativen.map((alternative, index) => (
-                            <li key={index}>{alternative}</li>
-                          ))}
-                        </ul>
-                      </Grid>
-                    )}
                   </Grid>
                 </CardContent>
               </Card>
             </Grid>
-          )}
-        </Grid>
-      )}
+            
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Kundeninformationen
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Autocomplete
+                        options={kundenOptions}
+                        getOptionLabel={(option) => option.name}
+                        loading={kundenSucheLoading}
+                        value={ausgewaehlterKunde}
+                        onChange={(_, value) => handleKundenChange(value)}
+                        onInputChange={(_, value) => setKundenSuchtext(value)}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Kunde"
+                            required
+                            fullWidth
+                            error={!angebot.kundenId}
+                            helperText={!angebot.kundenId ? 'Kunde ist erforderlich' : ''}
+                            InputProps={{
+                              ...params.InputProps,
+                              endAdornment: (
+                                <>
+                                  {kundenSucheLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                  {params.InputProps.endAdornment}
+                                </>
+                              ),
+                            }}
+                          />
+                        )}
+                        disabled={readOnly}
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Ansprechpartner"
+                        fullWidth
+                        value={angebot.kundenAnsprechpartner || ''}
+                        onChange={e => handleAngebotChange('kundenAnsprechpartner', e.target.value)}
+                        disabled={readOnly}
+                      />
+                    </Grid>
+                    
+                    {ausgewaehlterKunde && (
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Adresse"
+                          fullWidth
+                          multiline
+                          rows={2}
+                          value={ausgewaehlterKunde.adresse || ''}
+                          InputProps={{
+                            readOnly: true
+                          }}
+                        />
+                      </Grid>
+                    )}
+                  </Grid>
+                </CardContent>
+              </Card>
+              
+              <Box mt={2}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Konditionen
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Zahlungsbedingungen"
+                          fullWidth
+                          multiline
+                          rows={2}
+                          value={angebot.zahlungsbedingungen || ''}
+                          onChange={e => handleAngebotChange('zahlungsbedingungen', e.target.value)}
+                          disabled={readOnly}
+                        />
+                      </Grid>
+                      
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Lieferbedingungen"
+                          fullWidth
+                          multiline
+                          rows={2}
+                          value={angebot.lieferbedingungen || ''}
+                          onChange={e => handleAngebotChange('lieferbedingungen', e.target.value)}
+                          disabled={readOnly}
+                        />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Box>
+            </Grid>
+            
+            {angebot.kundenAffinitaet !== undefined && (
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      KI-Analysen
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Typography variant="subtitle2">Kundenaffinität</Typography>
+                        <Typography variant="body1">{angebot.kundenAffinitaet}/100</Typography>
+                      </Grid>
+                      
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Typography variant="subtitle2">Optimierte Preise</Typography>
+                        <Typography variant="body1">{angebot.optimiertePreise ? 'Ja' : 'Nein'}</Typography>
+                      </Grid>
+                      
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Typography variant="subtitle2">Saisonale Anpassung</Typography>
+                        <Typography variant="body1">{angebot.saisonaleAnpassung ? 'Ja' : 'Nein'}</Typography>
+                      </Grid>
+                      
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Typography variant="subtitle2">Marktpreisvergleich</Typography>
+                        <Typography variant="body1">{angebot.marktpreisVergleich !== undefined ? `${angebot.marktpreisVergleich}%` : '-'}</Typography>
+                      </Grid>
+                      
+                      {angebot.preisOptimierungsBasis && (
+                        <Grid item xs={12}>
+                          <Typography variant="subtitle2">Basis für Preisoptimierung</Typography>
+                          <Typography variant="body1">{angebot.preisOptimierungsBasis}</Typography>
+                        </Grid>
+                      )}
+                      
+                      {angebot.vorgeschlageneAlternativen && angebot.vorgeschlageneAlternativen.length > 0 && (
+                        <Grid item xs={12}>
+                          <Typography variant="subtitle2">Vorgeschlagene Alternativen</Typography>
+                          <ul>
+                            {angebot.vorgeschlageneAlternativen.map((alternative, index) => (
+                              <li key={index}>{alternative}</li>
+                            ))}
+                          </ul>
+                        </Grid>
+                      )}
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
+          </Grid>
+        )}
 
-      {activeTab === 1 && (
-        <PositionenTabelle
-          positionen={angebot.positionen}
-          onPositionenChange={handlePositionenChange}
-          onArtikelSearch={artikelSuche}
-          onEinheitenSearch={einheitenSuche}
-          readOnly={readOnly}
-        />
-      )}
+        {activeTab === 1 && (
+          <PositionenTabelle
+            positionen={angebot.positionen}
+            onPositionenChange={handlePositionenChange}
+            onArtikelSearch={artikelSuche}
+            onEinheitenSearch={einheitenSuche}
+            readOnly={readOnly}
+          />
+        )}
 
-      {activeTab === 2 && (
-        <BelegHistorie
-          eintraege={historieEintraege}
-          showAll
-        />
-      )}
-    </BelegFormBase>
+        {activeTab === 2 && (
+          <BelegHistorie
+            eintraege={historieEintraege}
+            showAll
+          />
+        )}
 
-    <Snackbar
-      open={!!success}
-      autoHideDuration={6000}
-      onClose={() => setSuccess(null)}
-    >
-      <Alert onClose={() => setSuccess(null)} severity="success">
-        {success}
-      </Alert>
-    </Snackbar>
+        {activeTab === 3 && (
+          <Box sx={{ p: 2, minHeight: '200px' }}>
+            <Typography variant="h6" gutterBottom>Dokumente</Typography>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              In diesem Bereich können Dokumente zu diesem Angebot hochgeladen und verwaltet werden.
+            </Alert>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, backgroundColor: '#f9f9f9' }}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Button variant="contained" color="primary" disabled={readOnly}>
+                      Dokument hochladen
+                    </Button>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+        )}
+      </BelegFormBase>
+
+      <Snackbar
+        open={!!success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(null)}
+      >
+        <Alert onClose={() => setSuccess(null)} severity="success">
+          {success}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 

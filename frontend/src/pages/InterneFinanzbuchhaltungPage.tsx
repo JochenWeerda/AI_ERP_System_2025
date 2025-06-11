@@ -255,17 +255,17 @@ const InterneFinanzbuchhaltungPage: React.FC = () => {
                         }
                         secondary={
                           <>
-                            <Typography variant="body2" color="textSecondary">
+                            <Typography component="span" variant="body2" color="textSecondary">
                               Datum: {new Date(item.timestamp).toLocaleString()}
                             </Typography>
-                            <Typography variant="body2" color="textSecondary">
+                            <Typography component="span" variant="body2" color="textSecondary">
                               Vorgangsarten: {item.transactionTypes.join(', ')}
                             </Typography>
-                            <Typography variant="body2" color="textSecondary">
+                            <Typography component="span" variant="body2" color="textSecondary">
                               Anzahl Buchungen: {item.count}
                             </Typography>
                             {item.status === 'error' && item.message && (
-                              <Typography variant="body2" color="error">
+                              <Typography component="span" variant="body2" color="error">
                                 Fehler: {item.message}
                               </Typography>
                             )}
@@ -358,13 +358,13 @@ const InterneFinanzbuchhaltungPage: React.FC = () => {
             />
             <Divider />
             <CardContent>
-              <Typography variant="body2" paragraph>
+              <Typography component="div" variant="body2" paragraph>
                 <strong>Aktueller Monat:</strong> Juni 2024
               </Typography>
-              <Typography variant="body2" paragraph>
+              <Typography component="div" variant="body2" paragraph>
                 <strong>Offene Buchungsperioden:</strong> Mai 2024, Juni 2024
               </Typography>
-              <Typography variant="body2">
+              <Typography component="div" variant="body2">
                 <strong>Letzte Übernahme:</strong> 15.06.2024
               </Typography>
             </CardContent>

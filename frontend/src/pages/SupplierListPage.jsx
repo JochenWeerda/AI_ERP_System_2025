@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Button,
-  Paper,
   Typography,
   Box,
   Table,
@@ -17,28 +16,37 @@ import {
   IconButton,
   Chip,
   CircularProgress,
-  Backdrop
+  Backdrop,
+  Alert,
+  Card,
+  CardContent,
+  CardHeader
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import GroupIcon from '@mui/icons-material/Group';
+import DescriptionIcon from '@mui/icons-material/Description';
+import ImportContactsIcon from '@mui/icons-material/ImportContacts';
+import HistoryIcon from '@mui/icons-material/History';
 import Layout from '../components/Layout';
+import ModuleLoader from '../components/ModuleLoader';
 
 /**
- * Lieferantenliste Seite
- * Zeigt alle Lieferanten in einer Tabelle an mit Filtermöglichkeiten
+ * Komponente für die Hauptansicht der Lieferantenliste
  */
-const SupplierListPage = () => {
+const SupplierListView = () => {
   const navigate = useNavigate();
   const [suppliers, setSuppliers] = useState([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Beispieldaten für die Lieferantenliste
+  // Beispieldaten für die Lieferantenliste als Fallback
   const mockSuppliers = [
     {
       id: '1',
@@ -92,27 +100,39 @@ const SupplierListPage = () => {
     }
   ];
 
-  // Simuliere API-Aufruf zum Laden der Lieferanten
+  // Lieferanten vom API laden
   useEffect(() => {
-    // In Produktionssystem würde hier ein API-Aufruf stattfinden
-    // fetch('/api/v1/lieferantenstamm')
-    //   .then(response => response.json())
-    //   .then(data => {
-    //     setSuppliers(data);
-    //     setFilteredSuppliers(data);
-    //     setLoading(false);
-    //   })
-    //   .catch(error => {
-    //     console.error('Fehler beim Laden der Lieferanten:', error);
-    //     setLoading(false);
-    //   });
+    const loadSuppliers = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Versuche die Lieferanten vom API zu laden
+        const response = await fetch('/api/v1/lieferantenstamm');
+        
+        if (response.ok) {
+          const data = await response.json();
+          setSuppliers(data);
+          setFilteredSuppliers(data);
+        } else {
+          // Bei API-Fehler auf Fallback-Daten zurückgreifen
+          console.log('Verwende Beispieldaten wegen API-Fehler:', response.status);
+          setSuppliers(mockSuppliers);
+          setFilteredSuppliers(mockSuppliers);
+          setError(`API-Fehler: ${response.status} ${response.statusText}`);
+        }
+      } catch (error) {
+        // Bei Netzwerkfehler auf Fallback-Daten zurückgreifen
+        console.error('Fehler beim Laden der Lieferanten:', error);
+        setSuppliers(mockSuppliers);
+        setFilteredSuppliers(mockSuppliers);
+        setError('Verbindungsfehler: Laden der Lieferantendaten nicht möglich');
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // Simuliere API-Aufruf mit Timeout
-    setTimeout(() => {
-      setSuppliers(mockSuppliers);
-      setFilteredSuppliers(mockSuppliers);
-      setLoading(false);
-    }, 1000);
+    loadSuppliers();
   }, []);
 
   // Filtern der Lieferanten basierend auf dem Suchbegriff
@@ -159,126 +179,132 @@ const SupplierListPage = () => {
   };
 
   return (
-    <Layout>
-      <Box sx={{ p: 3, maxWidth: '100%' }}>
-        <Paper sx={{ p: 3, width: '100%' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5">Lieferantenstammdaten</Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleCreateSupplier}
-            >
-              Neuer Lieferant
-            </Button>
-          </Box>
+    <Card>
+      <CardHeader 
+        title="Lieferantenstammdaten" 
+        avatar={<GroupIcon />}
+        action={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleCreateSupplier}
+          >
+            Neuer Lieferant
+          </Button>
+        }
+      />
+      <CardContent>
+        {error && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {error} - Beispieldaten werden angezeigt
+          </Alert>
+        )}
 
-          <TextField
-            fullWidth
-            margin="normal"
-            placeholder="Suchen nach Lieferantennummer, Name, PLZ oder Ort..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              )
-            }}
-            sx={{ mb: 3 }}
-          />
+        <TextField
+          fullWidth
+          margin="normal"
+          placeholder="Suchen nach Lieferantennummer, Name, PLZ oder Ort..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            )
+          }}
+          sx={{ mb: 3 }}
+        />
 
-          <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 300px)' }}>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Lieferanten-Nr.</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>PLZ</TableCell>
-                  <TableCell>Ort</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Getreidelieferant</TableCell>
-                  <TableCell align="right">Aktionen</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredSuppliers
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((supplier) => (
-                    <TableRow key={supplier.id} hover>
-                      <TableCell>{supplier.supplier_number}</TableCell>
-                      <TableCell>
-                        <Box>
-                          <Typography variant="body1">{supplier.name}</Typography>
-                          {supplier.name2 && (
-                            <Typography variant="body2" color="textSecondary">
-                              {supplier.name2}
-                            </Typography>
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell>{supplier.postal_code}</TableCell>
-                      <TableCell>{supplier.city}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={supplier.is_active ? "Aktiv" : "Inaktiv"} 
-                          color={supplier.is_active ? "success" : "default"} 
-                          size="small" 
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {supplier.is_grain_supplier ? (
-                          <Chip label="Ja" color="primary" size="small" />
-                        ) : (
-                          <Chip label="Nein" color="default" size="small" variant="outlined" />
+        <TableContainer sx={{ maxHeight: 'calc(100vh - 300px)' }}>
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                <TableCell>Lieferanten-Nr.</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>PLZ</TableCell>
+                <TableCell>Ort</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Getreidelieferant</TableCell>
+                <TableCell align="right">Aktionen</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredSuppliers
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((supplier) => (
+                  <TableRow key={supplier.id} hover>
+                    <TableCell>{supplier.supplier_number}</TableCell>
+                    <TableCell>
+                      <Box>
+                        <Typography variant="body1">{supplier.name}</Typography>
+                        {supplier.name2 && (
+                          <Typography variant="body2" color="textSecondary">
+                            {supplier.name2}
+                          </Typography>
                         )}
-                      </TableCell>
-                      <TableCell align="right">
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => handleViewSupplier(supplier.id)}
-                          size="small"
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
-                        <IconButton 
-                          color="secondary" 
-                          onClick={() => handleEditSupplier(supplier.id)}
-                          size="small"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                {filteredSuppliers.length === 0 && !loading && (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      <Typography variant="body1" sx={{ py: 2 }}>
-                        Keine Lieferanten gefunden
-                      </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>{supplier.postal_code}</TableCell>
+                    <TableCell>{supplier.city}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={supplier.is_active ? "Aktiv" : "Inaktiv"} 
+                        color={supplier.is_active ? "success" : "default"} 
+                        size="small" 
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {supplier.is_grain_supplier ? (
+                        <Chip label="Ja" color="primary" size="small" />
+                      ) : (
+                        <Chip label="Nein" color="default" size="small" variant="outlined" />
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton 
+                        color="primary" 
+                        onClick={() => handleViewSupplier(supplier.id)}
+                        size="small"
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                      <IconButton 
+                        color="secondary" 
+                        onClick={() => handleEditSupplier(supplier.id)}
+                        size="small"
+                      >
+                        <EditIcon />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                ))}
+              {filteredSuppliers.length === 0 && !loading && (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    <Typography variant="body1" sx={{ py: 2 }}>
+                      Keine Lieferanten gefunden
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            component="div"
-            count={filteredSuppliers.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="Zeilen pro Seite:"
-            labelDisplayedRows={({ from, to, count }) => `${from}–${to} von ${count}`}
-          />
-        </Paper>
-      </Box>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={filteredSuppliers.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Zeilen pro Seite:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} von ${count}`}
+        />
+      </CardContent>
       
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -286,6 +312,112 @@ const SupplierListPage = () => {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
+    </Card>
+  );
+};
+
+/**
+ * SupplierHistoryView - Komponente für die Anzeige der Lieferantenhistorie
+ */
+const SupplierHistoryView = () => {
+  return (
+    <Card>
+      <CardHeader title="Lieferantenhistorie" avatar={<HistoryIcon />} />
+      <CardContent>
+        <Typography variant="body1">
+          Diese Ansicht zeigt die Historie aller Änderungen an Lieferantendaten.
+        </Typography>
+        <Box sx={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography variant="body2" color="textSecondary">
+            Funktionalität wird in Kürze implementiert
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
+ * SupplierDocumentsView - Komponente für die Anzeige der Lieferantendokumente
+ */
+const SupplierDocumentsView = () => {
+  return (
+    <Card>
+      <CardHeader title="Lieferantendokumente" avatar={<DescriptionIcon />} />
+      <CardContent>
+        <Typography variant="body1">
+          Hier werden alle mit Lieferanten verknüpften Dokumente angezeigt.
+        </Typography>
+        <Box sx={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography variant="body2" color="textSecondary">
+            Funktionalität wird in Kürze implementiert
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
+ * SupplierCatalogView - Komponente für die Anzeige des Lieferantenkatalogs
+ */
+const SupplierCatalogView = () => {
+  return (
+    <Card>
+      <CardHeader title="Lieferantenkatalog" avatar={<ImportContactsIcon />} />
+      <CardContent>
+        <Typography variant="body1">
+          Katalogverwaltung für Lieferantenprodukte und -dienste.
+        </Typography>
+        <Box sx={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography variant="body2" color="textSecondary">
+            Funktionalität wird in Kürze implementiert
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
+ * Lieferantenliste Seite mit ModuleLoader
+ */
+const SupplierListPage = () => {
+  const tabs = [
+    {
+      label: "Stammdaten",
+      icon: <GroupIcon />,
+      content: <SupplierListView />
+    },
+    {
+      label: "Historie",
+      icon: <HistoryIcon />,
+      content: <SupplierHistoryView />
+    },
+    {
+      label: "Dokumente",
+      icon: <DescriptionIcon />,
+      content: <SupplierDocumentsView />
+    },
+    {
+      label: "Katalog",
+      icon: <ImportContactsIcon />,
+      content: <SupplierCatalogView />
+    }
+  ];
+
+  const breadcrumbItems = [
+    { label: "Einkauf", href: "/einkauf" },
+    { label: "Lieferantenstamm" }
+  ];
+
+  return (
+    <Layout>
+      <ModuleLoader 
+        title="Lieferantenstamm" 
+        tabs={tabs}
+        breadcrumbItems={breadcrumbItems}
+      />
     </Layout>
   );
 };

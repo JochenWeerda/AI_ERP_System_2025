@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owl Framework Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .owl-app {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .counter-section {
+      background-color: #f9f9f9;
+      border: 1px solid #eee;
+      border-radius: 5px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .info-section {
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+    .owl-counter-standalone {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 15px;
+      margin-top: 10px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-right: 8px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button.btn-dec {
+      background-color: #f44336;
+    }
+    button.btn-dec:hover {
+      background-color: #d32f2f;
+    }
+    button.btn-reset {
+      background-color: #2196F3;
+    }
+    button.btn-reset:hover {
+      background-color: #1976D2;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #555;
+    }
+    .debug-info {
+      background-color: #fffde7;
+      border: 1px solid #fff9c4;
+      border-radius: 5px;
+      padding: 15px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Owl Framework Demonstration</h1>
+    <p>Diese Seite demonstriert die Verwendung des Owl Frameworks (Version 2.7.0) von Odoo</p>
+  </header>
+
+  <div class="debug-info">
+    <h3>DevTools-Hinweis</h3>
+    <p>Öffnen Sie die Chrome DevTools (F12) und schauen Sie im "Owl" Tab nach, ob die Komponenten erkannt werden.</p>
+    <p>Falls der Tab nicht erscheint, stellen Sie sicher, dass die Owl DevTools Extension in Chrome installiert ist.</p>
+  </div>
+  
+  <!-- Hier wird die Owl-Anwendung gemountet -->
+  <div id="owl-app"></div>
+  
+  <script type="module">
+    // Importiere die Owl-Anwendung
+    import { startOwlApp } from '/src/components/StandaloneOwl.js';
+    
+    // Starte die Anwendung manuell, falls die automatische Initialisierung nicht funktioniert
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('owl-app');
+      if (container) {
+        const app = startOwlApp(container);
+        console.log('Owl-App manuell gestartet:', !!app);
+        
+        // Debug-Info in der Konsole anzeigen
+        console.log('Wenn Sie die Owl DevTools Extension installiert haben, sollten Sie einen "Owl"-Tab in den Chrome DevTools sehen.');
+      }
+    });
+  </script>
+</body>
+</html> 

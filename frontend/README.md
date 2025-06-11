@@ -1,179 +1,213 @@
-# Folkerts Landhandel ERP Frontend
+# VALEO NeuroERP Frontend
 
-Dieses Verzeichnis enthält das Frontend für das Folkerts Landhandel ERP-System, entwickelt mit React, TypeScript und Material UI.
+## Übersicht
+Dieses Verzeichnis enthält das Frontend für das VALEO NeuroERP-System. Das System verwendet ein modernes, responsives Design mit einer benutzerfreundlichen Oberfläche.
 
-## Schnellstart
+## Finales Design
+Das finale Frontend-Design befindet sich im Verzeichnis `public/VALEO-final-design/`. 
 
-```bash
-# Abhängigkeiten installieren
-npm install
+### Hauptfunktionen
+- Modernes Dashboard mit einheitlichem Design
+- Ausklappbare Chat-Sidebar mit internem Chat, Kundenchat und KI-Assistent
+- Benutzer- und Benachrichtigungssystem
+- Belegfolgen-Visualisierung
+- Modulare Darstellung aller ERP-Komponenten
 
-# Entwicklungsserver starten
-npm run dev
+### Technische Details
+- HTML5 und CSS3
+- Responsive Design für verschiedene Bildschirmgrößen
+- Font Awesome Icons
+- Modulare CSS-Struktur
 
-# Build erstellen
-npm run build
-```
-
-## Theme-System
-
-Das ERP-System verfügt über ein flexibles Theme-System, das verschiedene Darstellungsmodi und Designvarianten unterstützt:
-
-### Theme-Modi
-- **Hell** (Standard): Helles Design für normale Verwendung
-- **Dunkel**: Augenfreundliches dunkles Design
-- **Hoher Kontrast**: Barrierefreies Design mit verstärktem Kontrast
-
-### Theme-Varianten
-- **Default**: Standarddesign
-- **Modern**: Modernes, flaches Design
-- **Classic**: Klassisches, strukturiertes Design
-- **Odoo**: An Odoo-ERP angelehnte Designvariante
-
-### Theme-Demo starten
+## Lokaler Entwicklungsserver
+Um das Frontend lokal zu testen, führe den folgenden Befehl aus:
 
 ```bash
-# Option 1: npm-Skript verwenden (vom Root-Verzeichnis aus)
-npm run theme-demo
-
-# Option 2: Direkt im Frontend-Verzeichnis
-npm run dev
+cd frontend
+python -m http.server 8088
 ```
 
-## Bekannte Probleme und Lösungen
+Anschließend ist das Frontend unter http://localhost:8088/public/VALEO-final-design/ erreichbar.
 
-### JSX-Konfiguration
-
-Wenn bei der Entwicklung der Fehler "The JSX syntax extension is not currently enabled" auftritt, stellen Sie sicher, dass die vite.config.js die richtige JSX-Konfiguration enthält:
-
-```javascript
-// vite.config.js
-export default defineConfig({
-  // ...
-  esbuild: {
-    loader: { '.js': 'jsx', '.ts': 'tsx' },
-    jsxFactory: 'React.createElement',
-    jsxFragment: 'React.Fragment'
-  },
-  // ...
-});
-```
-
-### React-Versionskompatibilität
-
-Einige Pakete können Kompatibilitätsprobleme mit React 18 haben:
-
-- **react-qr-reader**: Die Version 3.0.0-beta-1 ist nur mit React 16/17 kompatibel und verursacht Fehler mit React 18.
-- Wenn Sie die QR-Code-Funktionalität benötigen, verwenden Sie stattdessen kompatible Alternativen wie `react-qr-code` oder `html5-qrcode`.
-
-### PowerShell-Kompatibilität
-
-Bei der Ausführung von Befehlen in PowerShell:
-
-- Verwenden Sie `;` anstelle von `&&` zur Befehlsverkettung:
-  ```powershell
-  # Falsch
-  cd frontend && npm start
-  
-  # Richtig
-  cd frontend; npm start
-  ```
-
-- Für Umgebungsvariablen verwenden Sie `$env:`:
-  ```powershell
-  $env:PORT=3000; npm start
-  ```
+## Weiterentwicklung
+Die nächsten Schritte für die Frontend-Entwicklung sind:
+1. Integration der Backend-Routen
+2. Entwicklung der Unterseiten für die verschiedenen Module
+3. Implementierung der Authentifizierung und Benutzerverwaltung
+4. Funktionale Erweiterung der Chat- und KI-Assistentenfunktionen
 
 ## Architektur
 
-Die Frontend-Anwendung verwendet folgende Haupttechnologien:
+Die Frontend-Architektur folgt einem modularen Ansatz:
 
-- **React 18**: UI-Bibliothek
-- **TypeScript**: Typsicheres JavaScript
-- **Material UI**: Komponenten-Bibliothek
-- **Vite**: Build-Tool
-- **React Router**: Routing
-- **Axios**: HTTP-Client
+- **Micro-Frontend-Struktur** - Separate Module für verschiedene Geschäftsbereiche
+- **Containerisierte Bereitstellung** - Deployment via Kubernetes für Skalierbarkeit
+- **API-Gateway-Integration** - Zentrale Schnittstelle zu Backend-Diensten
 
-Die Anwendung ist modular aufgebaut mit:
+## Apps-Dashboard
 
+Das zentrale Element der Benutzeroberfläche ist das Apps-Dashboard, das alle verfügbaren Anwendungen kategorisiert anzeigt:
+
+### Kategorien
+
+1. **Belegfolge**
+   - Angebote
+   - Aufträge
+   - Lieferscheine
+   - Rechnungen
+   - Gutschriften
+
+2. **Stammdaten**
+   - Artikel
+   - Kunden
+   - Lieferanten
+   - Preislisten
+   - Lager/Standorte
+
+3. **Finanzen**
+   - Buchhaltung
+   - Controlling
+   - Reporting
+   - Budgetplanung
+   - Kostenrechnung
+
+4. **Produktion**
+   - Fertigungsaufträge
+   - Materialplanung
+   - Kapazitätsplanung
+   - Qualitätssicherung
+
+5. **Personal**
+   - Mitarbeiterverwaltung
+   - Zeiterfassung
+   - Schichtplanung
+   - Gehaltsabrechnung
+
+### Design-Prinzipien
+
+- Übersichtliche Kachelanordnung mit aussagekräftigen Icons
+- Farbliche Kategorisierung für intuitive Bedienung
+- Responsive Design für alle Endgeräte
+- Barrierefreiheit nach WCAG 2.1 AA-Standard
+
+## Weitere Funktionen
+
+### KI-Assistenten
+
+- **VALEO** - Männlicher KI-Assistent für allgemeine ERP-Fragen
+- **Valerie** - Weiblicher KI-Assistent für spezialisierte Hilfestellung
+
+### Sprach- und Audiounterstützung
+
+- Sprachgesteuerte Suche und Navigation
+- Headset- und Bluetooth-Unterstützung
+- Text-to-Speech für Vorlesefunktionen
+
+### System-Monitoring
+
+- Echtzeit-Statusanzeige aller Systemkomponenten
+- Performance-Metriken und Warnmeldungen
+- Serverauslastung und -verfügbarkeit
+
+## Technische Details
+
+### Verwendete Technologien
+
+- HTML5, CSS3, JavaScript (ES6+)
+- FontAwesome für Icons
+- Responsive Design mit CSS Grid/Flexbox
+- WebSockets für Echtzeit-Updates
+
+### Entwicklung und Deployment
+
+- Lokale Entwicklung mit Live-Reload
+- Containerisierung mit Docker
+- Kubernetes-Deployment für Produktionsumgebungen
+- CI/CD-Pipeline für automatisierte Tests und Bereitstellung
+
+## Erste Schritte
+
+1. Repository klonen
+2. Abhängigkeiten installieren
+3. Lokalen Entwicklungsserver starten
+4. Zugriff über Browser unter http://localhost:8080
+
+## Kubernetes-Deployment
+
+Das Frontend wird als Kubernetes-Service bereitgestellt:
+
+```yaml
+# frontend-modular.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-html
+  namespace: erp-system
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>VALEO - Die NeuroERP</title>
+        <!-- CSS und JavaScript werden hier eingebunden -->
+    </head>
+    <body>
+        <!-- Frontend-Content -->
+    </body>
+    </html>
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-modular
+  namespace: erp-system
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend-modular
+  template:
+    metadata:
+      labels:
+        app: frontend-modular
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html-volume
+        configMap:
+          name: frontend-html
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-modular
+  namespace: erp-system
+spec:
+  selector:
+    app: frontend-modular
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
 ```
-src/
-├── components/      # Wiederverwendbare UI-Komponenten
-├── contexts/        # React-Kontexte für State-Management
-├── hooks/           # Benutzerdefinierte React-Hooks
-├── pages/           # Seitenkomponenten
-├── services/        # API-Services
-├── themes/          # Theme-System
-│   ├── variants/    # Theme-Varianten
-│   └── index.ts     # Theme-Exporte
-├── utils/           # Hilfsfunktionen
-└── App.tsx          # Root-Komponente
-```
 
-## Nützliche Skripte
-
-Im Root-Verzeichnis finden Sie mehrere nützliche PowerShell-Skripte:
-
-- **cd_frontend.ps1**: Wechselt zum Frontend-Verzeichnis
-- **start_frontend.ps1**: Startet den Entwicklungsserver
-- **van-frontend-validator.ps1**: Validiert die Frontend-Umgebung
-- **start_theme_demo.ps1**: Startet die Theme-Demo-Anwendung
-
-## Projektstruktur
-
-- `/src` - Hauptquellcode
-  - `/components` - Wiederverwendbare UI-Komponenten
-  - `/pages` - Seitenkomponenten für das Routing
-  - `/themes` - Theme-System und Konfiguration
-  - `/data` - Statische Daten und Dummy-Daten für die Entwicklung
-  - `/utils` - Hilfsfunktionen und Utilities
-  - `/services` - API-Services und Datenanbindung
-  - `/store` - State Management
-  - `/assets` - Statische Assets wie Bilder und Fonts
-  - `App.jsx` - Hauptanwendungskomponente
-  - `main.jsx` - Einstiegspunkt der Anwendung
-
-- `/public` - Statische Dateien, die direkt bereitgestellt werden
-  - `/img` - Bilder, die öffentlich zugänglich sein müssen
-  - `/images` - Weitere Bildressourcen
-
-## Hauptfunktionen
-
-- **Apps-Dashboard** - Zentrale Übersicht mit kategorisierten Anwendungen
-- **QS-Futtermittel** - Futtermittel-Qualitätssicherungs-Dashboard
-- **Theme-System** - Unterstützung für verschiedene Theme-Varianten und Modi
-- **Responsive Design** - Vollständig responsives Layout für alle Gerätetypen
-- **API-Anbindung** - Integration mit dem Backend über REST-APIs
-
-## Entwicklung
-
-### Entwicklungsserver starten
+## Zugriff auf die Anwendung
 
 ```bash
-npm run dev
+# Port-Forwarding für lokalen Zugriff
+kubectl port-forward service/frontend-modular -n erp-system 8080:80
+
+# Zugriff im Browser
+http://localhost:8080
 ```
-
-Der Entwicklungsserver wird standardmäßig auf http://localhost:3001 gestartet.
-
-### Build für Produktionsumgebung
-
-```bash
-npm run build
-```
-
-Die Build-Dateien werden im `/dist`-Verzeichnis erstellt.
-
-### Build-Vorschau
-
-```bash
-npm run preview
-```
-
-## Hinweise zur Frontend-Struktur
-
-- Das Frontend ist als Single-Page-Application (SPA) implementiert
-- React Router wird für die Navigation verwendet
-- Material-UI (MUI) bildet die Basis für das UI-Framework
-- Redux wird für State Management eingesetzt
-- Responsive Design für alle Komponenten

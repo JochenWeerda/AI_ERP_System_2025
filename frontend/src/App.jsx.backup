@@ -1,0 +1,203 @@
+﻿import React from 'react';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './themes/ThemeProvider';
+import ToastContainer from './components/notifications/ToastContainer';
+import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import ChatPanel from './components/chat/ChatPanel';
+import Home from './pages/Home';
+import './App.css';
+import ChargenIntegrationDemo from './pages/inventory/ChargenIntegrationDemo';
+
+// Lazy Loading für bessere Performance
+const EmergencyDashboard = React.lazy(() => import('./pages/EmergencyDashboard'));
+const FinanzbuchhaltungExportPage = React.lazy(() => import('./pages/FinanzbuchhaltungExportPage'));
+const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
+const NotificationCenter = React.lazy(() => import('./pages/NotificationCenter'));
+const AppsPage = React.lazy(() => import('./pages/AppsPage'));
+
+// Für zukünftige Implementierung
+// const SystemStatusPage = React.lazy(() => import('./pages/system/SystemStatusPage'));
+const DruckerModulPage = React.lazy(() => import('./pages/system/DruckerModulPage'));
+
+// Stammdaten-Seiten
+const CustomerListPage = React.lazy(() => import('./pages/CustomerListPage'));
+const CustomerDetail = React.lazy(() => import('./pages/CustomerDetail'));
+const CustomerForm = React.lazy(() => import('./pages/CustomerForm'));
+const SupplierListPage = React.lazy(() => import('./pages/SupplierListPage'));
+const SupplierDetail = React.lazy(() => import('./pages/SupplierDetail'));
+const SupplierForm = React.lazy(() => import('./pages/SupplierForm'));
+const ArtikelListePage = React.lazy(() => import('./pages/ArtikelListePage'));
+const ArtikelDetailPage = React.lazy(() => import('./pages/ArtikelDetailPage'));
+const ArtikelCreatePage = React.lazy(() => import('./pages/ArtikelCreatePage'));
+const EmployeeListPage = React.lazy(() => import('./pages/EmployeeListPage'));
+const EmployeeDetail = React.lazy(() => import('./pages/EmployeeDetail'));
+const EmployeeForm = React.lazy(() => import('./pages/EmployeeForm'));
+
+// Finanzen-Seiten
+const FinanzDashboardPage = React.lazy(() => import('./pages/FinanzDashboardPage'));
+const InterneFinanzbuchhaltungPage = React.lazy(() => import('./pages/InterneFinanzbuchhaltungPage'));
+const OffenePostenPage = React.lazy(() => import('./pages/OffenePostenPage'));
+const KassenImportPage = React.lazy(() => import('./pages/KassenImportPage'));
+
+// Lager-Seiten
+const ChargenPage = React.lazy(() => import('./pages/inventory/ChargenPage'));
+const LagerbestandPage = React.lazy(() => import('./pages/inventory/LagerbestandPage'));
+const InventurPage = React.lazy(() => import('./pages/inventory/InventurPage'));
+const ChargenQualitaetPage = React.lazy(() => import('./pages/chargen/ChargenQualitaetPage'));
+
+// KI-Seiten
+const AIAssistantPage = React.lazy(() => import('./pages/AIAssistantPage'));
+const AnalyticsPage = React.lazy(() => import('./pages/AnalyticsPage'));
+const OntologyExplorerPage = React.lazy(() => import('./pages/OntologyExplorerPage'));
+const BelegePage = React.lazy(() => import('./pages/BelegePage'));
+
+// Belegfolge-Komponenten
+const BelegfolgeDashboard = React.lazy(() => import('./components/BelegeFormular/BelegfolgeDashboard'));
+const RechnungFormular = React.lazy(() => import('./components/BelegeFormular/RechnungFormular'));
+const AngebotFormular = React.lazy(() => import('./components/BelegeFormular/AngebotFormular'));
+const AuftragFormular = React.lazy(() => import('./components/BelegeFormular/AuftragFormular'));
+const LieferscheinFormular = React.lazy(() => import('./components/BelegeFormular/LieferscheinFormular'));
+
+// Weitere Module
+const EcommercePage = React.lazy(() => import('./pages/Ecommerce'));
+const EcommerceOrdersPage = React.lazy(() => import('./pages/EcommerceOrders'));
+const AnomalyDashboard = React.lazy(() => import('./pages/AnomalyDashboard'));
+const QSFuttermittelDashboard = React.lazy(() => import('./pages/QSFuttermittelDashboard'));
+
+// Chat-Seiten
+const TeamChatPage = React.lazy(() => import('./pages/chat/TeamChatPage'));
+const CustomerChatPage = React.lazy(() => import('./pages/chat/CustomerChatPage'));
+
+// Fallback-Komponente für Lazy Loading
+const LazyLoadingFallback = () => (
+  <div className="lazy-loading-fallback">
+    <div className="spinner"></div>
+    <p>Lade Modul...</p>
+  </div>
+);
+
+/**
+ * Hauptkomponente der Anwendung
+ */
+const App = () => {
+  return (
+    <ThemeProvider>
+      <Router>
+        <div className="app">
+          {/* Toast-Nachrichten-Container */}
+          <ToastContainer />
+          
+          {/* Header */}
+          <Header />
+          
+          <div className="app-container">
+            {/* Sidebar */}
+            <Sidebar />
+            
+            {/* Hauptinhalt */}
+            <main className="main-content">
+              <React.Suspense fallback={<LazyLoadingFallback />}>
+                <Routes>
+                  {/* Home als Standardseite */}
+                  <Route path="/" element={<Home />} />
+                  <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                  <Route path="/apps" element={<AppsPage />} />
+                  
+                  {/* Stammdaten-Routen */}
+                  <Route path="/kunden" element={<CustomerListPage />} />
+                  <Route path="/kunden/:id" element={<CustomerDetail />} />
+                  <Route path="/kunden/neu" element={<CustomerForm />} />
+                  <Route path="/lieferanten" element={<SupplierListPage />} />
+                  <Route path="/lieferanten/:id" element={<SupplierDetail />} />
+                  <Route path="/lieferanten/neu" element={<SupplierForm />} />
+                  <Route path="/artikel" element={<ArtikelListePage />} />
+                  <Route path="/artikel/:id" element={<ArtikelDetailPage />} />
+                  <Route path="/artikel/neu" element={<ArtikelCreatePage />} />
+                  <Route path="/mitarbeiter" element={<EmployeeListPage />} />
+                  <Route path="/mitarbeiter/:id" element={<EmployeeDetail />} />
+                  <Route path="/mitarbeiter/neu" element={<EmployeeForm />} />
+                  
+                  {/* Stammdaten-Module */}
+                  <Route path="/stammdaten/artikel" element={<ArtikelListePage />} />
+                  <Route path="/stammdaten/artikel/:id" element={<ArtikelDetailPage />} />
+                  <Route path="/stammdaten/artikel/neu" element={<ArtikelCreatePage />} />
+                  
+                  {/* Finanzen-Routen */}
+                  <Route path="/finanzen/buchhaltung" element={<InterneFinanzbuchhaltungPage />} />
+                  <Route path="/finanzen/rechnungen" element={<OffenePostenPage />} />
+                  <Route path="/finanzen/export" element={<FinanzbuchhaltungExportPage />} />
+                  <Route path="/finanzen/dashboard" element={<FinanzDashboardPage />} />
+                  <Route path="/finanzen/kasse" element={<KassenImportPage />} />
+                  
+                  {/* Lager-Routen */}
+                  <Route path="/lager/bestand" element={<LagerbestandPage />} />
+                  <Route path="/lager/chargen" element={<ChargenPage />} />
+                  <Route path="/lager/orte" element={<InventurPage />} />
+                  <Route path="/lager/qualitaet" element={<ChargenQualitaetPage />} />
+                  
+                  {/* Belege-Route */}
+                  <Route path="/belege" element={<BelegePage />} />
+                  
+                  {/* Belegfolge-Routen */}
+                  <Route path="/belegfolge" element={<BelegfolgeDashboard />} />
+                  <Route path="/belegfolge/rechnungen" element={<RechnungFormular />} />
+                  <Route path="/belegfolge/rechnungen/:id" element={<RechnungFormular />} />
+                  <Route path="/belegfolge/angebote" element={<AngebotFormular />} />
+                  <Route path="/belegfolge/angebote/:id" element={<AngebotFormular />} />
+                  <Route path="/belegfolge/auftraege" element={<AuftragFormular />} />
+                  <Route path="/belegfolge/lieferscheine" element={<LieferscheinFormular />} />
+                  
+                  {/* E-Commerce */}
+                  <Route path="/verkauf/online-shop" element={<EcommercePage />} />
+                  <Route path="/verkauf/auftraege" element={<EcommerceOrdersPage />} />
+                  
+                  {/* KI-Assistenten-Routen */}
+                  <Route path="/ai-assistant" element={<AIAssistantPage />} />
+                  <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/anomalien" element={<AnomalyDashboard />} />
+                  <Route path="/ontology" element={<OntologyExplorerPage />} />
+                  
+                  {/* Chat-Routen */}
+                  <Route path="/chat/team" element={<TeamChatPage />} />
+                  <Route path="/chat/kunden" element={<CustomerChatPage />} />
+                  
+                  {/* Weitere Routen mit Lazy Loading */}
+                  <Route path="/notfallplan" element={<EmergencyDashboard />} />
+                  <Route path="/einstellungen" element={<SettingsPage />} />
+                  <Route path="/benachrichtigungen" element={<NotificationCenter />} />
+                  <Route path="/qualitaet/futtermittel" element={<QSFuttermittelDashboard />} />
+                  
+                  {/* Neue Routen */}
+                  <Route path="/inventory/chargen-integration" element={<ChargenIntegrationDemo />} />
+                  
+                  {/* Zukünftige System-Status-Seite */}
+                  {/* <Route path="/system/status" element={<SystemStatusPage />} /> */}
+                  <Route path="/system/drucker" element={<DruckerModulPage />} />
+                  
+                  {/* Fallback für nicht gefundene Routen */}
+                  <Route path="*" element={
+                    <div className="not-found">
+                      <h1>404 - Seite nicht gefunden</h1>
+                      <p>Die angeforderte Seite konnte nicht gefunden werden.</p>
+                    </div>
+                  } />
+                </Routes>
+              </React.Suspense>
+            </main>
+            
+            {/* Chat-Panel */}
+            <ChatPanel />
+          </div>
+          
+          {/* Fallback-Container für Fehler */}
+          <div className="fallback-container" style={{ display: 'none' }}>
+            <div className="fallback-container"></div>
+          </div>
+        </div>
+      </Router>
+    </ThemeProvider>
+  );
+};
+
+export default App;
