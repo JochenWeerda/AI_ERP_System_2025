@@ -1,429 +1,281 @@
-# VALEO - Die NeuroERP Version 1.01
+# NeuroERP - KI-gesteuertes ERP-System
 
-Ein umfassendes ERP-System für Großhandel, hier als Kundenprojekt für einen Landhandel, das speziell auf die Anforderungen der Landwirtschaftsbranche zugeschnitten ist.
+Ein modernes, KI-gesteuertes ERP-System mit Microservice-Architektur und Odoo-Integration.
 
-## Projektübersicht
+## Funktionen
 
-Das ERP-System besteht aus mehreren Komponenten:
+- Benutzerauthentifizierung und -autorisierung
+- Rollenbasierte Zugriffskontrolle
+- API-Versionierung
+- Leistungsüberwachung mit Prometheus/Grafana
+- Containerisierte Entwicklungsumgebung
+- Multi-Datenbank-Architektur (MongoDB, PostgreSQL, Redis)
 
-- **Frontend**: React-basierte Single-Page-Application
-- **Backend**: FastAPI-basierte Microservices
-- **Finance-Service**: Eigenständiger Microservice für Finanzen und Buchhaltung
-- **Observer-Service**: Überwachungsdienst für Systemperformance
+## Technologie-Stack
 
-## Starten der Anwendung
+### Backend
+- Node.js mit Express
+- TypeScript
+- MongoDB (Dokumentenspeicher)
+- PostgreSQL (relationale Daten)
+- Redis (Caching & Session-Management)
 
-### Frontend starten
+### Frontend
+- React
+- TypeScript
+- Material-UI
+- Redux Toolkit
 
-```powershell
-# PowerShell-Skript für einfachen Start
-.\start_frontend.ps1
-```
+### DevOps
+- Docker & Docker Compose
+- GitHub Actions (CI/CD)
+- Prometheus & Grafana (Monitoring)
 
-oder manuell:
-
-```powershell
-cd frontend
-npm run dev
-```
-
-Das Frontend ist dann unter http://localhost:3001 verfügbar.
-
-### Finance-Service starten
-
-```powershell
-.\start_finance_311.ps1
-```
-
-Der Finance-Service ist dann unter http://localhost:8007 verfügbar.
-
-### Beleg-Service starten
+## Schnellstart
 
 ```powershell
-.\start_beleg_service_311.ps1
+# Entwicklungsumgebung starten
+.\start-dev-env.ps1
+
+# Backend manuell starten
+.\start-backend.ps1
+
+# Frontend manuell starten
+.\start-frontend.ps1
 ```
 
-Der Beleg-Service ist dann unter http://localhost:8005 verfügbar.
+> **Hinweis:** PowerShell erfordert, dass Skripte im aktuellen Verzeichnis mit `.\` aufgerufen werden. Verwenden Sie **immer** den Punkt und Backslash vor dem Skriptnamen.
 
-## Projektstruktur
+## Microservices
 
-Das Projekt ist in mehrere Hauptkomponenten aufgeteilt:
+Das System nutzt folgende Microservices:
 
-```
-AI_driven_ERP/
-├── frontend/               # React-Frontend (Vite)
-│   ├── src/                # Quellcode
-│   ├── public/             # Statische Dateien
-│   ├── package.json        # Frontend-Abhängigkeiten
-│   └── vite.config.js      # Vite-Konfiguration
-├── backend/                # FastAPI-Backend
-│   ├── app/                # Backend-Anwendung
-│   ├── tests/              # Tests
-│   └── requirements.txt    # Python-Abhängigkeiten
-├── database/               # Datenbankdateien
-├── scripts/                # Hilfsskripte
-│   ├── start_frontend.ps1  # Frontend-Starter (PowerShell)
-│   ├── van-frontend-validator.ps1  # VAN-Modus Validator
-│   └── start_backend.ps1   # Backend-Starter (PowerShell)
-└── memory-bank/            # Projektwissen und Dokumentation
-    ├── tasks.md            # Aktuelle Aufgaben
-    ├── systemPatterns.md   # Architekturmuster
-    └── activeContext.md    # Aktiver Entwicklungskontext
-```
+- **odoo-auth**: Authentifizierung über Odoo mit JWT
+- **web-vitals-service**: Erfassung und Analyse von Web-Vitals-Daten
+- **enni-integration**: Integration mit externen ERP-Systemen 
+- **ai-service**: KI-Funktionen und Vorhersagemodelle
+- **core-service**: Zentrale Geschäftslogik und Datenverarbeitung
 
-## VAN-Modus: Validierung vor der Entwicklung
+Details siehe [MICROSERVICES.md](MICROSERVICES.md)
 
-**WICHTIG:** Vor dem Start der Frontend-Entwicklung sollte immer der VAN-Modus (Validation and Navigation) ausgeführt werden, um eine korrekte Entwicklungsumgebung sicherzustellen:
+## Hibernation Recovery System
+
+Das System verfügt über ein automatisches Recovery-System nach Ruhezustand oder Neustart.
+
+### Recovery-System überprüfen
 
 ```powershell
-# VAN-Modus Frontend-Validator ausführen
-./scripts/van-frontend-validator.ps1
+.\recovery-check.ps1
 ```
 
-Der VAN-Modus Validator prüft:
-- Korrekte Verzeichnisstruktur
-- Vorhandensein aller benötigten Konfigurationsdateien
-- JSX-Konfiguration in vite.config.js
-- Installierte Abhängigkeiten
-- PowerShell-Kompatibilität
-- Portverfügbarkeit
+### Recovery-System installieren
 
-Bei Problemen korrigiert der Validator automatisch viele typische Fehler oder gibt spezifische Anweisungen zur Behebung.
-
-## Frontend-Entwicklung
-
-### Voraussetzungen
-
-- Node.js (v18 oder höher)
-- npm (v7 oder höher)
-- PowerShell 5.1 oder höher (für Windows)
-
-### Entwicklungsumgebung einrichten
-
-1. **Frontend-Abhängigkeiten installieren**:
-   ```powershell
-   cd frontend
-   npm install
-   ```
-
-2. **Frontend-Entwicklungsserver starten**:
-   ```powershell
-   # Option 1: PowerShell-Skript verwenden (EMPFOHLEN)
-   ./scripts/start_frontend.ps1
-   
-   # Option 2: Direkter Befehl im frontend-Verzeichnis
-   cd frontend
-   npm start
-   ```
-
-   Die Anwendung wird unter http://localhost:5173 verfügbar sein (oder einem alternativen Port, falls 5173 bereits belegt ist).
-
-### Frontend-Entwicklung: PowerShell-Besonderheiten
-
-Bei der Entwicklung unter Windows mit PowerShell sind folgende Besonderheiten zu beachten:
-
-1. **Kein `&&` für Befehlsverkettung**
-   ```powershell
-   # FALSCH:
-   cd frontend && npm start
-   
-   # RICHTIG:
-   cd frontend
-   npm start
-   
-   # ODER als einzeilige Alternative mit Semikolon:
-   cd frontend; npm start
-   ```
-
-2. **Pfade mit Leerzeichen benötigen Anführungszeichen**
-   ```powershell
-   cd "C:\Mein Pfad\mit Leerzeichen\frontend"
-   ```
-
-3. **Umgebungsvariablen setzen (temporär)**
-   ```powershell
-   $env:PORT=5000
-   npm start
-   
-   # Oder in einer Zeile:
-   $env:PORT=5000; npm start
-   ```
-
-### Typische Fehler und Lösungen
-
-#### "Missing script: start"
-- **Problem**: Das Skript kann nicht gefunden werden
-- **Lösung**: 
-  1. Sicherstellen, dass man im `frontend/`-Verzeichnis ist: `cd frontend`
-  2. Überprüfen, ob `package.json` die notwendigen Skripte enthält
-  3. VAN-Modus-Validator ausführen: `../scripts/van-frontend-validator.ps1`
-
-#### JSX-Syntax-Fehler
-- **Problem**: "The JSX syntax extension is not currently enabled"
-- **Lösung**:
-  1. `vite.config.js` überprüfen und sicherstellen, dass die esbuild-Konfiguration korrekt ist:
-     ```javascript
-     esbuild: {
-       loader: { '.js': 'jsx', '.ts': 'tsx' },
-       jsxFactory: 'React.createElement',
-       jsxFragment: 'React.Fragment'
-     }
-     ```
-  2. PowerShell-Skript `./scripts/start_frontend.ps1` verwenden, das dies automatisch korrigiert
-
-#### TypeScript-Fehler
-- **Problem**: "Cannot find module 'typescript'"
-- **Lösung**: 
-  1. TypeScript installieren: `npm install typescript --save-dev`
-  2. PowerShell-Skript `./scripts/start_frontend.ps1` verwenden, das dies automatisch erkennt und korrigiert
-
-#### Port-Konflikte
-- **Problem**: Der Standardport ist bereits belegt
-- **Lösung**:
-  1. Anderen Port angeben: `npm start -- --port 5000`
-  2. Oder das PowerShell-Skript `./scripts/start_frontend.ps1` verwenden, das automatisch einen freien Port findet
-
-#### PowerShell-Befehlsverkettung
-- **Problem**: `&&` für Befehlsverkettung führt zu Fehlern
-- **Lösung**:
-  1. Befehle nacheinander ausführen:
-     ```powershell
-     cd frontend
-     npm start
-     ```
-  2. Oder mit Semikolon trennen: `cd frontend; npm start`
-  3. Oder das PowerShell-Skript `./scripts/start_frontend.ps1` verwenden
-
-## Backend-Entwicklung
-
-### Voraussetzungen
-
-- Python 3.10 oder höher
-- FastAPI
-- PostgreSQL (optional, für Produktionsumgebung)
-
-### Entwicklungsumgebung einrichten
-
-1. **Python-Abhängigkeiten installieren**:
-   ```powershell
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-2. **Backend-Server starten**:
-   ```powershell
-   # Option 1: PowerShell-Skript verwenden
-   ./scripts/start_backend.ps1
-   
-   # Option 2: Direkter Befehl
-   cd backend
-   uvicorn app.main:app --reload
-   ```
-
-   Die API wird unter http://localhost:8000 verfügbar sein.
-   Die API-Dokumentation ist unter http://localhost:8000/docs erreichbar.
-
-## Fehlerbehebung und Notfallmaßnahmen
-
-### Notfall-Frontendstart bei anhaltenden Problemen
-
-Wenn alle anderen Methoden fehlschlagen, kann das Frontend mit einem einfachen HTTP-Server gestartet werden:
+Verwenden Sie den Administrator-Launcher (empfohlen):
 
 ```powershell
-# Wechsle ins Frontend-Verzeichnis
-cd frontend
-
-# Starte einen einfachen HTTP-Server
-npx http-server -p 8080 .
+.\run-as-admin.ps1 -Config
 ```
 
-### Portbelegung überprüfen
-
-Um zu prüfen, welche Ports bereits belegt sind:
+Oder, falls Sie bereits eine PowerShell mit Administratorrechten geöffnet haben:
 
 ```powershell
-# Zeige alle offenen TCP-Verbindungen an
-Get-NetTCPConnection -State Listen | Sort-Object -Property LocalPort | Format-Table LocalPort, OwningProcess, State
-
-# Prozess-ID zu Name auflösen
-Get-Process -Id <PID>
+powershell -ExecutionPolicy Bypass -File "configure-recovery-tasks.ps1"
 ```
 
-### Fehlerhafte Konfigurationsdateien zurücksetzen
+### Manuelles Backup oder Recovery
 
-Bei hartnäckigen Problemen mit Konfigurationsdateien:
+Verwenden Sie den Administrator-Launcher:
 
 ```powershell
-# Führe VAN-Modus-Validator mit -reset Parameter aus
-./scripts/van-frontend-validator.ps1 -reset
+# Menü anzeigen
+.\run-as-admin.ps1
+
+# Direkt Backup erstellen
+.\run-as-admin.ps1 -Backup
+
+# Direkt Recovery ausführen
+.\run-as-admin.ps1 -Recovery
 ```
 
-## Projektdokumentation
+### Automatische Recovery nach Stromausfall
 
-Die Projektdokumentation wird in der `memory-bank/` verwaltet und enthält:
-
-- **tasks.md**: Aktuelle Aufgaben und Fortschritte
-- **systemPatterns.md**: Architekturmuster und Designentscheidungen
-- **activeContext.md**: Aktiver Entwicklungskontext und wichtige Hinweise
-- **archive/archive-frontend-startup-problem.md**: Dokumentation zu den Frontend-Startproblemen und deren Lösung
-
-## Deployment
-
-Anweisungen zum Deployment finden Sie in der `deployment.md` im Projektverzeichnis.
-
-## Theme-Modul
-
-Das ERP-System verfügt über ein flexibles Theme-System, das verschiedene Darstellungsmodi und Designvarianten unterstützt:
-
-### Theme-Demo starten
-
-Um die Theme-Demo zu starten und alle verfügbaren Designs zu testen:
+Das System kann so konfiguriert werden, dass es nach einem Stromausfall oder unerwarteten Neustart automatisch wiederhergestellt wird:
 
 ```powershell
-# Option 1: npm-Skript verwenden
-npm run theme-demo
-
-# Option 2: PowerShell-Skript direkt ausführen
-./start_theme_demo.ps1
+# Als Administrator ausführen
+.\setup-auto-recovery.ps1
 ```
 
-### Verfügbare Themes
+Dies bietet folgende Optionen:
+1. Auto-Recovery im Windows-Autostart einrichten (aktueller Benutzer)
+2. Auto-Recovery als geplante Aufgabe einrichten (alle Benutzer)
+3. Beide Methoden kombinieren für maximale Zuverlässigkeit (empfohlen)
+4. Auto-Recovery deaktivieren
 
-Das Theme-System unterstützt folgende Modi:
-- **Hell** (Standard): Helles Design für normale Verwendung
-- **Dunkel**: Augenfreundliches dunkles Design
-- **Hoher Kontrast**: Barrierefreies Design mit verstärktem Kontrast
+## Entwicklung
 
-Zusätzlich sind verschiedene Designvarianten verfügbar:
-- **Default**: Standarddesign
-- **Modern**: Modernes, flaches Design
-- **Classic**: Klassisches, strukturiertes Design
-- **Odoo**: An Odoo-ERP angelehnte Designvariante
-
-### KI-Assistent für Theme-Anpassungen
-
-Der integrierte KI-Assistent ermöglicht die Anpassung des Designs durch natürlichsprachliche Befehle wie:
-- "Wechsle zum dunklen Modus"
-- "Ändere die Akzentfarbe zu Blau"
-- "Erhöhe den Kontrast"
-
-### Theme-Einstellungen
-
-Die Theme-Einstellungen sind über die ThemeSettings-Komponente zugänglich und erlauben die manuelle Anpassung von:
-- Farbschema
-- Schriftarten
-- Abstände und Radien
-- Animationen und Übergänge
-
-### Dokumentation
-
-Eine detaillierte Dokumentation des Theme-Moduls finden Sie in der Datei `frontend/README_THEME.md`.
+- Frontend: React + TypeScript
+- Backend: Node.js + Express
+- Datenbank: MongoDB + PostgreSQL
+- Kubernetes: k3d-basierte Cluster-Umgebung
 
 ## Lizenz
 
-Dieses Projekt ist urheberrechtlich geschützt und nur für die interne Verwendung bei Folkerts Landhandel bestimmt.
+Proprietär - Alle Rechte vorbehalten
 
-## Hauptfunktionen
+## Erste Schritte
 
-### Theme-System
+### Voraussetzungen
+- Docker & Docker Compose
+- Node.js (>= 14)
+- npm oder yarn
 
-Das System bietet ein flexibles Theme-System, das verschiedene Erscheinungsbilder unterstützt:
+### Installation
 
-- **Theme-Modi**: Hell, Dunkel und Hoher Kontrast für Barrierefreiheit
-- **Theme-Varianten**: Default, Odoo-Stil, Modern und Classic
-- **Anpassbare Parameter**: Schriftgröße, Abstände, Farbschemata und mehr
-- **Natürlichsprachliche Steuerung**: Änderung des Themes durch einfache Befehle
-
-Demo starten:
+1. Repository klonen:
 ```bash
-npm run theme-demo
+git clone https://github.com/yourusername/ai-driven-erp.git
+cd ai-driven-erp
 ```
 
-## Module
-
-### Theme-System
-- Flexibles Theme-System mit verschiedenen Modi (Hell, Dunkel, Hoher Kontrast)
-- Verschiedene Theme-Varianten (Default, Modern, Classic, Odoo)
-- Natürlichsprachliche Steuerung über LLM-Interface
-- Umfassende Barrierefreiheitsfunktionen
-
-### Artikel-Stammdaten
-- Erweitertes Datenmodell für umfassende Artikel-Stammdaten
-- KI-Unterstützung für Stammdatenpflege:
-  - Automatische Klassifikation von Artikeln
-  - Preisempfehlungen basierend auf Marktdaten
-  - Generierung von Produktbeschreibungen und SEO-Texten
-  - Anomalieerkennung in Artikeldaten
-- Mehrseitiger Editor für verschiedene Stammdatenbereiche
-- Integration mit bestehenden Artikeldaten
-
-# KI-gesteuertes ERP-System
-
-Ein modernes, KI-gesteuertes ERP-System mit asynchroner Aufgabenverarbeitung durch Redis und Celery.
-
-## Hauptkomponenten
-
-### Backend
-
-- **FastAPI Server**: RESTful API für Geschäftsprozesse und Datenoperationen
-- **Redis & Celery**: Asynchrone Aufgabenverarbeitung für rechenintensive Operationen
-- **SQLAlchemy**: ORM für Datenbankoperationen
-- **Prometheus**: Monitoring und Metriken
-
-### Frontend
-
-- **React**: UI-Framework für das Frontend
-- **Material-UI**: Komponenten-Bibliothek für ein modernes Design
-- **TypeScript**: Statisch typisiertes JavaScript für robusteren Code
-
-## Neue Funktionen: Redis und Celery Integration
-
-Die Integration von Redis und Celery ermöglicht die asynchrone Verarbeitung von rechenintensiven Aufgaben im ERP-System. Die Implementierung umfasst:
-
-1. **Redis** als Message Broker und Result Backend für Celery
-2. **Celery** für die asynchrone Verarbeitung von Tasks
-3. **Flower** für das Monitoring von Celery-Tasks
-4. **API-Endpunkte** zur Interaktion mit Celery-Tasks
-5. **PowerShell-Skripte** zum Starten aller Komponenten
-
-### Systemarchitektur
-
-- **Redis (Port 6379)**: Message Broker und Result Backend
-- **Celery Worker**: Verarbeitet Tasks aus verschiedenen Queues (default, reports, imports, exports, optimization)
-- **Flower (Port 5555)**: Monitoring-Web-Interface für Celery
-- **Demo-Server (Port 8003)**: Einfacher Server mit Celery-Integration
-
-### Installation und Start
-
-#### Redis-Installation (Windows)
-1. Redis für Windows von https://github.com/microsoftarchive/redis/releases herunterladen
-2. Dateien in das Verzeichnis `redis` im Projektverzeichnis extrahieren
-3. Redis mit `redis\redis-server.exe` starten
-
-#### Python-Abhängigkeiten
+2. Umgebungsvariablen konfigurieren:
 ```bash
-python scripts/python_deps_install.py
+cp .env.example .env
+# Bearbeiten Sie .env mit Ihren Einstellungen
 ```
 
-#### Starten des Systems
-```powershell
-.\scripts\start_system_improved.ps1
+3. Docker-Container starten:
+```bash
+docker-compose up -d
 ```
 
-### API-Dokumentation
+4. Backend-Abhängigkeiten installieren:
+```bash
+cd backend
+npm install
+```
 
-Nach dem Start des Servers kann die Swagger-Dokumentation unter http://localhost:8003/docs aufgerufen werden.
+5. Frontend-Abhängigkeiten installieren:
+```bash
+cd frontend
+npm install
+```
 
-## Detaillierte Dokumentation
+### Entwicklung
 
-- [Redis und Celery Integration](memory-bank/archive/redis_celery_implementation.md)
-- [Projektfortschritt](memory-bank/progress.md)
-- [Aktive Aufgaben](memory-bank/tasks.md)
+1. Backend-Server starten:
+```bash
+cd backend
+npm run dev
+```
 
-## Nächste Schritte
+2. Frontend-Server starten:
+```bash
+cd frontend
+npm start
+```
 
-1. Robuste Fehlerbehandlung für Tasks implementieren
-2. Erweiterung um weitere Task-Typen (Import/Export, Optimierung)
-3. Persistente Redis-Konfiguration für Produktionsumgebungen
-4. Implementierung von Sicherheitsfeatures
-5. Docker-Compose-Setup für die Entwicklungsumgebung
+Die Anwendung ist nun verfügbar unter:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:4000
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3001
+
+## API-Dokumentation
+
+### Authentifizierung
+
+#### Login
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+#### Token aktualisieren
+```http
+POST /api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "string"
+}
+```
+
+#### Logout
+```http
+POST /api/v1/auth/logout
+Authorization: Bearer <token>
+```
+
+### Benutzer-Management
+
+#### Benutzer auflisten (Admin)
+```http
+GET /api/v1/users
+Authorization: Bearer <token>
+```
+
+#### Benutzer erstellen (Admin)
+```http
+POST /api/v1/users
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "username": "string",
+  "password": "string",
+  "role": "string"
+}
+```
+
+#### Benutzer aktualisieren
+```http
+PUT /api/v1/users/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "username": "string",
+  "role": "string"
+}
+```
+
+#### Benutzer löschen (Admin)
+```http
+DELETE /api/v1/users/:id
+Authorization: Bearer <token>
+```
+
+## Monitoring
+
+Das System verwendet Prometheus und Grafana für Monitoring und Visualisierung:
+
+- Metriken-Endpunkt: `/metrics`
+- Standardmetriken:
+  - HTTP-Anfragen pro Route
+  - Antwortzeiten
+  - Fehlerraten
+  - Systemressourcen
+
+## Sicherheit
+
+- JWT-basierte Authentifizierung
+- Token-Blacklisting für Logout
+- Refresh-Token-Rotation
+- Rollenbasierte Zugriffskontrolle
+- Sicherheits-Middleware (Helmet)
+- Rate Limiting
+- CORS-Konfiguration
+
+## Beitragen
+
+1. Fork erstellen
+2. Feature-Branch erstellen (`git checkout -b feature/AmazingFeature`)
+3. Änderungen committen (`git commit -m 'Add some AmazingFeature'`)
+4. Branch pushen (`git push origin feature/AmazingFeature`)
+5. Pull Request erstellen
