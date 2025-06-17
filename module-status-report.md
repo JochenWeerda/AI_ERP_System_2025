@@ -4,7 +4,7 @@
 
 ## Zusammenfassung
 
-- GeprÃ¼fte Module: 6
+- Geprüfte Module: 6
 - Produktionsbereit: 6
 - Mit Warnungen: 0
 - Mit Fehlern: 0
