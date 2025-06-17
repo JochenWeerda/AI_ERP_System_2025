@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = "your-secret-key-here"  # In Produktion durch sicheren Schlüssel ersetzen
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 Tage
+    ALGORITHM: str = "HS256"
     
     model_config = SettingsConfigDict(case_sensitive=True)
 
