@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Erweiterung der Wareneingänge-Formularansicht -->
+    <record id="view_picking_form_inherited" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherited</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <!-- Chargen-Konfiguration in Wareneingängen -->
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="lot_auto_creation" attrs="{'invisible': [('picking_type_code', '!=', 'incoming')]}"/>
+                <field name="lot_validation_required" attrs="{'invisible': [('picking_type_code', '!=', 'incoming')]}"/>
+                <field name="quality_check_required" attrs="{'invisible': [('picking_type_code', '!=', 'incoming')]}"/>
+            </xpath>
+            
+            <!-- Smart-Button für Chargen-Prüfungen -->
+            <xpath expr="//button[@name='action_see_move_scrap']" position="after">
+                <button name="action_view_pending_lots" type="object" 
+                        class="oe_stat_button" icon="fa-list-ol"
+                        attrs="{'invisible': ['|', ('picking_type_code', '!=', 'incoming'), ('pending_lot_count', '=', 0)]}">
+                    <field name="pending_lot_count" widget="statinfo" string="Zu prüfende Chargen"/>
+                </button>
+            </xpath>
+            
+            <!-- Aktionen für Chargen-Qualitätsprüfung -->
+            <xpath expr="//button[@name='button_validate']" position="before">
+                <button name="action_approve_all_lots" string="Alle Chargen freigeben" type="object" 
+                        attrs="{'invisible': ['|', ('picking_type_code', '!=', 'incoming'), ('pending_lot_count', '=', 0)]}"
+                        class="btn-success"/>
+                <button name="action_set_all_lots_pending" string="Alle Chargen zur Prüfung" type="object" 
+                        attrs="{'invisible': ['|', ('picking_type_code', '!=', 'incoming'), ('pending_lot_count', '=', 0)]}"
+                        class="btn-warning"/>
+            </xpath>
+            
+            <!-- Zusätzliche Informationen auf der Lieferzeilen-Ebene -->
+            <xpath expr="//field[@name='move_line_ids_without_package']/tree" position="inside">
+                <field name="lot_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='move_line_ids_without_package']/tree/field[@name='lot_id']" position="after">
+                <field name="lot_id" invisible="1"/>
+                <button name="action_lot_open_form" type="object" 
+                        string="Charge anzeigen" class="btn-link" 
+                        attrs="{'invisible': [('lot_id', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung des Lager-Vorgangs-Formulars -->
+    <record id="view_stock_move_line_operation_tree_inherited" model="ir.ui.view">
+        <field name="name">stock.move.line.operations.tree.inherited</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_operation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field name="lot_id" invisible="1"/>
+                <button name="action_lot_open_form" type="object" 
+                        string="Charge anzeigen" class="btn-link" 
+                        attrs="{'invisible': [('lot_id', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Stock Move Line -->
+    <record id="stock_move_line_view_form_inherited" model="ir.ui.view">
+        <field name="name">stock.move.line.form.inherited</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_move_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field name="lot_id" invisible="1"/>
+                <button name="action_lot_open_form" type="object" 
+                        string="Charge anzeigen" class="btn-link" 
+                        attrs="{'invisible': [('lot_id', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Hilfsmethoden-Erweiterung für die Stock Move Line -->
+    <record id="stock_move_line_view_tree_inherited" model="ir.ui.view">
+        <field name="name">stock.move.line.tree.inherited</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_move_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field name="lot_id" invisible="1"/>
+                <button name="action_lot_open_form" type="object" 
+                        string="Charge anzeigen" class="btn-link" 
+                        attrs="{'invisible': [('lot_id', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo> 

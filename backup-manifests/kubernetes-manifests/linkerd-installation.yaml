@@ -1,0 +1,110 @@
+# Kubernetes-Manifest zur Vorbereitung der Linkerd-Installation
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: linkerd
+  labels:
+    linkerd.io/is-control-plane: "true"
+    config.linkerd.io/admission-webhooks: disabled
+    linkerd.io/control-plane-ns: "linkerd"
+---
+# Konfiguration für Linkerd
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: linkerd-config
+  namespace: linkerd
+data:
+  values.yaml: |
+    # Globale Einstellungen
+    global:
+      linkerdNamespace: linkerd
+      
+    # Proxy-Einstellungen
+    proxy:
+      image:
+        name: cr.l5d.io/linkerd/proxy
+        pullPolicy: IfNotPresent
+      logLevel: warn
+      resources:
+        cpu:
+          limit: 100m
+          request: 50m
+        memory:
+          limit: 250Mi
+          request: 128Mi
+    
+    # Control-Plane-Einstellungen
+    controlPlaneTracing:
+      enabled: true
+      
+    # Dashboard-Einstellungen
+    dashboard:
+      enabled: true
+      
+    # Prometheus-Einstellungen
+    prometheusUrl: http://prometheus.erp-system.svc.cluster.local:9090
+    
+    # High-Availability-Einstellungen (deaktiviert für Entwicklungsumgebungen)
+    enableHA: false
+    
+    # Heartbeat-Einstellungen
+    heartbeatSchedule: "0 0 * * *"
+    
+    # Linkerd-Version
+    linkerdVersion: stable-2.12.3
+    
+    # Proxy-Injector-Einstellungen
+    proxyInjector:
+      caBundle: ""
+      
+    # Proxy-Einstellungen
+    proxy:
+      inboundPort: 4143
+      outboundPort: 4140
+      control:
+        port: 4190
+      adminPort: 4191
+      
+    # Identity-Einstellungen
+    identity:
+      issuer:
+        scheme: kubernetes.io/tls
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: linkerd-installer
+  namespace: linkerd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: linkerd-installer
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: linkerd-installer
+subjects:
+- kind: ServiceAccount
+  name: linkerd-installer
+  namespace: linkerd
+roleRef:
+  kind: ClusterRole
+  name: linkerd-installer
+  apiGroup: rbac.authorization.k8s.io
+---
+# Anmerkung: 
+# Dieses Manifest bereitet die Installation von Linkerd vor.
+# Die tatsächliche Installation würde mit dem Linkerd-CLI erfolgen:
+# 
+# 1. linkerd install | kubectl apply -f -
+# 2. linkerd check
+# 
+# Um Dienste im Mesh zu registrieren:
+# kubectl get deploy -n erp-system -o yaml | linkerd inject - | kubectl apply -f - 

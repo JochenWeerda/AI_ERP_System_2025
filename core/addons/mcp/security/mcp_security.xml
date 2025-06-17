@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Sicherheitsgruppen für das MCP-Modul -->
+        <record id="group_mcp_user" model="res.groups">
+            <field name="name">MCP / Benutzer</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="comment">Benutzer können KI-Modelle verwenden und Interaktionen ansehen.</field>
+        </record>
+
+        <record id="group_mcp_manager" model="res.groups">
+            <field name="name">MCP / Manager</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('group_mcp_user'))]"/>
+            <field name="comment">Manager können Prompt-Vorlagen und Kontextgeneratoren erstellen und verwalten.</field>
+        </record>
+
+        <record id="group_mcp_admin" model="res.groups">
+            <field name="name">MCP / Administrator</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('group_mcp_manager'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+            <field name="comment">Administratoren haben vollen Zugriff auf alle MCP-Funktionen, einschließlich Provider-Konfiguration und Systemeinstellungen.</field>
+        </record>
+
+        <!-- Rekordregeln für datenbasierte Zugriffskontrolle -->
+        
+        <!-- Benutzer können nur ihre eigenen Interaktionsprotokolle sehen -->
+        <record id="rule_mcp_interaction_log_user" model="ir.rule">
+            <field name="name">Benutzer sehen nur eigene Interaktionen</field>
+            <field name="model_id" ref="model_mcp_interaction_log"/>
+            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_mcp_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Manager können alle Interaktionsprotokolle sehen -->
+        <record id="rule_mcp_interaction_log_manager" model="ir.rule">
+            <field name="name">Manager sehen alle Interaktionen</field>
+            <field name="model_id" ref="model_mcp_interaction_log"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_mcp_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Benutzer können nur ihre eigenen Präferenzen sehen und bearbeiten -->
+        <record id="rule_mcp_user_preferences" model="ir.rule">
+            <field name="name">Benutzer sehen nur eigene Präferenzen</field>
+            <field name="model_id" ref="model_mcp_user_preferences"/>
+            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Administratoren können alle Benutzer-Präferenzen sehen -->
+        <record id="rule_mcp_user_preferences_admin" model="ir.rule">
+            <field name="name">Administratoren sehen alle Präferenzen</field>
+            <field name="model_id" ref="model_mcp_user_preferences"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_mcp_admin'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Menüzugriff für verschiedene Gruppen -->
+        <record id="base.group_system" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('group_mcp_admin'))]"/>
+        </record>
+
+        <record id="base.group_erp_manager" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('group_mcp_manager'))]"/>
+        </record>
+    </data>
+</odoo> 

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Formularansicht für Felder -->
+        <record id="view_field_form" model="ir.ui.view">
+            <field name="name">farm.field.form</field>
+            <field name="model">farm.field</field>
+            <field name="arch" type="xml">
+                <form string="Feld">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                                <field name="active" widget="boolean_button" options="{'terminology': 'archive'}"/>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Feldname/Nummer"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="farm_id"/>
+                                <field name="area"/>
+                                <field name="soil_type"/>
+                                <field name="location"/>
+                                <field name="field_code"/>
+                            </group>
+                            <group>
+                                <field name="state"/>
+                                <field name="current_crop_id"/>
+                                <field name="slope"/>
+                                <field name="altitude"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="irrigation"/>
+                                <field name="irrigation_type" attrs="{'invisible': [('irrigation', '=', False)]}"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="GIS-Daten">
+                                <group>
+                                    <field name="coordinates" widget="text"/>
+                                </group>
+                                <div class="alert alert-info" role="alert">
+                                    Koordinaten können im GeoJSON-Format hinterlegt werden, 
+                                    um die Feldgrenzen zu definieren.
+                                </div>
+                            </page>
+                            <page string="Notizen">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+        
+        <!-- Baumansicht für Felder -->
+        <record id="view_field_tree" model="ir.ui.view">
+            <field name="name">farm.field.tree</field>
+            <field name="model">farm.field</field>
+            <field name="arch" type="xml">
+                <tree string="Felder">
+                    <field name="name"/>
+                    <field name="farm_id"/>
+                    <field name="area"/>
+                    <field name="soil_type"/>
+                    <field name="location"/>
+                    <field name="current_crop_id"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+        
+        <!-- Suchansicht für Felder -->
+        <record id="view_field_search" model="ir.ui.view">
+            <field name="name">farm.field.search</field>
+            <field name="model">farm.field</field>
+            <field name="arch" type="xml">
+                <search string="Felder">
+                    <field name="name" string="Feld"/>
+                    <field name="farm_id"/>
+                    <field name="field_code"/>
+                    <field name="current_crop_id"/>
+                    <filter string="Brache" name="fallow" domain="[('state','=','fallow')]"/>
+                    <filter string="Bewirtschaftet" name="cultivated" domain="[('state','=','cultivated')]"/>
+                    <filter string="Verpachtet" name="rented" domain="[('state','=','rented')]"/>
+                    <filter string="Naturschutz" name="conservation" domain="[('state','=','conservation')]"/>
+                    <filter string="Mit Bewässerung" name="irrigation" domain="[('irrigation','=',True)]"/>
+                    <separator/>
+                    <filter string="Archiviert" name="inactive" domain="[('active','=',False)]"/>
+                    <group expand="0" string="Gruppieren nach">
+                        <filter string="Betrieb" name="farm" domain="[]" context="{'group_by':'farm_id'}"/>
+                        <filter string="Bodentyp" name="soil_type" domain="[]" context="{'group_by':'soil_type'}"/>
+                        <filter string="Status" name="state" domain="[]" context="{'group_by':'state'}"/>
+                        <filter string="Aktuelle Kultur" name="current_crop" domain="[]" context="{'group_by':'current_crop_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+        
+        <!-- Aktionen -->
+        <record id="action_field" model="ir.actions.act_window">
+            <field name="name">Felder</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">farm.field</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_field_search"/>
+            <field name="context">{'search_default_state': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Erstellen Sie Ihr erstes landwirtschaftliches Feld
+                </p><p>
+                    Verwalten Sie alle Ihre landwirtschaftlichen Felder, ihre Eigenschaften und Kulturen.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo> 

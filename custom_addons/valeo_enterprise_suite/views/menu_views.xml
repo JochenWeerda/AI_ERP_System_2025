@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Hauptmenü für VALEO Enterprise Suite -->
+    <menuitem id="menu_valeo_root"
+              name="VALEO Enterprise"
+              web_icon="valeo_enterprise_suite,static/description/icon.png"
+              sequence="10"/>
+    
+    <!-- Dashboard-Menü -->
+    <menuitem id="menu_valeo_dashboard"
+              name="Dashboard"
+              parent="menu_valeo_root"
+              action="action_valeo_dashboard_view"
+              sequence="10"/>
+    
+    <!-- Dokumentenmanagement-Menü -->
+    <menuitem id="menu_valeo_document_root"
+              name="Dokumente"
+              parent="menu_valeo_root"
+              sequence="20"/>
+    
+    <menuitem id="menu_valeo_document_all"
+              name="Alle Dokumente"
+              parent="menu_valeo_document_root"
+              action="action_valeo_document_view"
+              sequence="10"/>
+    
+    <menuitem id="menu_valeo_document_folders"
+              name="Ordner"
+              parent="menu_valeo_document_root"
+              action="action_valeo_document_folder_view"
+              sequence="20"/>
+    
+    <menuitem id="menu_valeo_document_tags"
+              name="Tags"
+              parent="menu_valeo_document_root"
+              action="action_valeo_document_tag_view"
+              sequence="30"/>
+    
+    <!-- E-Signatur-Menü -->
+    <menuitem id="menu_valeo_esignature_root"
+              name="E-Signaturen"
+              parent="menu_valeo_root"
+              sequence="30"/>
+    
+    <menuitem id="menu_valeo_esignature_all"
+              name="Alle Signaturanfragen"
+              parent="menu_valeo_esignature_root"
+              action="action_valeo_esignature_view"
+              sequence="10"/>
+    
+    <menuitem id="menu_valeo_esignature_pending"
+              name="Ausstehende Signaturen"
+              parent="menu_valeo_esignature_root"
+              action="action_valeo_esignature_pending_view"
+              sequence="20"/>
+    
+    <menuitem id="menu_valeo_esignature_completed"
+              name="Abgeschlossene Signaturen"
+              parent="menu_valeo_esignature_root"
+              action="action_valeo_esignature_completed_view"
+              sequence="30"/>
+    
+    <!-- Konfigurationsmenü -->
+    <menuitem id="menu_valeo_config"
+              name="Konfiguration"
+              parent="menu_valeo_root"
+              sequence="100"
+              groups="valeo_enterprise_suite.group_valeo_manager"/>
+    
+    <menuitem id="menu_valeo_settings"
+              name="Einstellungen"
+              parent="menu_valeo_config"
+              action="action_valeo_settings_view"
+              sequence="10"
+              groups="valeo_enterprise_suite.group_valeo_manager"/>
+</odoo> 

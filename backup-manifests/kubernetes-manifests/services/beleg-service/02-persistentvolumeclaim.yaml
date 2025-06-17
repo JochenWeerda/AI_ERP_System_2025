@@ -1,0 +1,13 @@
+# PersistentVolumeClaim für Dokumentenspeicher
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: beleg-service-docs-new
+  namespace: erp-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard 

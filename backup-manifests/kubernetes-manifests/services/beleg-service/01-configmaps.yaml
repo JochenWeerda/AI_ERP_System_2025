@@ -1,0 +1,89 @@
+# ConfigMap für Metriken-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: beleg-service-metrics-config
+  namespace: erp-system
+data:
+  metrics.yml: |
+    # Metriken-Konfiguration für Beleg-Service
+    metrics:
+      enabled: true
+      endpoint: /metrics
+      port: 8020
+      collectors:
+        - type: counter
+          name: document_operations_total
+          help: "Gesamtzahl der Dokumentenoperationen"
+          labels:
+            - operation_type
+            - document_type
+            - status
+        - type: histogram
+          name: document_processing_duration_seconds
+          help: "Dauer der Dokumentenverarbeitung in Sekunden"
+          labels:
+            - operation_type
+            - document_type
+          buckets: [0.1, 0.5, 1, 2.5, 5, 10, 30, 60, 120]
+        - type: gauge
+          name: document_storage_size_bytes
+          help: "Größe des Dokumentenspeichers in Bytes"
+          labels:
+            - document_type
+        - type: counter
+          name: ocr_operations_total
+          help: "Gesamtzahl der OCR-Operationen"
+          labels:
+            - status
+            - document_type
+        - type: histogram
+          name: ocr_processing_duration_seconds
+          help: "Dauer der OCR-Verarbeitung in Sekunden"
+          labels:
+            - document_type
+          buckets: [0.5, 1, 2.5, 5, 10, 30, 60, 120, 300]
+        - type: gauge
+          name: document_queue_size
+          help: "Anzahl der Dokumente in der Verarbeitungswarteschlange"
+          labels:
+            - queue_type
+---
+# ConfigMap für Tracing-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: beleg-service-tracing-config
+  namespace: erp-system
+data:
+  tracing.yml: |
+    # Tracing-Konfiguration für Beleg-Service
+    tracing:
+      enabled: true
+      service_name: beleg-service
+      jaeger:
+        agent_host: erp-jaeger-agent.erp-system.svc.cluster.local
+        agent_port: 6831
+        sampler_type: const
+        sampler_param: 1
+      # Operation-Tags für bessere Kategorisierung der Traces
+      operation_tags:
+        - key: document_id
+          tag_as: document.id
+        - key: user_id
+          tag_as: user.id
+        - key: document_type
+          tag_as: document.type
+        - key: operation_type
+          tag_as: operation.type
+      # Optionen für detaillierte Tracing-Spans
+      span_options:
+        include_request_headers:
+          - content-type
+          - authorization
+          - x-request-id
+        include_response_headers:
+          - content-type
+          - content-length
+        include_payload: false
+        include_metadata: true 

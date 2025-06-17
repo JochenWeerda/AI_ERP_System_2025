@@ -1,0 +1,4 @@
+2025-05-27 06:27:31,269 - finance_service - INFO - Finance-Microservice wird gestartet...
+2025-05-27 06:27:31,269 - finance_service - INFO - Registrierung beim Observer-Service (http://localhost:8010/register) eingeleitet
+2025-05-27 06:27:31,273 - finance_service - INFO - Finance-Microservice ist bereit
+2025-05-27 06:27:31,691 - httpx - INFO - HTTP Request: POST http://localhost:8010/register "HTTP/1.1 200 OK"

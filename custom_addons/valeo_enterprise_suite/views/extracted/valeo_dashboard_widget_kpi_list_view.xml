@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_valeo_dashboard_widget_kpi_tree" model="ir.ui.view">
+            <field name="name">valeo.dashboard.widget.kpi.tree</field>
+            <field name="model">valeo.dashboard.widget.kpi</field>
+            <field name="arch" type="xml">
+                <tree string="KPI Widgets">
+                    <field name="name"/>
+                    <field name="dashboard_id"/>
+                    <field name="kpi_value"/>
+                    <field name="kpi_target"/>
+                    <field name="kpi_format"/>
+                    <field name="color"/>
+                </tree>
+            </field>
+        </record>
+    </data>
+</odoo> 

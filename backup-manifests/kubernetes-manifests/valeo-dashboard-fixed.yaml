@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: valeo-final-dashboard
+  namespace: erp-system
+  labels:
+    app: valeo-final-dashboard
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: valeo-final-dashboard
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: valeo-final-dashboard
+        component: frontend
+    spec:
+      containers:
+      - name: valeo-dashboard
+        image: nginx:alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: html-content
+          mountPath: /usr/share/nginx/html
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: html-content
+        configMap:
+          name: valeo-dashboard-html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: valeo-final-dashboard
+  namespace: erp-system
+  labels:
+    app: valeo-final-dashboard
+    component: frontend
+spec:
+  selector:
+    app: valeo-final-dashboard
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  type: ClusterIP 

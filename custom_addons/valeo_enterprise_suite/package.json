@@ -1,0 +1,36 @@
+{
+  "name": "valeo-enterprise-suite",
+  "version": "1.0.0",
+  "description": "VALEO Enterprise Suite - KI-gestützte ERP-Erweiterungen für Odoo",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests/run_tests.js",
+    "start": "node tools/valeo_tools.js",
+    "start-browser-tools": "node tools/valeo_tools.js start-browser-tools",
+    "start-mcp": "node tools/valeo_tools.js start-mcp",
+    "start-browser-use": "node tools/valeo_tools.js start-browser-use",
+    "create-prototype": "node tools/valeo_tools.js create-prototype",
+    "extract-xml": "node tools/valeo_tools.js extract-xml",
+    "integrate-xml": "node tools/valeo_tools.js integrate-xml",
+    "setup": "node tools/valeo_tools.js setup",
+    "mcp-integration": "node tools/mcp_integration.js",
+    "test-openai": "node tools/test_openai_integration.js",
+    "create-module-prototypes": "node tools/create_module_prototypes.js",
+    "learn-odoo-studio": "node tools/create_module_prototypes.js --learn-mode"
+  },
+  "dependencies": {
+    "@agentdeskai/browser-tools-mcp": "^1.2.1",
+    "@agentdeskai/browser-tools-server": "^1.2.1",
+    "axios": "^1.10.0",
+    "commander": "^10.0.1",
+    "dotenv": "^16.0.3",
+    "fs-extra": "^11.1.1",
+    "playwright": "^1.40.0",
+    "xmldom": "^0.6.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0"
+  },
+  "author": "VALEO NeuroERP Team",
+  "license": "LGPL-3.0"
+}

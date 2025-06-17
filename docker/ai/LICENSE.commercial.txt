@@ -1,0 +1,166 @@
+VALEO COMMERCIAL LICENSE AGREEMENT
+Version 1.0, Effective Date: 2023-01-01
+
+VALEO GMBH ("VALEO") PROVIDES THIS SOFTWARE UNDER THE TERMS OF THIS COMMERCIAL
+LICENSE AGREEMENT. BY DOWNLOADING, INSTALLING, OR USING THE SOFTWARE, YOU AGREE TO
+THE TERMS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT DOWNLOAD, INSTALL, OR USE
+THE SOFTWARE.
+
+1. DEFINITIONS
+
+   a. "Software" means the VALEO NeuroERP proprietary modules, including but not
+      limited to the VALEO AI Module, VALEO QS Module, VALEO Chargen Module,
+      VALEO Waagen Module, VALEO TSE Module, and any other proprietary modules
+      identified as such, in object code form, as well as any updates, upgrades,
+      or new versions provided by VALEO.
+
+   b. "Documentation" means any user manuals, technical guides, or other materials
+      provided by VALEO that describe the functionality or use of the Software.
+
+   c. "License" means the right to use the Software as set forth in this Agreement.
+
+   d. "Licensee" means the individual or entity that has accepted this Agreement
+      and has been granted the License.
+
+2. LICENSE GRANT
+
+   a. Subject to the terms of this Agreement and payment of applicable license fees,
+      VALEO grants to Licensee a non-exclusive, non-transferable license to use the
+      Software solely for Licensee's internal business operations.
+
+   b. This License permits Licensee to:
+      i. Install and use the Software on the number of servers or instances specified
+         in the applicable order form or subscription agreement;
+      ii. Make a reasonable number of copies of the Software for backup purposes; and
+      iii. Use the Documentation in connection with Licensee's authorized use of
+           the Software.
+
+   c. This License is conditional on Licensee's continued compliance with all terms
+      of this Agreement. Any use of the Software outside the scope of this License
+      grant is prohibited and constitutes a violation of this Agreement.
+
+3. RESTRICTIONS
+
+   Licensee shall not:
+   a. Copy, modify, or create derivative works of the Software;
+   b. Reverse engineer, decompile, disassemble, or attempt to discover the source
+      code of the Software, except to the extent expressly permitted by applicable law;
+   c. Rent, lease, lend, sell, sublicense, assign, distribute, publish, transfer, or
+      otherwise make available the Software to any third party;
+   d. Remove or alter any proprietary notices, labels, or marks on the Software;
+   e. Use the Software for service bureau or time-sharing purposes, or to provide
+      services to third parties as a service provider;
+   f. Use the Software in any manner that violates applicable law; or
+   g. Use the Software to develop a competing product.
+
+4. OWNERSHIP
+
+   a. The Software is licensed, not sold. VALEO retains all right, title, and interest
+      in and to the Software, including all intellectual property rights therein.
+   
+   b. Licensee acknowledges that the Software contains valuable trade secrets and
+      confidential information of VALEO. Licensee agrees to use reasonable care to
+      prevent unauthorized disclosure or use of the Software.
+
+5. PAYMENT TERMS
+
+   a. Licensee shall pay all license fees as specified in the applicable order form or
+      subscription agreement.
+   
+   b. Unless otherwise specified, all fees are non-refundable and payable in advance.
+   
+   c. Overdue payments may bear interest at the rate of 1.5% per month (or the maximum
+      rate permitted by law, if less) from the payment due date until paid in full.
+
+6. TERM AND TERMINATION
+
+   a. This Agreement commences on the date Licensee first accepts these terms and
+      continues until terminated as provided herein.
+   
+   b. VALEO may terminate this Agreement immediately if Licensee breaches any
+      provision of this Agreement.
+   
+   c. Upon termination, Licensee shall cease all use of the Software and destroy
+      all copies of the Software in Licensee's possession or control.
+   
+   d. Sections 3, 4, 7, 8, 9, 10, and 11 will survive any termination of this Agreement.
+
+7. WARRANTY DISCLAIMER
+
+   EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, THE SOFTWARE IS PROVIDED "AS IS"
+   WITHOUT WARRANTY OF ANY KIND. VALEO DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS,
+   IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS
+   FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
+
+8. LIMITATION OF LIABILITY
+
+   a. IN NO EVENT WILL VALEO BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+      CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUE, DATA,
+      OR DATA USE, ARISING OUT OF OR RELATED TO THIS AGREEMENT, WHETHER IN CONTRACT,
+      TORT, OR OTHERWISE, EVEN IF VALEO HAS BEEN ADVISED OF THE POSSIBILITY OF
+      SUCH DAMAGES.
+   
+   b. VALEO'S TOTAL LIABILITY FOR ANY AND ALL DAMAGES SHALL NOT EXCEED THE AMOUNT
+      PAID BY LICENSEE TO VALEO UNDER THIS AGREEMENT DURING THE TWELVE (12) MONTHS
+      IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO LIABILITY.
+
+9. CONFIDENTIALITY
+
+   a. "Confidential Information" means all non-public information disclosed by VALEO
+      to Licensee, including the Software and its design, structure, and organization.
+   
+   b. Licensee shall:
+      i. Maintain the confidentiality of the Confidential Information;
+      ii. Not disclose Confidential Information to any third party; and
+      iii. Use Confidential Information only as necessary to exercise its rights
+           under this Agreement.
+   
+   c. This Section does not apply to information that:
+      i. Is or becomes publicly available through no fault of Licensee;
+      ii. Was known to Licensee prior to receipt from VALEO;
+      iii. Is independently developed by Licensee without use of or reference to
+           the Confidential Information; or
+      iv. Is required to be disclosed by law, provided Licensee gives VALEO prompt
+          notice and cooperates with VALEO in seeking a protective order.
+
+10. COMPLIANCE WITH LAWS
+
+    Licensee shall comply with all applicable laws and regulations in connection with
+    its use of the Software, including export laws and regulations.
+
+11. GENERAL PROVISIONS
+
+    a. Entire Agreement: This Agreement constitutes the entire agreement between the
+       parties regarding the subject matter hereof and supersedes all prior or
+       contemporaneous agreements, understandings, and communications, whether written
+       or oral.
+    
+    b. Amendment: This Agreement may only be amended in a writing signed by authorized
+       representatives of both parties.
+    
+    c. Assignment: Licensee may not assign or transfer this Agreement or any rights
+       or obligations hereunder without the prior written consent of VALEO.
+    
+    d. Governing Law: This Agreement shall be governed by and construed in accordance
+       with the laws of Germany, without regard to its conflict of laws principles.
+    
+    e. Dispute Resolution: Any dispute arising out of or in connection with this
+       Agreement shall be subject to the exclusive jurisdiction of the courts of
+       Berlin, Germany.
+    
+    f. Severability: If any provision of this Agreement is held to be invalid or
+       unenforceable, the remaining provisions shall continue in full force and effect.
+    
+    g. Waiver: No failure or delay by either party in exercising any right under this
+       Agreement shall constitute a waiver of that right.
+    
+    h. Force Majeure: Neither party shall be liable for any failure or delay in
+       performance due to causes beyond its reasonable control.
+    
+    i. Notices: All notices under this Agreement shall be in writing and sent to the
+       addresses specified in the applicable order form or to such other address as
+       may be specified in writing.
+
+For questions about this License Agreement, please contact:
+VALEO GmbH
+legal@valeo-erp.com 

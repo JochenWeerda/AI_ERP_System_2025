@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Kontextgeneratoren für Personalmanagementprozesse -->
+        <record id="context_generator_hr_employee" model="mcp.context">
+            <field name="name">Mitarbeiterkontext</field>
+            <field name="code">hr_employee</field>
+            <field name="description">Extrahiert Informationen über einen Mitarbeiter</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="active">true</field>
+            <field name="sequence">700</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Mitarbeiterdaten abrufen
+if not record or not record._name == 'hr.employee':
+    return {'error': 'Kein gültiger Mitarbeiter ausgewählt'}
+
+employee = record
+company = employee.company_id
+
+# Berechnete Felder
+current_date = fields.Date.today()
+years_employed = 0
+months_employed = 0
+
+if employee.date_join:
+    delta = relativedelta(current_date, employee.date_join)
+    years_employed = delta.years
+    months_employed = delta.months + (delta.years * 12)
+
+# Abwesenheiten der letzten 12 Monate
+leave_data = None
+if hasattr(env, 'hr.leave'):
+    leave_start_date = fields.Date.to_string(current_date - timedelta(days=365))
+    leaves = env['hr.leave'].search([
+        ('employee_id', '=', employee.id),
+        ('date_from', '>=', leave_start_date),
+        ('state', '=', 'validate')
+    ])
+    
+    leave_data = {
+        'total_days': sum(leave.number_of_days for leave in leaves),
+        'entries': [{
+            'name': leave.holiday_status_id.name,
+            'date_from': leave.date_from.strftime('%Y-%m-%d'),
+            'date_to': leave.date_to.strftime('%Y-%m-%d'),
+            'duration': leave.number_of_days,
+            'state': leave.state
+        } for leave in leaves]
+    }
+
+# Verträge
+contract_data = None
+if hasattr(env, 'hr.contract'):
+    contracts = env['hr.contract'].search([
+        ('employee_id', '=', employee.id)
+    ], order='date_start desc')
+    
+    current_contract = contracts.filtered(lambda c: c.state == 'open')
+    current_contract = current_contract[0] if current_contract else None
+    
+    contract_data = {
+        'current': {
+            'name': current_contract.name if current_contract else '',
+            'job_title': current_contract.job_id.name if current_contract and hasattr(current_contract, 'job_id') and current_contract.job_id else '',
+            'department': current_contract.department_id.name if current_contract and hasattr(current_contract, 'department_id') and current_contract.department_id else '',
+            'type': current_contract.type_id.name if current_contract and hasattr(current_contract, 'type_id') and current_contract.type_id else '',
+            'wage': current_contract.wage if current_contract and hasattr(current_contract, 'wage') else 0,
+            'date_start': current_contract.date_start.strftime('%Y-%m-%d') if current_contract and current_contract.date_start else '',
+            'date_end': current_contract.date_end.strftime('%Y-%m-%d') if current_contract and current_contract.date_end else '',
+            'notes': current_contract.notes if current_contract and hasattr(current_contract, 'notes') else ''
+        },
+        'history': [{
+            'name': contract.name,
+            'job_title': contract.job_id.name if hasattr(contract, 'job_id') and contract.job_id else '',
+            'date_start': contract.date_start.strftime('%Y-%m-%d') if contract.date_start else '',
+            'date_end': contract.date_end.strftime('%Y-%m-%d') if contract.date_end else '',
+            'wage': contract.wage if hasattr(contract, 'wage') else 0,
+            'state': contract.state
+        } for contract in contracts if contract != current_contract]
+    }
+
+# Arbeitszeiten
+attendance_data = None
+if hasattr(env, 'hr.attendance'):
+    attendance_start_date = fields.Date.to_string(current_date - timedelta(days=30))
+    attendances = env['hr.attendance'].search([
+        ('employee_id', '=', employee.id),
+        ('check_in', '>=', attendance_start_date)
+    ], order='check_in desc')
+    
+    total_hours = 0
+    for attendance in attendances:
+        if attendance.check_in and attendance.check_out:
+            delta = attendance.check_out - attendance.check_in
+            total_hours += delta.total_seconds() / 3600
+    
+    attendance_data = {
+        'last_30_days': {
+            'total_hours': total_hours,
+            'average_hours': total_hours / len(attendances) if attendances else 0,
+            'entries': [{
+                'date': attendance.check_in.strftime('%Y-%m-%d'),
+                'check_in': attendance.check_in.strftime('%H:%M'),
+                'check_out': attendance.check_out.strftime('%H:%M') if attendance.check_out else '',
+                'worked_hours': attendance.worked_hours if hasattr(attendance, 'worked_hours') else 0
+            } for attendance in attendances[:10]]
+        }
+    }
+
+# Bewertungen
+appraisal_data = None
+if hasattr(env, 'hr.appraisal'):
+    appraisals = env['hr.appraisal'].search([
+        ('employee_id', '=', employee.id)
+    ], order='date_close desc', limit=5)
+    
+    appraisal_data = [{
+        'name': appraisal.name if hasattr(appraisal, 'name') else f"Bewertung vom {appraisal.date_close.strftime('%Y-%m-%d')}",
+        'date': appraisal.date_close.strftime('%Y-%m-%d') if appraisal.date_close else '',
+        'manager': appraisal.manager_id.name if hasattr(appraisal, 'manager_id') and appraisal.manager_id else '',
+        'state': appraisal.state,
+        'score': appraisal.score if hasattr(appraisal, 'score') else None
+    } for appraisal in appraisals]
+
+# Schulungen
+training_data = None
+if hasattr(env, 'hr.training'):
+    trainings = env['hr.training'].search([
+        ('employee_id', '=', employee.id)
+    ], order='date desc', limit=10)
+    
+    training_data = [{
+        'name': training.name if hasattr(training, 'name') else '',
+        'date': training.date.strftime('%Y-%m-%d') if hasattr(training, 'date') and training.date else '',
+        'description': training.description if hasattr(training, 'description') else '',
+        'certification': training.certification if hasattr(training, 'certification') else False,
+        'expiry_date': training.expiry_date.strftime('%Y-%m-%d') if hasattr(training, 'expiry_date') and training.expiry_date else ''
+    } for training in trainings]
+
+# Skills
+skill_data = None
+if hasattr(env, 'hr.skill') and hasattr(env, 'hr.employee.skill'):
+    employee_skills = env['hr.employee.skill'].search([
+        ('employee_id', '=', employee.id)
+    ])
+    
+    skill_data = [{
+        'name': skill.skill_id.name if hasattr(skill, 'skill_id') else '',
+        'level': skill.skill_level_id.name if hasattr(skill, 'skill_level_id') else '',
+        'type': skill.skill_type_id.name if hasattr(skill, 'skill_type_id') else ''
+    } for skill in employee_skills]
+
+result = {
+    'name': employee.name,
+    'work_email': employee.work_email or '',
+    'work_phone': employee.work_phone or '',
+    'job_title': employee.job_title or employee.job_id.name if employee.job_id else '',
+    'department': employee.department_id.name if employee.department_id else '',
+    'manager': employee.parent_id.name if employee.parent_id else '',
+    'company': company.name,
+    'employment': {
+        'date_join': employee.date_join.strftime('%Y-%m-%d') if employee.date_join else '',
+        'years_employed': years_employed,
+        'months_employed': months_employed
+    },
+    'identification': {
+        'identification_id': employee.identification_id or '',
+        'passport_id': employee.passport_id if hasattr(employee, 'passport_id') else '',
+        'gender': employee.gender or '',
+        'birthday': employee.birthday.strftime('%Y-%m-%d') if employee.birthday else ''
+    },
+    'contact': {
+        'address': employee.address_home_id.contact_address if hasattr(employee, 'address_home_id') and employee.address_home_id else '',
+        'mobile': employee.mobile_phone or '',
+        'work_location': employee.work_location if hasattr(employee, 'work_location') else '',
+        'work_distance': employee.work_distance if hasattr(employee, 'work_distance') else 0
+    }
+}
+
+# Optionale Daten hinzufügen, wenn verfügbar
+if leave_data:
+    result['leave'] = leave_data
+
+if contract_data:
+    result['contract'] = contract_data
+
+if attendance_data:
+    result['attendance'] = attendance_data
+
+if appraisal_data:
+    result['appraisals'] = appraisal_data
+
+if training_data:
+    result['trainings'] = training_data
+
+if skill_data:
+    result['skills'] = skill_data
+
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_hr_department" model="mcp.context">
+            <field name="name">Abteilungskontext</field>
+            <field name="code">hr_department</field>
+            <field name="description">Extrahiert Informationen über eine Abteilung</field>
+            <field name="model_id" ref="hr.model_hr_department"/>
+            <field name="active">true</field>
+            <field name="sequence">710</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Abteilungsdaten abrufen
+if not record or not record._name == 'hr.department':
+    return {'error': 'Keine gültige Abteilung ausgewählt'}
+
+department = record
+company = department.company_id
+
+# Mitarbeiter in der Abteilung
+employees = env['hr.employee'].search([
+    ('department_id', '=', department.id)
+])
+
+# Mitarbeiterstatistiken
+total_employees = len(employees)
+managers = employees.filtered(lambda e: e.id == department.manager_id.id or e.parent_id.id == department.manager_id.id)
+regular_employees = employees - managers
+
+avg_seniority = 0
+if employees:
+    join_dates = [e.date_join for e in employees if e.date_join]
+    if join_dates:
+        total_days = sum((fields.Date.today() - date).days for date in join_dates)
+        avg_seniority = total_days / len(join_dates) / 365  # in Jahren
+
+# Aktuelle Abwesenheiten
+current_leaves = []
+if hasattr(env, 'hr.leave'):
+    today = fields.Date.today()
+    leaves = env['hr.leave'].search([
+        ('employee_id', 'in', employees.ids),
+        ('date_from', '<=', fields.Datetime.now()),
+        ('date_to', '>=', fields.Datetime.now()),
+        ('state', '=', 'validate')
+    ])
+    
+    current_leaves = [{
+        'employee': leave.employee_id.name,
+        'type': leave.holiday_status_id.name,
+        'date_from': leave.date_from.strftime('%Y-%m-%d'),
+        'date_to': leave.date_to.strftime('%Y-%m-%d'),
+        'duration': leave.number_of_days
+    } for leave in leaves]
+
+# Laufende Projekte
+projects = []
+if hasattr(env, 'project.project'):
+    department_projects = env['project.project'].search([
+        ('department_id', '=', department.id)
+    ]) if hasattr(env['project.project'], 'department_id') else []
+    
+    if department_projects:
+        projects = [{
+            'name': project.name,
+            'state': 'In Bearbeitung' if project.active else 'Abgeschlossen',
+            'date_start': project.date_start.strftime('%Y-%m-%d') if project.date_start else '',
+            'date_end': project.date.strftime('%Y-%m-%d') if hasattr(project, 'date') and project.date else '',
+            'tasks_count': env['project.task'].search_count([('project_id', '=', project.id)])
+        } for project in department_projects]
+
+result = {
+    'name': department.name,
+    'manager': department.manager_id.name if department.manager_id else '',
+    'parent_department': department.parent_id.name if department.parent_id else '',
+    'company': company.name,
+    'active': department.active,
+    'total_employees': total_employees,
+    'statistics': {
+        'managers_count': len(managers),
+        'employees_count': len(regular_employees),
+        'average_seniority_years': avg_seniority
+    },
+    'structure': {
+        'parent': department.parent_id.name if department.parent_id else None,
+        'children': [child.name for child in env['hr.department'].search([('parent_id', '=', department.id)])]
+    },
+    'employees': [{
+        'name': employee.name,
+        'job_title': employee.job_title or employee.job_id.name if employee.job_id else '',
+        'work_email': employee.work_email or '',
+        'work_phone': employee.work_phone or '',
+        'is_manager': employee.id == department.manager_id.id
+    } for employee in employees]
+}
+
+# Optionale Daten hinzufügen, wenn verfügbar
+if current_leaves:
+    result['current_leaves'] = current_leaves
+
+if projects:
+    result['projects'] = projects
+
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_hr_job" model="mcp.context">
+            <field name="name">Stellenkontext</field>
+            <field name="code">hr_job</field>
+            <field name="description">Extrahiert Informationen über eine Stellenbeschreibung</field>
+            <field name="model_id" ref="hr.model_hr_job"/>
+            <field name="active">true</field>
+            <field name="sequence">720</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Stellenbeschreibungsdaten abrufen
+if not record or not record._name == 'hr.job':
+    return {'error': 'Keine gültige Stellenbeschreibung ausgewählt'}
+
+job = record
+company = job.company_id
+department = job.department_id
+
+# Mitarbeiter mit dieser Stelle
+employees = env['hr.employee'].search([
+    ('job_id', '=', job.id)
+])
+
+# Offene Bewerbungen
+applications = []
+if hasattr(env, 'hr.applicant'):
+    job_applications = env['hr.applicant'].search([
+        ('job_id', '=', job.id),
+        ('state', 'not in', ['cancel', 'done'])
+    ])
+    
+    applications = [{
+        'name': app.partner_name or '',
+        'email': app.email_from or '',
+        'phone': app.partner_phone or '',
+        'stage': app.stage_id.name if app.stage_id else '',
+        'date': app.date_open.strftime('%Y-%m-%d') if app.date_open else '',
+        'source': app.source_id.name if hasattr(app, 'source_id') and app.source_id else ''
+    } for app in job_applications]
+
+# Vergangene Stellenbesetzungen
+recruitment_history = []
+if hasattr(env, 'hr.recruitment.stage'):
+    hired_stage = env['hr.recruitment.stage'].search([
+        ('is_hired', '=', True)
+    ], limit=1)
+    
+    if hired_stage:
+        past_hires = env['hr.applicant'].search([
+            ('job_id', '=', job.id),
+            ('stage_id', '=', hired_stage.id)
+        ], order='date_closed desc')
+        
+        recruitment_history = [{
+            'name': hire.partner_name or '',
+            'date': hire.date_closed.strftime('%Y-%m-%d') if hire.date_closed else '',
+            'employee': hire.emp_id.name if hasattr(hire, 'emp_id') and hire.emp_id else ''
+        } for hire in past_hires]
+
+# Gehaltsrahmen
+salary_info = None
+if hasattr(env, 'hr.job.grade') and hasattr(job, 'grade_id'):
+    grade = job.grade_id
+    if grade:
+        salary_info = {
+            'grade': grade.name,
+            'min_salary': grade.min_salary if hasattr(grade, 'min_salary') else 0,
+            'max_salary': grade.max_salary if hasattr(grade, 'max_salary') else 0,
+            'currency': company.currency_id.name
+        }
+
+# Kompetenzen und Fähigkeiten
+skills = []
+if hasattr(env, 'hr.skill.type') and hasattr(job, 'skill_ids'):
+    for skill in job.skill_ids:
+        skills.append({
+            'name': skill.name,
+            'type': skill.skill_type_id.name if hasattr(skill, 'skill_type_id') else '',
+            'level': skill.skill_level_id.name if hasattr(skill, 'skill_level_id') else ''
+        })
+
+result = {
+    'name': job.name,
+    'department': department.name if department else '',
+    'company': company.name,
+    'description': job.description or '',
+    'requirements': job.requirements if hasattr(job, 'requirements') else '',
+    'expected_employees': job.expected_employees if hasattr(job, 'expected_employees') else 0,
+    'no_of_employees': job.no_of_employee if hasattr(job, 'no_of_employee') else len(employees),
+    'no_of_recruitment': job.no_of_recruitment if hasattr(job, 'no_of_recruitment') else 0,
+    'state': job.state,
+    'employees': [{
+        'name': employee.name,
+        'work_email': employee.work_email or '',
+        'work_phone': employee.work_phone or '',
+        'date_join': employee.date_join.strftime('%Y-%m-%d') if employee.date_join else ''
+    } for employee in employees]
+}
+
+# Optionale Daten hinzufügen, wenn verfügbar
+if applications:
+    result['applications'] = applications
+
+if recruitment_history:
+    result['recruitment_history'] = recruitment_history
+
+if salary_info:
+    result['salary_info'] = salary_info
+
+if skills:
+    result['skills'] = skills
+
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_hr_payroll" model="mcp.context">
+            <field name="name">Gehaltsabrechnungskontext</field>
+            <field name="code">hr_payroll</field>
+            <field name="description">Extrahiert Informationen über eine Gehaltsabrechnung</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="active">true</field>
+            <field name="sequence">730</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Gehaltsabrechnungsdaten abrufen
+if not record or not record._name == 'hr.payslip':
+    return {'error': 'Keine gültige Gehaltsabrechnung ausgewählt'}
+
+payslip = record
+employee = payslip.employee_id
+company = payslip.company_id
+
+# Gehaltsabrechnung analysieren
+lines_by_category = {}
+total_by_category = {}
+
+for line in payslip.line_ids:
+    category = line.category_id
+    if category:
+        category_code = category.code
+        if category_code not in lines_by_category:
+            lines_by_category[category_code] = []
+            total_by_category[category_code] = 0
+        
+        lines_by_category[category_code].append({
+            'name': line.name,
+            'code': line.code,
+            'amount': line.amount,
+            'quantity': line.quantity,
+            'rate': line.rate,
+            'salary_rule_id': line.salary_rule_id.name if line.salary_rule_id else ''
+        })
+        
+        total_by_category[category_code] += line.amount
+
+# Wichtige Kategorien extrahieren
+basic_salary = total_by_category.get('BASIC', 0)
+gross_salary = total_by_category.get('GROSS', 0)
+net_salary = total_by_category.get('NET', 0)
+deductions = total_by_category.get('DED', 0)
+employer_contributions = total_by_category.get('COMP', 0)
+
+# Vergangene Gehaltsabrechnungen für Vergleichsdaten
+past_payslips = env['hr.payslip'].search([
+    ('employee_id', '=', employee.id),
+    ('state', '=', 'done'),
+    ('date_from', '<', payslip.date_from)
+], order='date_from desc', limit=3)
+
+past_data = []
+for past in past_payslips:
+    past_net = 0
+    for line in past.line_ids:
+        if line.category_id and line.category_id.code == 'NET':
+            past_net += line.amount
+    
+    past_data.append({
+        'name': past.name,
+        'period': f"{past.date_from.strftime('%Y-%m-%d')} bis {past.date_to.strftime('%Y-%m-%d')}",
+        'net_salary': past_net
+    })
+
+result = {
+    'name': payslip.name,
+    'employee': {
+        'name': employee.name,
+        'job_title': employee.job_title or employee.job_id.name if employee.job_id else '',
+        'department': employee.department_id.name if employee.department_id else ''
+    },
+    'period': {
+        'date_from': payslip.date_from.strftime('%Y-%m-%d'),
+        'date_to': payslip.date_to.strftime('%Y-%m-%d')
+    },
+    'company': company.name,
+    'structure': payslip.struct_id.name if payslip.struct_id else '',
+    'state': payslip.state,
+    'summary': {
+        'basic_salary': basic_salary,
+        'gross_salary': gross_salary,
+        'deductions': deductions,
+        'net_salary': net_salary,
+        'employer_contributions': employer_contributions
+    },
+    'categories': [{
+        'code': category_code,
+        'name': env['hr.salary.rule.category'].search([('code', '=', category_code)], limit=1).name,
+        'total': total,
+        'lines': lines
+    } for category_code, lines in lines_by_category.items() if category_code for total in [total_by_category.get(category_code, 0)]],
+    'contract': {
+        'name': payslip.contract_id.name if payslip.contract_id else '',
+        'wage': payslip.contract_id.wage if payslip.contract_id and hasattr(payslip.contract_id, 'wage') else 0,
+        'type': payslip.contract_id.type_id.name if payslip.contract_id and hasattr(payslip.contract_id, 'type_id') and payslip.contract_id.type_id else ''
+    },
+    'worked_days': [{
+        'name': day.name,
+        'code': day.code,
+        'number_of_days': day.number_of_days,
+        'number_of_hours': day.number_of_hours
+    } for day in payslip.worked_days_line_ids]
+}
+
+if past_data:
+    result['previous_payslips'] = past_data
+
+return result
+            </field>
+        </record>
+    </data>
+</odoo> 

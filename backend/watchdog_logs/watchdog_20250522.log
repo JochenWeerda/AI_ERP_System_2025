@@ -1,0 +1,201 @@
+# Watchdog-Log gestartet am 2025-05-22 09:05:30
+# Pfad: C:\AI_driven_ERP\AI_driven_ERP\backend
+# System: Microsoft Windows NT 10.0.26100.0
+# PowerShell: 5.1.26100.4061
+# ------------------------------------------------------
+
+[2025-05-22 09:05:30] [INFO] Watchdog mit Logger gestartet. Log-Datei: watchdog_logs\watchdog_20250522.log
+[2025-05-22 09:05:30] [WARNING] Watchdog gestartet. Überwache Backend mit Timeout von 45 Sekunden.
+[2025-05-22 09:05:30] [INFO] Starte Backend-Server...
+[2025-05-22 09:05:30] [INFO] Backend-Prozess gestartet mit PID: 26208
+[2025-05-22 09:05:30] [DEBUG] Prozessüberwachung (PID: 26208): CPU=0s, RAM=2.94MB, Threads=1
+[2025-05-22 09:05:36] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:05:36] [WARNING] Backend reagiert nicht. Neustart in 39 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:05:51] [DEBUG] Prozessüberwachung (PID: 26208): CPU=0.515625s, RAM=81.56MB, Threads=24
+[2025-05-22 09:05:57] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:05:57] [WARNING] Backend reagiert nicht. Neustart in 18 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:06:12] [DEBUG] Prozessüberwachung (PID: 26208): CPU=0.53125s, RAM=81.46MB, Threads=14
+[2025-05-22 09:06:18] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:06:18] [ERROR] Backend reagiert nicht seit 48.5417717 Sekunden. Starte neu...
+[2025-05-22 09:06:18] [WARNING] Beende nicht reagierenden Prozess (PID: 26208)
+[2025-05-22 09:06:18] [INFO] Starte Backend-Server...
+[2025-05-22 09:06:18] [INFO] Backend-Prozess gestartet mit PID: 15776
+[2025-05-22 09:06:18] [WARNING] Backend neu gestartet (Neustart 1 von 5)
+[2025-05-22 09:06:44] [DEBUG] Prozessüberwachung (PID: 15776): CPU=0.546875s, RAM=85.09MB, Threads=20
+[2025-05-22 09:06:50] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:06:50] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:07:05] [DEBUG] Prozessüberwachung (PID: 15776): CPU=0.546875s, RAM=84.95MB, Threads=14
+[2025-05-22 09:07:11] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:07:11] [ERROR] Backend reagiert nicht seit 52.2408459 Sekunden. Starte neu...
+[2025-05-22 09:07:11] [WARNING] Beende nicht reagierenden Prozess (PID: 15776)
+[2025-05-22 09:07:11] [INFO] Starte Backend-Server...
+[2025-05-22 09:07:11] [INFO] Backend-Prozess gestartet mit PID: 29492
+[2025-05-22 09:07:11] [WARNING] Backend neu gestartet (Neustart 2 von 5)
+[2025-05-22 09:07:36] [DEBUG] Prozessüberwachung (PID: 29492): CPU=0.484375s, RAM=85.04MB, Threads=18
+[2025-05-22 09:07:42] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:07:42] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:07:57] [DEBUG] Prozessüberwachung (PID: 29492): CPU=0.484375s, RAM=84.97MB, Threads=14
+[2025-05-22 09:08:03] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:08:03] [ERROR] Backend reagiert nicht seit 52.2303884 Sekunden. Starte neu...
+[2025-05-22 09:08:03] [WARNING] Beende nicht reagierenden Prozess (PID: 29492)
+[2025-05-22 09:08:03] [INFO] Starte Backend-Server...
+[2025-05-22 09:08:03] [INFO] Backend-Prozess gestartet mit PID: 16556
+[2025-05-22 09:08:03] [WARNING] Backend neu gestartet (Neustart 3 von 5)
+[2025-05-22 09:08:28] [DEBUG] Prozessüberwachung (PID: 16556): CPU=0.484375s, RAM=85.11MB, Threads=18
+[2025-05-22 09:08:34] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:08:34] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:08:49] [DEBUG] Prozessüberwachung (PID: 16556): CPU=0.484375s, RAM=85MB, Threads=14
+[2025-05-22 09:08:55] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:08:55] [ERROR] Backend reagiert nicht seit 52.2330331 Sekunden. Starte neu...
+[2025-05-22 09:08:55] [WARNING] Beende nicht reagierenden Prozess (PID: 16556)
+[2025-05-22 09:08:55] [INFO] Starte Backend-Server...
+[2025-05-22 09:08:55] [INFO] Backend-Prozess gestartet mit PID: 21248
+[2025-05-22 09:08:55] [WARNING] Backend neu gestartet (Neustart 4 von 5)
+[2025-05-22 09:09:20] [DEBUG] Prozessüberwachung (PID: 21248): CPU=0.40625s, RAM=85.12MB, Threads=18
+[2025-05-22 09:09:27] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:09:27] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:09:42] [DEBUG] Prozessüberwachung (PID: 21248): CPU=0.40625s, RAM=85.05MB, Threads=14
+[2025-05-22 09:09:48] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:09:48] [ERROR] Backend reagiert nicht seit 52.2077087 Sekunden. Starte neu...
+[2025-05-22 09:09:48] [WARNING] Beende nicht reagierenden Prozess (PID: 21248)
+[2025-05-22 09:09:48] [INFO] Starte Backend-Server...
+[2025-05-22 09:09:48] [INFO] Backend-Prozess gestartet mit PID: 12528
+[2025-05-22 09:09:48] [WARNING] Backend neu gestartet (Neustart 5 von 5)
+[2025-05-22 09:10:13] [DEBUG] Prozessüberwachung (PID: 12528): CPU=0.59375s, RAM=85.16MB, Threads=18
+[2025-05-22 09:10:19] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:10:19] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:10:34] [DEBUG] Prozessüberwachung (PID: 12528): CPU=0.59375s, RAM=84.9MB, Threads=14
+[2025-05-22 09:10:40] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:10:40] [ERROR] Backend reagiert nicht seit 52.1933249 Sekunden. Starte neu...
+[2025-05-22 09:10:40] [WARNING] Beende nicht reagierenden Prozess (PID: 12528)
+[2025-05-22 09:10:40] [ERROR] Maximale Anzahl von Neustarts (5) erreicht. Beende Watchdog.
+[2025-05-22 09:28:22] [INFO] Watchdog mit Logger gestartet. Log-Datei: watchdog_logs\watchdog_20250522.log
+[2025-05-22 09:28:22] [WARNING] Watchdog gestartet. Überwache Backend mit Timeout von 45 Sekunden.
+[2025-05-22 09:28:22] [INFO] Starte Backend-Server...
+[2025-05-22 09:28:22] [INFO] Backend-Prozess gestartet mit PID: 20696
+[2025-05-22 09:28:22] [DEBUG] Prozessüberwachung (PID: 20696): CPU=0s, RAM=2.94MB, Threads=1
+[2025-05-22 09:28:28] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:28:28] [WARNING] Backend reagiert nicht. Neustart in 39 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:28:43] [DEBUG] Prozessüberwachung (PID: 20696): CPU=0.640625s, RAM=85.78MB, Threads=24
+[2025-05-22 09:28:49] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:28:49] [WARNING] Backend reagiert nicht. Neustart in 18 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:29:04] [DEBUG] Prozessüberwachung (PID: 20696): CPU=0.640625s, RAM=85.46MB, Threads=14
+[2025-05-22 09:29:10] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:29:10] [ERROR] Backend reagiert nicht seit 48.4962988 Sekunden. Starte neu...
+[2025-05-22 09:29:10] [WARNING] Beende nicht reagierenden Prozess (PID: 20696)
+[2025-05-22 09:29:10] [INFO] Starte Backend-Server...
+[2025-05-22 09:29:10] [INFO] Backend-Prozess gestartet mit PID: 13400
+[2025-05-22 09:29:10] [WARNING] Backend neu gestartet (Neustart 1 von 5)
+[2025-05-22 09:29:35] [DEBUG] Prozessüberwachung (PID: 13400): CPU=0.515625s, RAM=85.84MB, Threads=18
+[2025-05-22 09:29:41] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:29:41] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:29:56] [DEBUG] Prozessüberwachung (PID: 13400): CPU=0.515625s, RAM=85.68MB, Threads=14
+[2025-05-22 09:30:02] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:30:02] [ERROR] Backend reagiert nicht seit 52.2504414 Sekunden. Starte neu...
+[2025-05-22 09:30:02] [WARNING] Beende nicht reagierenden Prozess (PID: 13400)
+[2025-05-22 09:30:03] [INFO] Starte Backend-Server...
+[2025-05-22 09:30:03] [INFO] Backend-Prozess gestartet mit PID: 26108
+[2025-05-22 09:30:03] [WARNING] Backend neu gestartet (Neustart 2 von 5)
+[2025-05-22 09:30:28] [DEBUG] Prozessüberwachung (PID: 26108): CPU=0.5625s, RAM=85.34MB, Threads=18
+[2025-05-22 09:30:34] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:30:34] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:30:49] [DEBUG] Prozessüberwachung (PID: 26108): CPU=0.5625s, RAM=85.24MB, Threads=14
+[2025-05-22 09:30:55] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:30:55] [ERROR] Backend reagiert nicht seit 52.2135274 Sekunden. Starte neu...
+[2025-05-22 09:30:55] [WARNING] Beende nicht reagierenden Prozess (PID: 26108)
+[2025-05-22 09:30:55] [INFO] Starte Backend-Server...
+[2025-05-22 09:30:55] [INFO] Backend-Prozess gestartet mit PID: 15236
+[2025-05-22 09:30:55] [WARNING] Backend neu gestartet (Neustart 3 von 5)
+[2025-05-22 09:31:20] [DEBUG] Prozessüberwachung (PID: 15236): CPU=0.765625s, RAM=85.41MB, Threads=17
+[2025-05-22 09:31:26] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:31:26] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:31:41] [DEBUG] Prozessüberwachung (PID: 15236): CPU=0.765625s, RAM=85.36MB, Threads=14
+[2025-05-22 09:31:47] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:31:47] [ERROR] Backend reagiert nicht seit 52.2179955 Sekunden. Starte neu...
+[2025-05-22 09:31:47] [WARNING] Beende nicht reagierenden Prozess (PID: 15236)
+[2025-05-22 09:31:47] [INFO] Starte Backend-Server...
+[2025-05-22 09:31:47] [INFO] Backend-Prozess gestartet mit PID: 19584
+[2025-05-22 09:31:47] [WARNING] Backend neu gestartet (Neustart 4 von 5)
+[2025-05-22 09:32:12] [DEBUG] Prozessüberwachung (PID: 19584): CPU=0.671875s, RAM=85.48MB, Threads=17
+[2025-05-22 09:32:18] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:32:18] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:32:33] [DEBUG] Prozessüberwachung (PID: 19584): CPU=0.671875s, RAM=85.39MB, Threads=14
+[2025-05-22 09:32:39] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:32:39] [ERROR] Backend reagiert nicht seit 52.200083 Sekunden. Starte neu...
+[2025-05-22 09:32:39] [WARNING] Beende nicht reagierenden Prozess (PID: 19584)
+[2025-05-22 09:32:39] [INFO] Starte Backend-Server...
+[2025-05-22 09:32:39] [INFO] Backend-Prozess gestartet mit PID: 26708
+[2025-05-22 09:32:39] [WARNING] Backend neu gestartet (Neustart 5 von 5)
+[2025-05-22 09:33:04] [DEBUG] Prozessüberwachung (PID: 26708): CPU=0.6875s, RAM=85.39MB, Threads=18
+[2025-05-22 09:33:10] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:33:10] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:33:25] [DEBUG] Prozessüberwachung (PID: 26708): CPU=0.6875s, RAM=85.29MB, Threads=14
+[2025-05-22 09:33:32] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:33:32] [ERROR] Backend reagiert nicht seit 52.2067748 Sekunden. Starte neu...
+[2025-05-22 09:33:32] [WARNING] Beende nicht reagierenden Prozess (PID: 26708)
+[2025-05-22 09:33:32] [ERROR] Maximale Anzahl von Neustarts (5) erreicht. Beende Watchdog.
+[2025-05-22 09:36:48] [INFO] Watchdog mit Logger gestartet. Log-Datei: watchdog_logs\watchdog_20250522.log
+[2025-05-22 09:36:48] [WARNING] Watchdog gestartet. Überwache Backend mit Timeout von 45 Sekunden.
+[2025-05-22 09:36:48] [INFO] Starte Backend-Server...
+[2025-05-22 09:36:48] [INFO] Backend-Prozess gestartet mit PID: 29028
+[2025-05-22 09:36:49] [DEBUG] Prozessüberwachung (PID: 29028): CPU=0s, RAM=2.94MB, Threads=1
+[2025-05-22 09:36:55] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:36:55] [WARNING] Backend reagiert nicht. Neustart in 39 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:37:10] [DEBUG] Prozessüberwachung (PID: 29028): CPU=0.875s, RAM=85.72MB, Threads=25
+[2025-05-22 09:37:16] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:37:16] [WARNING] Backend reagiert nicht. Neustart in 18 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:37:31] [DEBUG] Prozessüberwachung (PID: 29028): CPU=0.875s, RAM=85.4MB, Threads=14
+[2025-05-22 09:37:37] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:37:37] [ERROR] Backend reagiert nicht seit 48.6910621 Sekunden. Starte neu...
+[2025-05-22 09:37:37] [WARNING] Beende nicht reagierenden Prozess (PID: 29028)
+[2025-05-22 09:37:37] [INFO] Starte Backend-Server...
+[2025-05-22 09:37:37] [INFO] Backend-Prozess gestartet mit PID: 13348
+[2025-05-22 09:37:37] [WARNING] Backend neu gestartet (Neustart 1 von 5)
+[2025-05-22 09:38:02] [DEBUG] Prozessüberwachung (PID: 13348): CPU=0.65625s, RAM=85.3MB, Threads=18
+[2025-05-22 09:38:08] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:38:08] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:38:23] [DEBUG] Prozessüberwachung (PID: 13348): CPU=0.65625s, RAM=85.05MB, Threads=14
+[2025-05-22 09:38:29] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:38:29] [ERROR] Backend reagiert nicht seit 52.1962224 Sekunden. Starte neu...
+[2025-05-22 09:38:29] [WARNING] Beende nicht reagierenden Prozess (PID: 13348)
+[2025-05-22 09:38:29] [INFO] Starte Backend-Server...
+[2025-05-22 09:38:29] [INFO] Backend-Prozess gestartet mit PID: 9592
+[2025-05-22 09:38:29] [WARNING] Backend neu gestartet (Neustart 2 von 5)
+[2025-05-22 09:38:54] [DEBUG] Prozessüberwachung (PID: 9592): CPU=0.578125s, RAM=85.58MB, Threads=18
+[2025-05-22 09:39:00] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:39:00] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:39:15] [DEBUG] Prozessüberwachung (PID: 9592): CPU=0.578125s, RAM=85.48MB, Threads=14
+[2025-05-22 09:39:22] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:39:22] [ERROR] Backend reagiert nicht seit 52.2187378 Sekunden. Starte neu...
+[2025-05-22 09:39:22] [WARNING] Beende nicht reagierenden Prozess (PID: 9592)
+[2025-05-22 09:39:22] [INFO] Starte Backend-Server...
+[2025-05-22 09:39:22] [INFO] Backend-Prozess gestartet mit PID: 23624
+[2025-05-22 09:39:22] [WARNING] Backend neu gestartet (Neustart 3 von 5)
+[2025-05-22 09:39:47] [DEBUG] Prozessüberwachung (PID: 23624): CPU=0.890625s, RAM=85.46MB, Threads=18
+[2025-05-22 09:39:53] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:39:53] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:40:08] [DEBUG] Prozessüberwachung (PID: 23624): CPU=0.890625s, RAM=85.35MB, Threads=14
+[2025-05-22 09:40:14] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:40:14] [ERROR] Backend reagiert nicht seit 52.2609952 Sekunden. Starte neu...
+[2025-05-22 09:40:14] [WARNING] Beende nicht reagierenden Prozess (PID: 23624)
+[2025-05-22 09:40:14] [INFO] Starte Backend-Server...
+[2025-05-22 09:40:14] [INFO] Backend-Prozess gestartet mit PID: 25340
+[2025-05-22 09:40:14] [WARNING] Backend neu gestartet (Neustart 4 von 5)
+[2025-05-22 09:40:39] [DEBUG] Prozessüberwachung (PID: 25340): CPU=0.75s, RAM=85.74MB, Threads=18
+[2025-05-22 09:40:45] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:40:45] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:41:00] [DEBUG] Prozessüberwachung (PID: 25340): CPU=0.75s, RAM=85.64MB, Threads=14
+[2025-05-22 09:41:06] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:41:06] [ERROR] Backend reagiert nicht seit 52.2973689 Sekunden. Starte neu...
+[2025-05-22 09:41:06] [WARNING] Beende nicht reagierenden Prozess (PID: 25340)
+[2025-05-22 09:41:06] [INFO] Starte Backend-Server...
+[2025-05-22 09:41:06] [INFO] Backend-Prozess gestartet mit PID: 12196
+[2025-05-22 09:41:06] [WARNING] Backend neu gestartet (Neustart 5 von 5)
+[2025-05-22 09:41:31] [DEBUG] Prozessüberwachung (PID: 12196): CPU=0.734375s, RAM=86.13MB, Threads=18
+[2025-05-22 09:41:37] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:41:37] [WARNING] Backend reagiert nicht. Neustart in 14 Sekunden, wenn keine Reaktion erfolgt.
+[2025-05-22 09:41:52] [DEBUG] Prozessüberwachung (PID: 12196): CPU=0.734375s, RAM=86.02MB, Threads=14
+[2025-05-22 09:41:58] [ERROR] Health-Check fehlgeschlagen: Die Verbindung mit dem Remoteserver kann nicht hergestellt werden.
+[2025-05-22 09:41:58] [ERROR] Backend reagiert nicht seit 52.1998775 Sekunden. Starte neu...
+[2025-05-22 09:41:58] [WARNING] Beende nicht reagierenden Prozess (PID: 12196)
+[2025-05-22 09:41:59] [ERROR] Maximale Anzahl von Neustarts (5) erreicht. Beende Watchdog.

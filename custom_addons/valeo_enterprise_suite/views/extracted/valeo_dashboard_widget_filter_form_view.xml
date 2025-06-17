@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_valeo_dashboard_widget_filter_form" model="ir.ui.view">
+            <field name="name">valeo.dashboard.widget.filter.form</field>
+            <field name="model">valeo.dashboard.widget.filter</field>
+            <field name="arch" type="xml">
+                <form string="Filter Widget">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="dashboard_id"/>
+                        </group>
+                        <group string="Position und Größe">
+                            <field name="position_x"/>
+                            <field name="position_y"/>
+                            <field name="width"/>
+                            <field name="height"/>
+                        </group>
+                        <group string="Filter-Konfiguration">
+                            <field name="filter_type"/>
+                            <field name="target_field_ids" widget="many2many_tags"/>
+                            <field name="is_global"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo> 

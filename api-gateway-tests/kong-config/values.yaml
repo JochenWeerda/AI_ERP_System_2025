@@ -1,0 +1,48 @@
+admin:
+  enabled: true
+  http:
+    enabled: true
+    servicePort: 8001
+    containerPort: 8001
+  tls:
+    enabled: false
+  ingress:
+    enabled: true
+    hostname: kong-admin.test
+    annotations:
+      kubernetes.io/ingress.class: traefik
+  
+proxy:
+  enabled: true
+  type: NodePort
+  http:
+    enabled: true
+    nodePort: 30081
+  tls:
+    enabled: false
+  
+ingressController:
+  enabled: true
+  installCRDs: false
+  
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: kong
+    password: kong
+  primary:
+    persistence:
+      size: 1Gi
+
+env:
+  database: postgres
+  pg_user: kong
+  pg_password: kong
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi 

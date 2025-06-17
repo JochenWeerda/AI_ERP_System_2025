@@ -1,0 +1,119 @@
+# ConfigMap für Metriken-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observer-service-metrics-config
+  namespace: erp-system
+data:
+  metrics.yml: |
+    # Metriken-Konfiguration für Observer-Service
+    metrics:
+      enabled: true
+      endpoint: /metrics
+      port: 8010
+      collectors:
+        - type: counter
+          name: service_registrations_total
+          help: "Gesamtzahl der Service-Registrierungen"
+          labels:
+            - service_name
+            - status
+        - type: counter
+          name: health_checks_total
+          help: "Gesamtzahl der Health-Checks"
+          labels:
+            - service_name
+            - status
+        - type: counter
+          name: service_restarts_total
+          help: "Gesamtzahl der Service-Neustarts"
+          labels:
+            - service_name
+            - reason
+        - type: gauge
+          name: registered_services
+          help: "Anzahl der registrierten Services"
+        - type: gauge
+          name: healthy_services
+          help: "Anzahl der gesunden Services"
+        - type: gauge
+          name: unhealthy_services
+          help: "Anzahl der ungesunden Services"
+        - type: histogram
+          name: health_check_duration_seconds
+          help: "Dauer der Health-Checks in Sekunden"
+          labels:
+            - service_name
+          buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
+        - type: histogram
+          name: optimization_run_duration_seconds
+          help: "Dauer der Optimierungsläufe in Sekunden"
+          buckets: [0.1, 0.5, 1, 5, 10, 30, 60, 120, 300]
+---
+# ConfigMap für Tracing-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observer-service-tracing-config
+  namespace: erp-system
+data:
+  tracing.yml: |
+    # Tracing-Konfiguration für Observer-Service
+    tracing:
+      enabled: true
+      service_name: observer-service
+      jaeger:
+        agent_host: erp-jaeger-agent.erp-system.svc.cluster.local
+        agent_port: 6831
+        sampler_type: const
+        sampler_param: 1
+      # Operation-Tags für bessere Kategorisierung der Traces
+      operation_tags:
+        - key: service_name
+          tag_as: service.name
+        - key: operation_type
+          tag_as: operation.type
+        - key: health_status
+          tag_as: health.status
+      # Optionen für detaillierte Tracing-Spans
+      span_options:
+        include_request_headers:
+          - content-type
+          - authorization
+          - x-request-id
+        include_response_headers:
+          - content-type
+          - content-length
+        include_payload: false
+        include_metadata: true
+---
+# ConfigMap für Neustart-Skripte (Beispiel)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observer-service-restart-scripts
+  namespace: erp-system
+data:
+  restart_finance_service.sh: |
+    #!/bin/bash
+    echo "Neustart des Finance-Service wird eingeleitet..."
+    kubectl rollout restart deployment/finance-service -n erp-system
+    echo "Neustart-Befehl für Finance-Service wurde ausgeführt."
+  
+  restart_auth_service.sh: |
+    #!/bin/bash
+    echo "Neustart des Auth-Service wird eingeleitet..."
+    kubectl rollout restart deployment/auth-service -n erp-system
+    echo "Neustart-Befehl für Auth-Service wurde ausgeführt."
+  
+  restart_reporting_service.sh: |
+    #!/bin/bash
+    echo "Neustart des Reporting-Service wird eingeleitet..."
+    kubectl rollout restart deployment/reporting-service -n erp-system
+    echo "Neustart-Befehl für Reporting-Service wurde ausgeführt."
+  
+  restart_document_service.sh: |
+    #!/bin/bash
+    echo "Neustart des Document-Service wird eingeleitet..."
+    kubectl rollout restart deployment/document-service -n erp-system
+    echo "Neustart-Befehl für Document-Service wurde ausgeführt." 

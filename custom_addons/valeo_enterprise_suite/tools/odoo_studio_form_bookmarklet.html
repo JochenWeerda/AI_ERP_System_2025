@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odoo Studio Formularfelder-Ausfüller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #0d6efd;
+        }
+        .bookmarklet {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .code-block {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        .instructions {
+            background-color: #e9f5ff;
+            border-left: 4px solid #0d6efd;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .field-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .field-list li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        .field-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Odoo Studio Formularfelder-Ausfüller</h1>
+    
+    <div class="instructions">
+        <h3>Anleitung:</h3>
+        <ol>
+            <li>Ziehen Sie das unten stehende Bookmarklet in Ihre Lesezeichenleiste.</li>
+            <li>Öffnen Sie Odoo Studio und navigieren Sie zur Formularansicht.</li>
+            <li>Klicken Sie auf das Bookmarklet in Ihrer Lesezeichenleiste, um die Formularfelder automatisch auszufüllen.</li>
+        </ol>
+    </div>
+    
+    <h2>Bookmarklet</h2>
+    <p>Ziehen Sie diesen Link in Ihre Lesezeichenleiste:</p>
+    
+    <a class="bookmarklet" href="javascript:(function(){var s=document.createElement('script');s.textContent=`
+// Konfiguration
+const CONFIG={waitTimeout:10000,actionDelay:500,debugMode:true};
+
+// Logger-Funktion
+const logger={log:function(e){CONFIG.debugMode&&console.log('[Odoo Form Filler] '+e)},error:function(e,t){console.error('[Odoo Form Filler] FEHLER: '+e,t)},success:function(e){console.log('[Odoo Form Filler] ✓ '+e)}};
+
+// Funktion zum Warten auf ein DOM-Element
+function waitForElement(e,t=CONFIG.waitTimeout){return logger.log('Warte auf Element: '+e),new Promise((n,o)=>{const r=Date.now(),i=()=>{const l=document.querySelector(e);l?(logger.log('Element gefunden: '+e),n(l)):Date.now()-r>t?o(new Error('Timeout beim Warten auf Element: '+e)):setTimeout(i,100)};i()})}
+
+// Funktion zum Verzögern der Ausführung
+function delay(e=CONFIG.actionDelay){return new Promise(t=>setTimeout(t,e))}
+
+// Funktion zum Klicken auf ein Element
+async function clickElement(e){try{const t=await waitForElement(e);return t.click(),logger.success('Auf Element geklickt: '+e),await delay(),!0}catch(t){return logger.error('Fehler beim Klicken auf Element: '+e,t),!1}}
+
+// Funktion zum Ziehen eines Elements per Drag & Drop
+async function dragAndDrop(e,t){try{const n=await waitForElement(e),o=await waitForElement(t),r=new MouseEvent('mousedown',{bubbles:!0,cancelable:!0,view:window});n.dispatchEvent(r),await delay(300);const i=new MouseEvent('mouseup',{bubbles:!0,cancelable:!0,view:window});return o.dispatchEvent(i),logger.success('Drag & Drop durchgeführt: '+e+' -> '+t),await delay(),!0}catch(n){return logger.error('Fehler beim Drag & Drop: '+e+' -> '+t,n),!1}}
+
+// Funktion zum Hinzufügen eines neuen Feldes durch Drag & Drop
+async function addFieldByDragDrop(e,t='.o_web_studio_form_view_editor'){try{const n='.o_web_studio_field_type[data-type=\\''+e+'\\']';return await dragAndDrop(n,t),logger.success('Feld per Drag & Drop hinzugefügt: '+e),await delay(1e3),!0}catch(n){return logger.error('Fehler beim Hinzufügen des Feldes per Drag & Drop: '+e,n),!1}}
+
+// Funktion zum Ausfüllen der Feldeigenschaften
+async function fillFieldProperties(e,t){try{await delay(500);try{const n=await waitForElement('input[name=\\'name\\']');n.value=e,n.dispatchEvent(new Event('input',{bubbles:!0})),n.dispatchEvent(new Event('change',{bubbles:!0}))}catch(n){logger.log('Kein Namensfeld gefunden, überspringe...')}try{const n=await waitForElement('input[name=\\'string\\']');n.value=t,n.dispatchEvent(new Event('input',{bubbles:!0})),n.dispatchEvent(new Event('change',{bubbles:!0}))}catch(n){logger.log('Kein Labelfeld gefunden, überspringe...')}return await clickElement('.modal-footer .btn-primary'),logger.success('Feldeigenschaften ausgefüllt: '+e+' ('+t+')'),!0}catch(n){return logger.error('Fehler beim Ausfüllen der Feldeigenschaften: '+e,n),!1}}
+
+// Funktion zum Hinzufügen eines neuen Tabs
+async function addNewTab(e){try{await clickElement('.o_web_studio_add_tab'),await delay(500);const t=await waitForElement('input[name=\\'string\\']');return t.value=e,t.dispatchEvent(new Event('input',{bubbles:!0})),t.dispatchEvent(new Event('change',{bubbles:!0})),await clickElement('.modal-footer .btn-primary'),logger.success('Neuer Tab hinzugefügt: '+e),!0}catch(t){return logger.error('Fehler beim Hinzufügen eines neuen Tabs: '+e,t),!1}}
+
+// Funktion zum Hinzufügen des Chatter-Widgets
+async function addChatterWidget(){try{return await clickElement('.o_web_studio_add_chatter'),logger.success('Chatter-Widget hinzugefügt'),!0}catch(e){return logger.error('Fehler beim Hinzufügen des Chatter-Widgets',e),!1}}
+
+// Hauptfunktion zum Ausfüllen des Formulars mit den angegebenen Feldern
+async function fillFormWithRequestedFields(){try{logger.log('Starte das Ausfüllen des Formulars mit den angeforderten Feldern...'),await addNewTab('Allgemeine Informationen'),await delay(1e3),await addFieldByDragDrop('text'),await fillFieldProperties('x_description','Beschreibung'),await delay(1e3),await addFieldByDragDrop('text_long'),await fillFieldProperties('x_long_text','Mehrtext'),await delay(1e3),await addFieldByDragDrop('html'),await fillFieldProperties('x_html_content','HTML'),await delay(1e3),await addFieldByDragDrop('float'),await fillFieldProperties('x_decimal','Dezimal'),await delay(1e3),await addFieldByDragDrop('monetary'),await fillFieldProperties('x_money','Geld'),await delay(1e3),await addFieldByDragDrop('date'),await fillFieldProperties('x_date','Datum'),await delay(1e3),await addFieldByDragDrop('datetime'),await fillFieldProperties('x_datetime','Datum/Uhrzeit'),await delay(1e3),await addFieldByDragDrop('boolean'),await fillFieldProperties('x_checkbox','Steuerkästen'),await delay(1e3),await addFieldByDragDrop('selection'),await fillFieldProperties('x_selection','Auswahl'),await delay(1e3),await addFieldByDragDrop('priority'),await fillFieldProperties('x_priority','Priorität'),await delay(1e3),await addFieldByDragDrop('signature'),await fillFieldProperties('x_signature','Unterschrift'),await delay(1e3),await addFieldByDragDrop('image'),await fillFieldProperties('x_image','Bild'),await delay(1e3),await addFieldByDragDrop('tags'),await fillFieldProperties('x_tags','Stichwörter'),await delay(1e3),await addChatterWidget(),logger.success('Formular erfolgreich mit allen angeforderten Feldern ausgefüllt!')}catch(e){logger.error('Fehler beim Ausfüllen des Formulars',e)}}
+
+// Hauptfunktion ausführen
+(async function(){logger.log('Odoo Studio Formularfelder-Ausfüller gestartet');try{await waitForElement('.o_web_studio_editor'),logger.log('Odoo Studio Editor gefunden'),await fillFormWithRequestedFields()}catch(e){logger.error('Fehler im Hauptprogramm',e)}})();
+`;document.head.appendChild(s);})();">Odoo Formularfelder ausfüllen</a>
+    
+    <h2>Hinzugefügte Felder</h2>
+    <p>Das Skript fügt die folgenden Felder zum Formular hinzu:</p>
+    
+    <ul class="field-list">
+        <li><strong>Tab:</strong> Allgemeine Informationen</li>
+        <li><strong>Text:</strong> Beschreibung</li>
+        <li><strong>Mehrtext:</strong> Mehrtext</li>
+        <li><strong>HTML:</strong> HTML</li>
+        <li><strong>Dezimal:</strong> Dezimal</li>
+        <li><strong>Geld:</strong> Geld</li>
+        <li><strong>Datum:</strong> Datum</li>
+        <li><strong>Datum/Uhrzeit:</strong> Datum/Uhrzeit</li>
+        <li><strong>Checkbox:</strong> Steuerkästen</li>
+        <li><strong>Auswahl:</strong> Auswahl</li>
+        <li><strong>Priorität:</strong> Priorität</li>
+        <li><strong>Unterschrift:</strong> Unterschrift</li>
+        <li><strong>Bild:</strong> Bild</li>
+        <li><strong>Stichwörter:</strong> Stichwörter</li>
+        <li><strong>Chatter-Widget</strong></li>
+    </ul>
+    
+    <h2>Quellcode</h2>
+    <p>Der vollständige Quellcode des Skripts ist in der Datei <code>odoo_studio_form_bookmarklet.js</code> verfügbar.</p>
+</body>
+</html> 

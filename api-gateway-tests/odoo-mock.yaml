@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: odoo-mock
+  namespace: odoo-integration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: odoo-mock
+  template:
+    metadata:
+      labels:
+        app: odoo-mock
+    spec:
+      containers:
+      - name: odoo-mock
+        image: odoo:16
+        ports:
+        - containerPort: 8069
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+        env:
+        - name: HOST
+          value: "postgres"
+        - name: USER
+          value: "odoo"
+        - name: PASSWORD
+          value: "odoo-test-password"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo-mock
+  namespace: odoo-integration
+spec:
+  selector:
+    app: odoo-mock
+  ports:
+  - port: 8069
+    targetPort: 8069
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: odoo-mock-ingress
+  namespace: odoo-integration
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+spec:
+  rules:
+  - host: odoo.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: odoo-mock
+            port:
+              number: 8069 

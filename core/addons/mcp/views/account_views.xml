@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Erweiterung der Kontenformularansicht -->
+    <record id="view_account_form_inherited" model="ir.ui.view">
+        <field name="name">account.account.form.inherited</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form"/>
+        <field name="arch" type="xml">
+            <!-- L3-Stammdaten und erweiterte Eigenschaften -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Erweiterte Eigenschaften" name="extended_properties">
+                    <group>
+                        <group string="Allgemeine Eigenschaften">
+                            <field name="account_group_code"/>
+                            <field name="cost_center_required"/>
+                            <field name="is_tax_relevant"/>
+                            <field name="is_cpd_account" readonly="1"/>
+                        </group>
+                        <group string="L3-Stammdaten" groups="base.group_system">
+                            <field name="l3_account_id"/>
+                            <field name="l3_account_type"/>
+                            <field name="l3_last_sync" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+                
+                <!-- CPD-Konten-Eigenschaften nur für Forderungen und Verbindlichkeiten -->
+                <page string="CPD-Eigenschaften" name="cpd_properties"
+                      attrs="{'invisible': [('is_cpd_account', '=', False)]}">
+                    <group>
+                        <group string="Ausgleich">
+                            <field name="auto_reconcile"/>
+                            <button name="auto_reconcile_account_entries" string="Jetzt ausgleichen" 
+                                    type="object" class="oe_highlight"
+                                    attrs="{'invisible': [('auto_reconcile', '=', False)]}"
+                                    help="Führt einen automatischen Ausgleich von passenden offenen Posten durch"
+                                    groups="account.group_account_manager"/>
+                        </group>
+                        <group string="Mahnwesen">
+                            <field name="dunning_level"/>
+                            <field name="interest_calculation"/>
+                            <field name="interest_rate" attrs="{'invisible': [('interest_calculation', '=', False)]}"/>
+                        </group>
+                    </group>
+                    <!-- Anzeige der Partner, die dieses Konto als alternatives CPD-Konto verwenden -->
+                    <group string="Verwendet als alternatives Konto von">
+                        <field name="alternative_for_partner_ids" readonly="1">
+                            <tree>
+                                <field name="partner_id"/>
+                                <field name="name"/>
+                                <field name="condition"/>
+                                <field name="condition_value"/>
+                                <field name="priority"/>
+                                <field name="active"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Kontenlistenansicht -->
+    <record id="view_account_list_inherited" model="ir.ui.view">
+        <field name="name">account.account.list.inherited</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='code']" position="after">
+                <field name="account_group_code" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='user_type_id']" position="after">
+                <field name="is_cpd_account" optional="hide"/>
+                <field name="l3_account_id" optional="hide"/>
+                <field name="cost_center_required" optional="hide"/>
+                <field name="dunning_level" optional="hide" 
+                       attrs="{'invisible': [('is_cpd_account', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Kontensuchansicht -->
+    <record id="view_account_search_inherited" model="ir.ui.view">
+        <field name="name">account.account.search.inherited</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="l3_account_id"/>
+                <field name="account_group_code"/>
+            </xpath>
+            <xpath expr="//filter[@name='inactive']" position="after">
+                <separator/>
+                <filter string="CPD-Konten" name="cpd_accounts" domain="[('is_cpd_account', '=', True)]"/>
+                <filter string="Kostenstelle erforderlich" name="cost_center_required" domain="[('cost_center_required', '=', True)]"/>
+                <filter string="Steuerrelevant" name="tax_relevant" domain="[('is_tax_relevant', '=', True)]"/>
+                <filter string="Automatischer Ausgleich" name="auto_reconcile" domain="[('auto_reconcile', '=', True)]"/>
+                <filter string="Mit L3-Referenz" name="has_l3_ref" domain="[('l3_account_id', '!=', False)]"/>
+                <separator/>
+                <filter string="Keine Mahnung" name="dunning_none" domain="[('dunning_level', '=', 'none')]"/>
+                <filter string="Niedrige Mahnpriorität" name="dunning_low" domain="[('dunning_level', '=', 'low')]"/>
+                <filter string="Mittlere Mahnpriorität" name="dunning_medium" domain="[('dunning_level', '=', 'medium')]"/>
+                <filter string="Hohe Mahnpriorität" name="dunning_high" domain="[('dunning_level', '=', 'high')]"/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter string="Kontengruppe" name="group_by_group_code" domain="[]" context="{'group_by': 'account_group_code'}"/>
+                <filter string="Mahnstufe" name="group_by_dunning" domain="[]" context="{'group_by': 'dunning_level'}"/>
+                <filter string="CPD-Konto" name="group_by_cpd" domain="[]" context="{'group_by': 'is_cpd_account'}"/>
+                <filter string="Kostenstelle erforderlich" name="group_by_cost_center" domain="[]" context="{'group_by': 'cost_center_required'}"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Buchungsformular-Ansicht -->
+    <record id="view_move_form_inherited" model="ir.ui.view">
+        <field name="name">account.move.form.inherited</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <!-- L3-Stammdaten und erweiterte Eigenschaften -->
+            <xpath expr="//field[@name='ref']" position="after">
+                <field name="l3_document_id" 
+                       attrs="{'invisible': [('move_type', 'not in', ['out_invoice', 'out_refund', 'in_invoice', 'in_refund'])]}"/>
+            </xpath>
+            
+            <!-- Warnung bei Zahlungssperre -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <div class="alert alert-danger" role="alert" style="margin-bottom:0px;"
+                     attrs="{'invisible': [('payment_block', '=', False)]}">
+                    <strong>Warnung:</strong> Dieser Partner hat eine Zahlungssperre.
+                </div>
+                <field name="payment_block" invisible="1"/>
+            </xpath>
+            
+            <!-- Alternatives CPD-Konto -->
+            <xpath expr="//field[@name='invoice_payment_term_id']" position="after">
+                <field name="use_alternative_cpd" 
+                       attrs="{'invisible': [('move_type', 'not in', ['out_invoice', 'out_refund', 'in_invoice', 'in_refund'])]}" 
+                       widget="boolean_toggle"/>
+                <field name="alternative_cpd_account_id" 
+                       attrs="{'invisible': ['|', ('move_type', 'not in', ['out_invoice', 'out_refund', 'in_invoice', 'in_refund']), ('use_alternative_cpd', '=', False)], 'required': [('use_alternative_cpd', '=', True)]}"/>
+            </xpath>
+            
+            <!-- Kostenstellen-Warnung in Buchungszeilen -->
+            <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='account_id']" position="after">
+                <field name="account_id" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Buchungszeilen-Formularansicht -->
+    <record id="view_move_line_form_inherited" model="ir.ui.view">
+        <field name="name">account.move.line.form.inherited</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_move_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='account_id']" position="after">
+                <field name="original_cpd_account_id" 
+                       attrs="{'invisible': [('original_cpd_account_id', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Buchungszeilen-Listenansicht -->
+    <record id="view_move_line_tree_inherited" model="ir.ui.view">
+        <field name="name">account.move.line.tree.inherited</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_move_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='account_id']" position="after">
+                <field name="original_cpd_account_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Spezielle Aktionen -->
+    <record id="action_cpd_accounts" model="ir.actions.act_window">
+        <field name="name">CPD-Konten</field>
+        <field name="res_model">account.account</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_cpd_account', '=', True)]</field>
+        <field name="context">{'search_default_cpd_accounts': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keine CPD-Konten gefunden
+            </p>
+            <p>
+                Hier werden alle CPD-Konten (Conto pro diverse) für Forderungen und Verbindlichkeiten angezeigt.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menüeinträge -->
+    <menuitem id="menu_cpd_accounts"
+              name="CPD-Konten"
+              parent="account.menu_finance_receivables"
+              action="action_cpd_accounts"
+              sequence="22"/>
+</odoo> 

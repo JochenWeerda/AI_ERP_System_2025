@@ -1,0 +1,177 @@
+# Kubernetes-Manifest für API-Gateway
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  namespace: erp-system
+  labels:
+    app: api-gateway
+    component: networking
+data:
+  default.conf: |
+    server {
+      listen 80;
+      server_name localhost;
+
+      # Root-Route zum Frontend
+      location / {
+        proxy_pass http://valeo-final-dashboard.erp-system.svc.cluster.local:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      # API-Routen zu den jeweiligen Services
+      location /api/documents/ {
+        proxy_pass http://document-service.erp-system.svc.cluster.local:80/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      location /api/finance/ {
+        proxy_pass http://finance-service.erp-system.svc.cluster.local:80/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      location /api/belege/ {
+        proxy_pass http://beleg-service.erp-system.svc.cluster.local:8020/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      location /api/theme/ {
+        proxy_pass http://theme-service.erp-system.svc.cluster.local:5001/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      # Monitoring-Routen
+      location /monitoring/prometheus/ {
+        proxy_pass http://prometheus.erp-system.svc.cluster.local:9090/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      location /monitoring/grafana/ {
+        proxy_pass http://grafana.erp-system.svc.cluster.local:3000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      location /monitoring/jaeger/ {
+        proxy_pass http://jaeger.erp-system.svc.cluster.local:16686/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      location /monitoring/alertmanager/ {
+        proxy_pass http://alertmanager.erp-system.svc.cluster.local:9093/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      # Datenbank-Verwaltung
+      location /db/mongodb/ {
+        proxy_pass http://mongodb.erp-system.svc.cluster.local:27017/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      location /db/postgres/ {
+        proxy_pass http://postgres.erp-system.svc.cluster.local:5432/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      }
+
+      # Gesundheits-Check-Endpunkt
+      location /health {
+        access_log off;
+        return 200 "API Gateway is healthy\n";
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: erp-system
+  labels:
+    app: api-gateway
+    component: networking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        component: networking
+    spec:
+      containers:
+      - name: api-gateway
+        image: nginx:alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: api-gateway-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: erp-system
+  labels:
+    app: api-gateway
+    component: networking
+spec:
+  selector:
+    app: api-gateway
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  type: ClusterIP 

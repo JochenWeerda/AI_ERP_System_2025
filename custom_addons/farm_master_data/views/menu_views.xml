@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Hauptmenü für Landwirtschaft -->
+        <menuitem id="menu_farm_root"
+            name="Landwirtschaft"
+            web_icon="farm_master_data,static/description/icon.png"
+            sequence="80"/>
+        
+        <!-- Untermenü für Stammdaten -->
+        <menuitem id="menu_farm_master_data"
+            name="Stammdaten"
+            parent="menu_farm_root"
+            sequence="10"/>
+        
+        <!-- Menüeinträge für Betriebe -->
+        <menuitem id="menu_farm"
+            name="Betriebe"
+            parent="menu_farm_master_data"
+            action="action_farm"
+            sequence="10"/>
+        
+        <!-- Menüeinträge für Felder -->
+        <menuitem id="menu_field"
+            name="Felder"
+            parent="menu_farm_master_data"
+            action="action_field"
+            sequence="20"/>
+        
+        <!-- Menüeinträge für Kulturen -->
+        <menuitem id="menu_crop"
+            name="Kulturen"
+            parent="menu_farm_master_data"
+            action="action_crop"
+            sequence="30"/>
+        
+        <!-- Untermenü für Konfiguration -->
+        <menuitem id="menu_farm_config"
+            name="Konfiguration"
+            parent="menu_farm_root"
+            sequence="100"/>
+    </data>
+</odoo> 

@@ -1,0 +1,900 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: valeo-final-dashboard
+  namespace: erp-system
+  labels:
+    app: valeo-dashboard
+    version: final
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>VALEO NeuroERP</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            :root {
+                --primary-color: #2c3e50;
+                --secondary-color: #3498db;
+                --accent-color: #714B67;
+                --text-color: #333;
+                --border-color: #dee2e6;
+                --background-light: #f8f9fa;
+                --background-main: #f5f5f5;
+                --shadow-color: rgba(0,0,0,0.1);
+                --card-finance: #2ecc71;
+                --card-inventory: #e74c3c;
+                --card-crm: #f39c12;
+                --card-settings: #6c757d;
+            }
+            
+            body {
+                font-family: 'Roboto', 'Noto Sans', Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: var(--background-main);
+                color: var(--text-color);
+                position: relative;
+                overflow-x: hidden;
+            }
+            
+            body.sidebar-open {
+                overflow: hidden;
+            }
+            
+            * {
+                box-sizing: border-box;
+            }
+            
+            /* Header Styles */
+            header {
+                background-color: #fff;
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 24px;
+                height: 64px;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                box-shadow: 0 2px 4px var(--shadow-color);
+            }
+            
+            .logo {
+                display: flex;
+                align-items: center;
+            }
+            
+            .logo img {
+                height: 40px;
+                margin-right: 12px;
+            }
+            
+            .logo h1 {
+                font-size: 20px;
+                color: var(--primary-color);
+                margin: 0;
+                font-weight: 600;
+            }
+            
+            /* Header Search */
+            .header-search {
+                flex: 1;
+                max-width: 600px;
+                margin: 0 20px;
+                position: relative;
+            }
+            
+            .header-search-input {
+                width: 100%;
+                padding: 8px 16px;
+                padding-right: 40px;
+                border: 1px solid var(--border-color);
+                border-radius: 20px;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+            }
+            
+            .header-search-input:focus {
+                border-color: var(--accent-color);
+                box-shadow: 0 0 0 2px rgba(113, 75, 103, 0.1);
+            }
+            
+            .header-search-btn {
+                position: absolute;
+                right: 4px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                color: var(--primary-color);
+                font-size: 16px;
+                cursor: pointer;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.3s;
+            }
+            
+            .header-search-btn:hover {
+                background-color: var(--background-light);
+            }
+            
+            .header-icons {
+                display: flex;
+                gap: 16px;
+                align-items: center;
+            }
+            
+            .header-icon {
+                color: #6c757d;
+                font-size: 18px;
+                cursor: pointer;
+                transition: all 0.3s;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                position: relative;
+            }
+            
+            .header-icon:hover {
+                color: var(--accent-color);
+                background-color: var(--background-light);
+            }
+            
+            .badge {
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                background-color: #e74c3c;
+                color: white;
+                font-size: 10px;
+                font-weight: bold;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* User Profile */
+            .user-profile {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                cursor: pointer;
+                padding: 5px 10px;
+                border-radius: 20px;
+                transition: all 0.3s;
+            }
+            
+            .user-profile:hover {
+                background-color: var(--background-light);
+            }
+            
+            .user-avatar {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                overflow: hidden;
+            }
+            
+            .user-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            
+            .user-info {
+                display: none;
+            }
+            
+            @media (min-width: 768px) {
+                .user-info {
+                    display: block;
+                }
+            }
+            
+            .user-name {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--primary-color);
+            }
+            
+            .user-status {
+                font-size: 12px;
+                color: #6c757d;
+            }
+            
+            /* Main Content */
+            .main-content {
+                margin-top: 64px;
+                padding: 20px;
+                min-height: calc(100vh - 64px);
+            }
+            
+            /* Menu */
+            .menu {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 20px;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            
+            .menu a {
+                padding: 8px 16px;
+                background-color: white;
+                border-radius: 20px;
+                text-decoration: none;
+                color: var(--text-color);
+                transition: all 0.3s;
+                box-shadow: 0 2px 4px var(--shadow-color);
+                font-size: 14px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .menu a:hover {
+                background-color: var(--accent-color);
+                color: white;
+            }
+            
+            /* Dashboard */
+            .dashboard {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 20px;
+                margin-bottom: 40px;
+            }
+            
+            .card {
+                background-color: white;
+                border-radius: 10px;
+                padding: 20px;
+                box-shadow: 0 4px 6px var(--shadow-color);
+                transition: all 0.3s;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 12px var(--shadow-color);
+            }
+            
+            .card.finance {
+                border-top: 4px solid var(--card-finance);
+            }
+            
+            .card.inventory {
+                border-top: 4px solid var(--card-inventory);
+            }
+            
+            .card.crm {
+                border-top: 4px solid var(--card-crm);
+            }
+            
+            .card h2 {
+                margin-top: 0;
+                margin-bottom: 15px;
+                font-size: 18px;
+                color: var(--primary-color);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .card p {
+                margin-top: 0;
+                color: #6c757d;
+                font-size: 14px;
+            }
+            
+            .card-actions {
+                margin-top: auto;
+                padding-top: 15px;
+            }
+            
+            /* Buttons */
+            .btn {
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s;
+                border: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                text-decoration: none;
+            }
+            
+            .btn-primary {
+                background-color: var(--secondary-color);
+                color: white;
+            }
+            
+            .btn-primary:hover {
+                background-color: #2980b9;
+            }
+            
+            .btn-secondary {
+                background-color: #f8f9fa;
+                color: var(--text-color);
+            }
+            
+            .btn-secondary:hover {
+                background-color: #e9ecef;
+            }
+            
+            /* Sidebar Chat */
+            .sidebar-chat {
+                position: fixed;
+                top: 0;
+                right: -400px;
+                width: 350px;
+                height: 100%;
+                background-color: white;
+                z-index: 2000;
+                box-shadow: -4px 0 10px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .sidebar-chat.open {
+                right: 0;
+            }
+            
+            .sidebar-header {
+                padding: 15px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .sidebar-header h3 {
+                margin: 0;
+                font-size: 18px;
+                color: var(--primary-color);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .close-sidebar {
+                background: none;
+                border: none;
+                color: #6c757d;
+                font-size: 18px;
+                cursor: pointer;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.3s;
+            }
+            
+            .close-sidebar:hover {
+                background-color: var(--background-light);
+                color: var(--accent-color);
+            }
+            
+            .sidebar-tabs {
+                display: flex;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .sidebar-tab {
+                flex: 1;
+                padding: 12px;
+                text-align: center;
+                background: none;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                color: #6c757d;
+                position: relative;
+                transition: all 0.3s;
+            }
+            
+            .sidebar-tab:hover {
+                color: var(--accent-color);
+            }
+            
+            .sidebar-tab.active {
+                color: var(--accent-color);
+            }
+            
+            .sidebar-tab.active::after {
+                content: '';
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background-color: var(--accent-color);
+            }
+            
+            .sidebar-content {
+                flex: 1;
+                display: none;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            
+            .sidebar-content.active {
+                display: flex;
+            }
+            
+            .chat-messages {
+                flex: 1;
+                overflow-y: auto;
+                padding: 15px;
+            }
+            
+            .chat-day-divider {
+                text-align: center;
+                position: relative;
+                margin: 20px 0;
+            }
+            
+            .chat-day-divider::before,
+            .chat-day-divider::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                width: calc(50% - 50px);
+                height: 1px;
+                background-color: var(--border-color);
+            }
+            
+            .chat-day-divider::before {
+                left: 0;
+            }
+            
+            .chat-day-divider::after {
+                right: 0;
+            }
+            
+            .chat-message {
+                display: flex;
+                margin-bottom: 15px;
+                gap: 10px;
+            }
+            
+            .chat-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                overflow: hidden;
+                flex-shrink: 0;
+            }
+            
+            .chat-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            
+            .chat-avatar.ai,
+            .chat-avatar.user {
+                background-color: var(--secondary-color);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+            }
+            
+            .chat-avatar.ai {
+                background-color: var(--accent-color);
+            }
+            
+            .chat-avatar.user {
+                background-color: var(--secondary-color);
+            }
+            
+            .chat-avatar.customer {
+                background-color: var(--card-crm);
+            }
+            
+            .message-bubble {
+                background-color: #f1f3f5;
+                border-radius: 18px;
+                padding: 10px 15px;
+                max-width: 75%;
+            }
+            
+            .message-bubble.ai {
+                background-color: #f0e5f4;
+            }
+            
+            .message-bubble.user {
+                background-color: #e3f2fd;
+            }
+            
+            .message-bubble.customer {
+                background-color: #fff3e0;
+            }
+            
+            .message-header {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+            }
+            
+            .message-sender {
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--primary-color);
+            }
+            
+            .message-time {
+                font-size: 11px;
+                color: #6c757d;
+            }
+            
+            .message-text {
+                font-size: 14px;
+            }
+            
+            .chat-input-container {
+                padding: 15px;
+                border-top: 1px solid var(--border-color);
+                display: flex;
+                gap: 10px;
+            }
+            
+            .chat-input {
+                flex: 1;
+                padding: 10px 15px;
+                border: 1px solid var(--border-color);
+                border-radius: 20px;
+                outline: none;
+                font-size: 14px;
+                transition: all 0.3s;
+            }
+            
+            .chat-input:focus {
+                border-color: var(--accent-color);
+            }
+            
+            .chat-send {
+                background-color: var(--accent-color);
+                color: white;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                border: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            
+            .chat-send:hover {
+                background-color: #5c3d54;
+            }
+            
+            /* Footer */
+            footer {
+                text-align: center;
+                padding: 20px;
+                color: #6c757d;
+                font-size: 13px;
+                border-top: 1px solid var(--border-color);
+            }
+            
+            /* Responsive */
+            @media (max-width: 768px) {
+                .menu {
+                    flex-direction: column;
+                }
+                .menu a {
+                    width: 100%;
+                }
+                .dashboard {
+                    grid-template-columns: 1fr;
+                }
+                .status-grid {
+                    grid-template-columns: 1fr;
+                }
+                .chat-container {
+                    width: 100%;
+                    border-radius: 0;
+                }
+            }
+            
+            /* Search Container */
+            .search-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 3000;
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                padding-top: 100px;
+                visibility: hidden;
+                opacity: 0;
+                transition: all 0.3s;
+            }
+            
+            .search-container.active {
+                visibility: visible;
+                opacity: 1;
+            }
+            
+            .search-form {
+                width: 100%;
+                max-width: 600px;
+                position: relative;
+            }
+            
+            .search-input {
+                width: 100%;
+                padding: 15px 20px;
+                padding-right: 50px;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                outline: none;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            
+            .search-input:focus {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+            
+            .search-btn {
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                color: var(--primary-color);
+                font-size: 18px;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Inhalt aus frontend/public/VALEO-final-design/index.html -->
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <h1>VALEO - Die NeuroERP</h1>
+            </div>
+            <div class="search-container">
+                <input type="text" id="global-search" placeholder="Global suchen...">
+                <button id="search-button"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <span class="user-name">Max Mustermann</span>
+                    <span class="user-status">Angemeldet seit 09:15 Uhr</span>
+                </div>
+                <div class="header-icons">
+                    <div class="notification-icon">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="chat-icon" id="open-sidebar">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Rest des HTML-Inhalts... -->
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // JavaScript-Code für Interaktionen
+                const sidebarChat = document.getElementById('sidebar-chat');
+                const openSidebarBtn = document.getElementById('open-sidebar');
+                const closeSidebarBtn = document.getElementById('close-sidebar');
+                
+                // Chat-Sidebar öffnen
+                openSidebarBtn.addEventListener('click', function() {
+                    sidebarChat.classList.add('open');
+                    document.body.classList.add('sidebar-open');
+                });
+                
+                // Chat-Sidebar schließen
+                closeSidebarBtn.addEventListener('click', function() {
+                    sidebarChat.classList.remove('open');
+                    document.body.classList.remove('sidebar-open');
+                });
+                
+                // Tab-Wechsel in der Chat-Sidebar
+                const tabButtons = document.querySelectorAll('.sidebar-tab');
+                const tabContents = document.querySelectorAll('.tab-content');
+                
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        // Aktive Klasse von allen Tabs entfernen
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        tabContents.forEach(content => content.classList.remove('active'));
+                        
+                        // Aktive Klasse zum geklickten Tab hinzufügen
+                        button.classList.add('active');
+                        
+                        // Entsprechenden Tab-Inhalt anzeigen
+                        const targetId = button.getAttribute('data-target');
+                        document.getElementById(targetId).classList.add('active');
+                    });
+                });
+            });
+        </script>
+    </body>
+    </html>
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: valeo-final-dashboard
+  namespace: erp-system
+  labels:
+    app: valeo-dashboard
+    version: final
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: valeo-dashboard
+      version: final
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: valeo-dashboard
+        version: final
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/
+      volumes:
+      - name: html-volume
+        configMap:
+          name: valeo-final-dashboard
+      - name: nginx-config
+        configMap:
+          name: valeo-nginx-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: valeo-nginx-config
+  namespace: erp-system
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name localhost;
+        root /usr/share/nginx/html;
+        index index.html;
+        
+        location / {
+            try_files $uri $uri/ /index.html;
+            add_header Cache-Control "no-store, no-cache, must-revalidate";
+        }
+        
+        location /api/ {
+            proxy_pass http://api-gateway:80/api/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+        
+        error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+            root /usr/share/nginx/html;
+        }
+    }
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: valeo-final-dashboard
+  namespace: erp-system
+  labels:
+    app: valeo-dashboard
+    version: final
+spec:
+  selector:
+    app: valeo-dashboard
+    version: final
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: valeo-dashboard-ingress
+  namespace: erp-system
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: valeo-erp.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: valeo-final-dashboard
+            port:
+              number: 80 

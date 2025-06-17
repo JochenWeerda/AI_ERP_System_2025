@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ValeoDashboardMain">
+        <div class="o_valeo_dashboard">
+            <div class="valeo-dashboard-loading text-center" t-if="!widget.data">
+                <i class="fa fa-spinner fa-spin fa-3x"></i>
+                <div>Lade Dashboard...</div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ValeoDashboardContent">
+        <div class="valeo-dashboard-header">
+            <h1>VALEO Enterprise Suite Dashboard</h1>
+        </div>
+        <div class="valeo-dashboard-content">
+            <div class="valeo-dashboard-tile" data-action-id="valeo_enterprise_suite.action_documents">
+                <div class="tile-icon">
+                    <i class="fa fa-file-text-o"></i>
+                </div>
+                <div class="tile-title">Dokumente</div>
+                <div class="tile-value" t-esc="data.document_count || 0"></div>
+                <div class="tile-subtitle">Gesamt Dokumente</div>
+            </div>
+            <div class="valeo-dashboard-tile" data-action-id="valeo_enterprise_suite.action_analytics">
+                <div class="tile-icon">
+                    <i class="fa fa-bar-chart"></i>
+                </div>
+                <div class="tile-title">Analysen</div>
+                <div class="tile-value" t-esc="data.analytics_count || 0"></div>
+                <div class="tile-subtitle">Verfügbare Berichte</div>
+            </div>
+            <div class="valeo-dashboard-tile" data-action-id="valeo_enterprise_suite.action_tasks">
+                <div class="tile-icon">
+                    <i class="fa fa-tasks"></i>
+                </div>
+                <div class="tile-title">Aufgaben</div>
+                <div class="tile-value" t-esc="data.task_count || 0"></div>
+                <div class="tile-subtitle">Offene Aufgaben</div>
+            </div>
+            <div class="valeo-dashboard-tile" data-action-id="valeo_enterprise_suite.action_ai_insights">
+                <div class="tile-icon">
+                    <i class="fa fa-lightbulb-o"></i>
+                </div>
+                <div class="tile-title">KI-Einblicke</div>
+                <div class="tile-value" t-esc="data.insight_count || 0"></div>
+                <div class="tile-subtitle">Neue Erkenntnisse</div>
+            </div>
+        </div>
+    </t>
+</templates>

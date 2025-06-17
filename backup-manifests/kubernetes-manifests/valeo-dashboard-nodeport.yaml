@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: valeo-dashboard-nodeport
+  namespace: erp-system
+  labels:
+    app: valeo-final-dashboard
+    component: frontend
+spec:
+  selector:
+    app: valeo-final-dashboard
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30080
+    name: http
+  type: NodePort 

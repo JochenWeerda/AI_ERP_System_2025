@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Erweiterung der Partner-Formularansicht -->
+    <record id="view_partner_form_inherited" model="ir.ui.view">
+        <field name="name">res.partner.form.inherited</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- L3-Stammdaten Notebook-Page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="L3-Stammdaten" name="l3_data" groups="base.group_user">
+                    <group>
+                        <group string="L3-Referenzen">
+                            <field name="l3_partner_id"/>
+                            <field name="l3_customer_id" attrs="{'invisible': [('customer_rank', '=', 0)]}"/>
+                            <field name="l3_vendor_id" attrs="{'invisible': [('supplier_rank', '=', 0)]}"/>
+                            <field name="l3_last_sync" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+                
+                <!-- Zusätzliche Finanzinformationen -->
+                <page string="Finanzinformationen" name="financial_info" groups="account.group_account_invoice">
+                    <group>
+                        <group string="CPD-Konten">
+                            <field name="cpd_account_id"/>
+                            <field name="cpd_payment_term_id"/>
+                            <field name="payment_block"/>
+                            <field name="payment_block_reason" attrs="{'invisible': [('payment_block', '=', False)]}"/>
+                            <field name="credit_limit_override" attrs="{'invisible': [('customer_rank', '=', 0)]}"/>
+                        </group>
+                        <group string="Alternative CPD-Konten">
+                            <button name="%(mcp.action_partner_alternative_account)d" string="Alternative CPD-Konten verwalten" 
+                                    type="action" class="btn-primary"
+                                    context="{'default_partner_id': id}"/>
+                        </group>
+                    </group>
+                    <field name="alternative_cpd_account_ids" context="{'default_partner_id': id}">
+                        <tree editable="bottom">
+                            <field name="name"/>
+                            <field name="account_id"/>
+                            <field name="condition"/>
+                            <field name="condition_value" attrs="{'required': [('condition', '!=', 'manual')]}"/>
+                            <field name="priority"/>
+                            <field name="active"/>
+                        </tree>
+                    </field>
+                </page>
+                
+                <!-- Lieferantenbewertung für Vendor -->
+                <page string="Lieferantenbewertung" name="vendor_rating" 
+                      attrs="{'invisible': [('supplier_rank', '=', 0)]}" groups="purchase.group_purchase_user">
+                    <group>
+                        <group string="Allgemeine Bewertung">
+                            <field name="vendor_score" widget="percentpie"/>
+                            <field name="quality_rating"/>
+                            <field name="delivery_rating"/>
+                            <field name="is_preferred_vendor"/>
+                        </group>
+                        <group string="Bestellinformationen">
+                            <field name="min_order_value"/>
+                            <field name="min_order_qty"/>
+                            <field name="lead_time_days"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            
+            <!-- Zusätzliche Kontakte im Kontakte-Tab -->
+            <xpath expr="//field[@name='child_ids']/form//field[@name='comment']" position="before">
+                <group attrs="{'invisible': [('type', '!=', 'contact')]}">
+                    <field name="function" placeholder="z.B. Einkaufsleiter"/>
+                    <field name="department" placeholder="z.B. Einkauf"/>
+                </group>
+            </xpath>
+            
+            <!-- Zusätzliche Felder in der Sales & Purchase Tab -->
+            <xpath expr="//field[@name='property_payment_term_id']" position="after">
+                <field name="partner_category" attrs="{'invisible': [('customer_rank', '=', 0)]}"/>
+            </xpath>
+            
+            <!-- Zusätzliche Kontaktfelder in der Hauptansicht -->
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="quality_contact_id" 
+                       attrs="{'invisible': ['|', ('is_company', '=', False), ('supplier_rank', '=', 0)]}"/>
+                <field name="logistics_contact_id" 
+                       attrs="{'invisible': ['|', ('is_company', '=', False), ('supplier_rank', '=', 0)]}"/>
+            </xpath>
+            
+            <!-- Aktionen in der Buttonleiste -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_vendor_rating" type="object" class="oe_stat_button" icon="fa-star"
+                        attrs="{'invisible': [('supplier_rank', '=', 0)]}">
+                    <field name="vendor_score" widget="statinfo" string="Bewertung"/>
+                </button>
+                <button name="action_view_quality_incidents" type="object" class="oe_stat_button" icon="fa-exclamation-triangle"
+                        attrs="{'invisible': [('supplier_rank', '=', 0)]}">
+                    <div class="o_form_field o_stat_info">
+                        <span class="o_stat_text">Qualitätsvorfälle</span>
+                    </div>
+                </button>
+            </xpath>
+            
+            <!-- Statusleiste mit Zahlungssperre -->
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_block_payments" string="Zahlungen sperren" type="object"
+                            attrs="{'invisible': [('payment_block', '=', True)]}"
+                            groups="account.group_account_manager"/>
+                    <button name="action_unblock_payments" string="Zahlungssperre aufheben" type="object"
+                            attrs="{'invisible': [('payment_block', '=', False)]}"
+                            groups="account.group_account_manager"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Partner-Listenansicht -->
+    <record id="view_partner_tree_inherited" model="ir.ui.view">
+        <field name="name">res.partner.tree.inherited</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='email']" position="after">
+                <field name="l3_partner_id" optional="hide"/>
+                <field name="partner_category" optional="hide"/>
+                <field name="vendor_score" widget="percentage" optional="hide" 
+                       attrs="{'invisible': [('supplier_rank', '=', 0)]}"/>
+                <field name="payment_block" optional="hide" widget="boolean_toggle"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Partner-Suchansicht -->
+    <record id="view_res_partner_filter_inherited" model="ir.ui.view">
+        <field name="name">res.partner.search.inherited</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="l3_partner_id"/>
+                <field name="l3_customer_id"/>
+                <field name="l3_vendor_id"/>
+                <field name="cpd_account_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='supplier']" position="after">
+                <separator/>
+                <filter string="Zahlungssperre" name="payment_block" domain="[('payment_block', '=', True)]"/>
+                <filter string="Bevorzugte Lieferanten" name="preferred_vendor" domain="[('is_preferred_vendor', '=', True)]"/>
+                <separator/>
+                <filter string="Key Accounts" name="key_account" domain="[('partner_category', '=', 'key_account')]"/>
+                <filter string="Strategische Partner" name="strategic" domain="[('partner_category', '=', 'strategic')]"/>
+                <filter string="Einmalkunden" name="one_time" domain="[('partner_category', '=', 'one_time')]"/>
+                <filter string="Interne Partner" name="internal" domain="[('partner_category', '=', 'internal')]"/>
+                <filter string="Verbundunternehmen" name="intercompany" domain="[('partner_category', '=', 'intercompany')]"/>
+                <separator/>
+                <filter string="Mit L3-Referenz" name="has_l3_ref" domain="['|', '|', ('l3_partner_id', '!=', False), ('l3_customer_id', '!=', False), ('l3_vendor_id', '!=', False)]"/>
+                <filter string="Mit CPD-Konto" name="has_cpd_account" domain="[('cpd_account_id', '!=', False)]"/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter string="Partnerkategorie" name="group_by_category" domain="[]" context="{'group_by': 'partner_category'}"/>
+                <filter string="Zahlungssperre" name="group_by_payment_block" domain="[]" context="{'group_by': 'payment_block'}"/>
+                <filter string="CPD-Konto" name="group_by_cpd_account" domain="[]" context="{'group_by': 'cpd_account_id'}"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Spezielle Aktionen -->
+    <record id="action_partner_with_payment_block" model="ir.actions.act_window">
+        <field name="name">Partner mit Zahlungssperre</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('payment_block', '=', True)]</field>
+        <field name="context">{'search_default_payment_block': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keine Partner mit Zahlungssperre gefunden
+            </p>
+            <p>
+                Hier werden Partner angezeigt, bei denen eine Zahlungssperre aktiviert ist.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Aktion für alternative CPD-Konten -->
+    <record id="action_partner_alternative_account" model="ir.actions.act_window">
+        <field name="name">Alternative CPD-Konten</field>
+        <field name="res_model">partner.alternative.account</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keine alternativen CPD-Konten definiert
+            </p>
+            <p>
+                Hier können alternative CPD-Konten (Conto pro diverse) für spezielle Anwendungsfälle definiert werden.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Formular für Lieferantenbewertung -->
+    <record id="view_partner_vendor_rating_form" model="ir.ui.view">
+        <field name="name">res.partner.vendor.rating.form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form string="Lieferantenbewertung">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Bewertung">
+                            <field name="vendor_score" widget="percentpie"/>
+                            <field name="quality_rating"/>
+                            <field name="delivery_rating"/>
+                            <field name="is_preferred_vendor"/>
+                        </group>
+                        <group string="Einkaufsinformationen">
+                            <field name="min_order_value"/>
+                            <field name="min_order_qty"/>
+                            <field name="lead_time_days"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Schließen" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Formular für alternative CPD-Konten -->
+    <record id="view_partner_alternative_account_form" model="ir.ui.view">
+        <field name="name">partner.alternative.account.form</field>
+        <field name="model">partner.alternative.account</field>
+        <field name="arch" type="xml">
+            <form string="Alternatives CPD-Konto (Conto pro diverse)">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="account_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="condition"/>
+                            <field name="condition_value" attrs="{'required': [('condition', '!=', 'manual')]}"/>
+                            <field name="priority"/>
+                        </group>
+                    </group>
+                    <group string="Hinweis">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Listenansicht für alternative CPD-Konten -->
+    <record id="view_partner_alternative_account_tree" model="ir.ui.view">
+        <field name="name">partner.alternative.account.tree</field>
+        <field name="model">partner.alternative.account</field>
+        <field name="arch" type="xml">
+            <tree string="Alternative CPD-Konten (Conto pro diverse)">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <field name="condition"/>
+                <field name="condition_value"/>
+                <field name="priority"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Suchansicht für alternative CPD-Konten -->
+    <record id="view_partner_alternative_account_search" model="ir.ui.view">
+        <field name="name">partner.alternative.account.search</field>
+        <field name="model">partner.alternative.account</field>
+        <field name="arch" type="xml">
+            <search string="Alternative CPD-Konten (Conto pro diverse) suchen">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <filter string="Aktiv" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inaktiv" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Gruppieren nach">
+                    <filter string="Partner" name="groupby_partner" domain="[]" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Konto" name="groupby_account" domain="[]" context="{'group_by': 'account_id'}"/>
+                    <filter string="Bedingung" name="groupby_condition" domain="[]" context="{'group_by': 'condition'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Menüeinträge -->
+    <menuitem id="menu_partner_alternative_account"
+              name="Alternative CPD-Konten"
+              parent="account.menu_finance_receivables"
+              action="action_partner_alternative_account"
+              sequence="20"/>
+              
+    <menuitem id="menu_partner_with_payment_block"
+              name="Partner mit Zahlungssperre"
+              parent="account.menu_finance_receivables"
+              action="action_partner_with_payment_block"
+              sequence="21"/>
+</odoo> 

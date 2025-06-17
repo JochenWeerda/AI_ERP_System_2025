@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Kontextgeneratoren für Lagerprozesse -->
+        <record id="context_generator_inventory_product" model="mcp.context">
+            <field name="name">Produktkontext</field>
+            <field name="code">inventory_product</field>
+            <field name="description">Extrahiert Informationen über ein Produkt inklusive Bestandsdaten</field>
+            <field name="model_id" ref="product.model_product_product"/>
+            <field name="active">true</field>
+            <field name="sequence">300</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Produktdaten abrufen
+if not record or not record._name == 'product.product':
+    return {'error': 'Kein gültiges Produkt ausgewählt'}
+
+product = record
+template = product.product_tmpl_id
+company_id = params.get('company_id', env.company.id)
+
+# Lagerbestand ermitteln
+stock_quant = env['stock.quant']
+warehouses = env['stock.warehouse'].search([('company_id', '=', company_id)])
+location_ids = []
+for wh in warehouses:
+    location_ids.append(wh.lot_stock_id.id)
+
+stock_data = []
+total_quantity = 0
+for location_id in location_ids:
+    location = env['stock.location'].browse(location_id)
+    quantity = stock_quant._get_available_quantity(product, location)
+    if quantity != 0:
+        stock_data.append({
+            'warehouse': location.warehouse_id.name,
+            'location': location.display_name,
+            'quantity': quantity
+        })
+        total_quantity += quantity
+
+# Preisdaten abrufen
+pricelist_items = env['product.pricelist.item'].search([
+    ('product_id', '=', product.id),
+    '|', ('date_start', '=', False), ('date_start', '<=', fields.Date.today()),
+    '|', ('date_end', '=', False), ('date_end', '>=', fields.Date.today())
+])
+price_data = []
+for item in pricelist_items:
+    price_data.append({
+        'pricelist': item.pricelist_id.name,
+        'price': item.fixed_price if item.compute_price == 'fixed' else 'Berechnet',
+        'min_quantity': item.min_quantity,
+        'date_start': item.date_start.strftime('%Y-%m-%d') if item.date_start else '',
+        'date_end': item.date_end.strftime('%Y-%m-%d') if item.date_end else ''
+    })
+
+# Lieferantendaten abrufen
+seller_data = []
+for seller in product.seller_ids:
+    seller_data.append({
+        'vendor': seller.name.name,
+        'price': seller.price,
+        'currency': seller.currency_id.name,
+        'min_qty': seller.min_qty,
+        'delay': seller.delay
+    })
+
+# Bewegungsdaten abrufen
+stock_moves = env['stock.move'].search([
+    ('product_id', '=', product.id),
+    ('state', '=', 'done'),
+    ('date', '>=', fields.Date.to_string(fields.Date.today() - timedelta(days=90)))
+], order='date desc', limit=10)
+
+move_data = []
+for move in stock_moves:
+    move_data.append({
+        'reference': move.reference,
+        'date': move.date.strftime('%Y-%m-%d'),
+        'source': move.location_id.name,
+        'destination': move.location_dest_id.name,
+        'quantity': move.product_qty,
+        'state': move.state
+    })
+
+result = {
+    'id': product.id,
+    'name': product.name,
+    'code': product.default_code or '',
+    'barcode': product.barcode or '',
+    'category': product.categ_id.name,
+    'type': product.type,
+    'uom': product.uom_id.name,
+    'cost': product.standard_price,
+    'list_price': product.list_price,
+    'taxes': [tax.name for tax in product.taxes_id],
+    'weight': product.weight,
+    'volume': product.volume,
+    'active': product.active,
+    'description': template.description or '',
+    'attributes': [{
+        'name': attr.attribute_id.name,
+        'value': attr.name
+    } for attr in product.product_template_attribute_value_ids],
+    'stock': {
+        'total_quantity': total_quantity,
+        'locations': stock_data,
+        'incoming_qty': product.incoming_qty,
+        'outgoing_qty': product.outgoing_qty,
+        'virtual_available': product.virtual_available,
+        'reordering_rules': [{
+            'warehouse': rule.warehouse_id.name,
+            'location': rule.location_id.name,
+            'min_qty': rule.product_min_qty,
+            'max_qty': rule.product_max_qty
+        } for rule in env['stock.warehouse.orderpoint'].search([
+            ('product_id', '=', product.id),
+            ('company_id', '=', company_id)
+        ])]
+    },
+    'pricing': price_data,
+    'vendors': seller_data,
+    'recent_moves': move_data
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_inventory_picking" model="mcp.context">
+            <field name="name">Lieferscheinkontext</field>
+            <field name="code">inventory_picking</field>
+            <field name="description">Extrahiert Informationen über einen Lieferschein</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="active">true</field>
+            <field name="sequence">310</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Lieferscheindaten abrufen
+if not record or not record._name == 'stock.picking':
+    return {'error': 'Kein gültiger Lieferschein ausgewählt'}
+
+picking = record
+partner = picking.partner_id
+
+result = {
+    'reference': picking.name,
+    'origin': picking.origin or '',
+    'partner': partner.name if partner else '',
+    'scheduled_date': picking.scheduled_date.strftime('%Y-%m-%d %H:%M') if picking.scheduled_date else '',
+    'date_done': picking.date_done.strftime('%Y-%m-%d %H:%M') if picking.date_done else '',
+    'picking_type': picking.picking_type_id.name,
+    'location_source': picking.location_id.name,
+    'location_destination': picking.location_dest_id.name,
+    'state': picking.state,
+    'priority': picking.priority,
+    'moves': [{
+        'product': move.product_id.name,
+        'product_code': move.product_id.default_code or '',
+        'description': move.description_picking or move.product_id.name,
+        'quantity': move.product_uom_qty,
+        'done_quantity': move.quantity_done,
+        'uom': move.product_uom.name,
+        'state': move.state
+    } for move in picking.move_ids],
+    'packages': [{
+        'name': package.name,
+        'weight': package.shipping_weight,
+        'products': [{
+            'product': line.product_id.name,
+            'quantity': line.qty_done,
+            'uom': line.product_uom_id.name
+        } for line in package.quant_ids]
+    } for package in picking.package_ids] if hasattr(picking, 'package_ids') else [],
+    'backorder': picking.backorder_id.name if picking.backorder_id else '',
+    'has_backorders': bool(picking.backorder_ids),
+    'note': picking.note or ''
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_inventory_warehouse" model="mcp.context">
+            <field name="name">Lagerbestandskontext</field>
+            <field name="code">inventory_warehouse</field>
+            <field name="description">Extrahiert Bestandsinformationen für ein Lager</field>
+            <field name="model_id" ref="stock.model_stock_warehouse"/>
+            <field name="active">true</field>
+            <field name="sequence">320</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Parameter abrufen
+warehouse_id = params.get('warehouse_id')
+if record and record._name == 'stock.warehouse':
+    warehouse = record
+elif warehouse_id:
+    warehouse = env['stock.warehouse'].browse(warehouse_id)
+else:
+    warehouses = env['stock.warehouse'].search([('company_id', '=', env.company.id)])
+    if not warehouses:
+        return {'error': 'Kein Lager gefunden'}
+    warehouse = warehouses[0]
+
+# Lagerdaten abrufen
+location = warehouse.lot_stock_id
+company = warehouse.company_id
+
+# Kritische Bestände (unter Mindestbestand)
+orderpoints = env['stock.warehouse.orderpoint'].search([
+    ('warehouse_id', '=', warehouse.id),
+    ('product_id.type', '=', 'product')
+])
+
+critical_stock = []
+for orderpoint in orderpoints:
+    product = orderpoint.product_id
+    quantity = env['stock.quant']._get_available_quantity(product, location)
+    if quantity < orderpoint.product_min_qty:
+        critical_stock.append({
+            'product': product.name,
+            'code': product.default_code or '',
+            'current_qty': quantity,
+            'min_qty': orderpoint.product_min_qty,
+            'max_qty': orderpoint.product_max_qty,
+            'to_order': orderpoint.product_min_qty - quantity
+        })
+
+# Bestandsstatistik
+quants = env['stock.quant'].search([
+    ('location_id', 'child_of', location.id),
+    ('product_id.type', '=', 'product')
+])
+
+total_products = len(set(quant.product_id.id for quant in quants))
+total_quantity = sum(quant.quantity for quant in quants)
+total_value = sum(quant.quantity * quant.product_id.standard_price for quant in quants)
+
+# Laufende Warenbewegungen
+incoming_moves = env['stock.move'].search([
+    ('location_dest_id', 'child_of', location.id),
+    ('location_id', 'not child_of', location.id),
+    ('state', 'not in', ['done', 'cancel']),
+    ('product_id.type', '=', 'product')
+])
+
+outgoing_moves = env['stock.move'].search([
+    ('location_id', 'child_of', location.id),
+    ('location_dest_id', 'not child_of', location.id),
+    ('state', 'not in', ['done', 'cancel']),
+    ('product_id.type', '=', 'product')
+])
+
+result = {
+    'warehouse': {
+        'name': warehouse.name,
+        'code': warehouse.code,
+        'company': company.name
+    },
+    'stock': {
+        'total_products': total_products,
+        'total_quantity': total_quantity,
+        'total_value': total_value,
+        'location': location.name
+    },
+    'critical_stock': critical_stock,
+    'movements': {
+        'incoming': {
+            'count': len(incoming_moves),
+            'value': sum(move.product_qty * move.product_id.standard_price for move in incoming_moves),
+            'items': [{
+                'product': move.product_id.name,
+                'quantity': move.product_qty,
+                'expected_date': move.date.strftime('%Y-%m-%d'),
+                'origin': move.origin or '',
+                'reference': move.reference
+            } for move in incoming_moves[:10]]
+        },
+        'outgoing': {
+            'count': len(outgoing_moves),
+            'value': sum(move.product_qty * move.product_id.standard_price for move in outgoing_moves),
+            'items': [{
+                'product': move.product_id.name,
+                'quantity': move.product_qty,
+                'expected_date': move.date.strftime('%Y-%m-%d'),
+                'origin': move.origin or '',
+                'destination': move.location_dest_id.name
+            } for move in outgoing_moves[:10]]
+        }
+    }
+}
+return result
+            </field>
+        </record>
+    </data>
+</odoo> 

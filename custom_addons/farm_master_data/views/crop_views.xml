@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Formularansicht für Kulturen -->
+        <record id="view_crop_form" model="ir.ui.view">
+            <field name="name">farm.crop.form</field>
+            <field name="model">farm.crop</field>
+            <field name="arch" type="xml">
+                <form string="Kultur">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                                <field name="active" widget="boolean_button" options="{'terminology': 'archive'}"/>
+                            </button>
+                        </div>
+                        <field name="image" widget="image" class="oe_avatar"/>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Kulturname"/>
+                            </h1>
+                            <h2>
+                                <field name="variety" placeholder="Sorte"/>
+                            </h2>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="code"/>
+                                <field name="crop_type"/>
+                                <field name="scientific_name"/>
+                                <field name="family"/>
+                                <field name="growing_season"/>
+                                <field name="days_to_harvest"/>
+                            </group>
+                            <group>
+                                <field name="expected_yield_min"/>
+                                <field name="expected_yield_max"/>
+                                <field name="is_wheat" invisible="1"/>
+                                <field name="wheat_class" attrs="{'invisible': [('is_wheat', '=', False)]}"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Anbauinformationen">
+                                <group>
+                                    <group string="Aussaat">
+                                        <field name="seeding_rate"/>
+                                        <field name="seeding_depth"/>
+                                        <field name="row_spacing"/>
+                                    </group>
+                                    <group string="Nährstoffe">
+                                        <field name="nitrogen_need"/>
+                                        <field name="phosphorus_need"/>
+                                        <field name="potassium_need"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="ENNI-Exportinformationen" attrs="{'invisible': [('is_wheat', '=', False)]}">
+                                <group>
+                                    <field name="get_enni_code" string="ENNI-Kulturcode"/>
+                                    <div class="alert alert-info" role="alert">
+                                        Für Weizensorten werden beim ENNI-Export spezielle Kulturcodes verwendet:
+                                        <ul>
+                                            <li><b>WW:</b> Winterweizen (Standard)</li>
+                                            <li><b>WWA:</b> Winterweizen A</li>
+                                            <li><b>WWE:</b> Winterweizen E (Eliteweizen)</li>
+                                            <li><b>SW:</b> Sommerweizen</li>
+                                            <li><b>DW:</b> Durumweizen (Hartweizen)</li>
+                                        </ul>
+                                        Die Klassifizierung erfolgt automatisch anhand des Namens und der Sortenbezeichnung.
+                                    </div>
+                                </group>
+                            </page>
+                            <page string="Notizen">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+        
+        <!-- Baumansicht für Kulturen -->
+        <record id="view_crop_tree" model="ir.ui.view">
+            <field name="name">farm.crop.tree</field>
+            <field name="model">farm.crop</field>
+            <field name="arch" type="xml">
+                <tree string="Kulturen">
+                    <field name="name"/>
+                    <field name="variety"/>
+                    <field name="crop_type"/>
+                    <field name="growing_season"/>
+                    <field name="wheat_class" optional="show"/>
+                    <field name="expected_yield_min"/>
+                    <field name="expected_yield_max"/>
+                </tree>
+            </field>
+        </record>
+        
+        <!-- Suchansicht für Kulturen -->
+        <record id="view_crop_search" model="ir.ui.view">
+            <field name="name">farm.crop.search</field>
+            <field name="model">farm.crop</field>
+            <field name="arch" type="xml">
+                <search string="Kulturen">
+                    <field name="name" string="Kultur"/>
+                    <field name="variety"/>
+                    <field name="code"/>
+                    <field name="scientific_name"/>
+                    <field name="family"/>
+                    <!-- Filter für Getreidearten -->
+                    <filter string="Getreide" name="cereal" domain="[('crop_type','=','cereal')]"/>
+                    <filter string="Hülsenfrüchte" name="legume" domain="[('crop_type','=','legume')]"/>
+                    <filter string="Ölsaaten" name="oilseed" domain="[('crop_type','=','oilseed')]"/>
+                    <filter string="Knollenfrüchte" name="tuber" domain="[('crop_type','=','tuber')]"/>
+                    <filter string="Gemüse" name="vegetable" domain="[('crop_type','=','vegetable')]"/>
+                    <filter string="Obst" name="fruit" domain="[('crop_type','=','fruit')]"/>
+                    <filter string="Futterpflanzen" name="forage" domain="[('crop_type','=','forage')]"/>
+                    <filter string="Sonderkulturen" name="special" domain="[('crop_type','=','special')]"/>
+                    <separator/>
+                    <!-- Filter für Weizensorten -->
+                    <filter string="Weizen" name="is_wheat" domain="[('is_wheat','=',True)]"/>
+                    <filter string="A-Weizen" name="wheat_a" domain="[('wheat_class','=','a')]"/>
+                    <filter string="Eliteweizen" name="wheat_e" domain="[('wheat_class','=','e')]"/>
+                    <filter string="Durumweizen" name="wheat_durum" domain="[('wheat_class','=','durum')]"/>
+                    <separator/>
+                    <!-- Filter für Wachstumsperiode -->
+                    <filter string="Frühling" name="spring" domain="[('growing_season','=','spring')]"/>
+                    <filter string="Sommer" name="summer" domain="[('growing_season','=','summer')]"/>
+                    <filter string="Herbst" name="autumn" domain="[('growing_season','=','autumn')]"/>
+                    <filter string="Winter" name="winter" domain="[('growing_season','=','winter')]"/>
+                    <filter string="Mehrjährig" name="perennial" domain="[('growing_season','=','perennial')]"/>
+                    <separator/>
+                    <filter string="Archiviert" name="inactive" domain="[('active','=',False)]"/>
+                    <group expand="0" string="Gruppieren nach">
+                        <filter string="Kulturtyp" name="crop_type" domain="[]" context="{'group_by':'crop_type'}"/>
+                        <filter string="Wachstumsperiode" name="growing_season" domain="[]" context="{'group_by':'growing_season'}"/>
+                        <filter string="Pflanzenfamilie" name="family" domain="[]" context="{'group_by':'family'}"/>
+                        <filter string="Weizenklasse" name="wheat_class" domain="[]" context="{'group_by':'wheat_class'}"/>
+                        <filter string="Unternehmen" name="company" domain="[]" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+        
+        <!-- Aktionen -->
+        <record id="action_crop" model="ir.actions.act_window">
+            <field name="name">Kulturen</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">farm.crop</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_crop_search"/>
+            <field name="context">{'search_default_crop_type': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Erstellen Sie Ihre erste landwirtschaftliche Kultur
+                </p><p>
+                    Verwalten Sie alle Ihre landwirtschaftlichen Kulturen und deren Eigenschaften.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo> 

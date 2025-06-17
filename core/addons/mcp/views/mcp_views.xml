@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Provider-Ansichten -->
+        <record id="view_mcp_provider_tree" model="ir.ui.view">
+            <field name="name">mcp.provider.tree</field>
+            <field name="model">mcp.provider</field>
+            <field name="arch" type="xml">
+                <tree string="KI-Provider">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="provider_type"/>
+                    <field name="api_endpoint"/>
+                    <field name="is_active"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_mcp_provider_form" model="ir.ui.view">
+            <field name="name">mcp.provider.form</field>
+            <field name="model">mcp.provider</field>
+            <field name="arch" type="xml">
+                <form string="KI-Provider">
+                    <header>
+                        <button name="test_connection" type="object" string="Verbindung testen" class="oe_highlight"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1><field name="name" placeholder="Name des KI-Providers"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="code"/>
+                                <field name="provider_type"/>
+                                <field name="is_active"/>
+                                <field name="sequence"/>
+                            </group>
+                            <group>
+                                <field name="api_endpoint"/>
+                                <field name="api_key" password="True"/>
+                                <field name="timeout"/>
+                                <field name="retry_count"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Verfügbare Modelle">
+                                <field name="model_ids" context="{'default_provider_id': active_id}">
+                                    <tree editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                        <field name="model_identifier"/>
+                                        <field name="capabilities"/>
+                                        <field name="context_tokens"/>
+                                        <field name="is_active"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Einstellungen">
+                                <group>
+                                    <field name="default_model_id" domain="[('provider_id', '=', active_id)]"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_mcp_provider" model="ir.actions.act_window">
+            <field name="name">KI-Provider</field>
+            <field name="res_model">mcp.provider</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Erstellen Sie Ihren ersten KI-Provider
+                </p>
+                <p>
+                    KI-Provider sind Dienste wie OpenAI oder Anthropic, die Sprachmodelle anbieten.
+                </p>
+            </field>
+        </record>
+
+        <!-- Provider-Modell-Ansichten -->
+        <record id="view_mcp_provider_model_tree" model="ir.ui.view">
+            <field name="name">mcp.provider.model.tree</field>
+            <field name="model">mcp.provider.model</field>
+            <field name="arch" type="xml">
+                <tree string="KI-Modelle">
+                    <field name="provider_id"/>
+                    <field name="name"/>
+                    <field name="model_identifier"/>
+                    <field name="capabilities"/>
+                    <field name="context_tokens"/>
+                    <field name="is_active"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_mcp_provider_model_form" model="ir.ui.view">
+            <field name="name">mcp.provider.model.form</field>
+            <field name="model">mcp.provider.model</field>
+            <field name="arch" type="xml">
+                <form string="KI-Modell">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1><field name="name" placeholder="Name des Modells"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="provider_id"/>
+                                <field name="model_identifier"/>
+                                <field name="capabilities"/>
+                                <field name="is_active"/>
+                                <field name="sequence"/>
+                            </group>
+                            <group>
+                                <field name="context_tokens"/>
+                                <field name="response_tokens"/>
+                                <field name="cost_per_input_token"/>
+                                <field name="cost_per_output_token"/>
+                            </group>
+                        </group>
+                        <group string="Beschreibung">
+                            <field name="description" nolabel="1" placeholder="Beschreibung der Fähigkeiten und Anwendungsfälle des Modells..."/>
+                        </group>
+                        <group string="Standard-Parameter (JSON)">
+                            <field name="default_parameters" nolabel="1" placeholder="{'temperature': 0.7, 'top_p': 1.0}"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_mcp_provider_model" model="ir.actions.act_window">
+            <field name="name">KI-Modelle</field>
+            <field name="res_model">mcp.provider.model</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Erstellen Sie Ihr erstes KI-Modell
+                </p>
+                <p>
+                    KI-Modelle sind spezifische Sprachmodelle, die von KI-Providern angeboten werden.
+                </p>
+            </field>
+        </record>
+
+        <!-- Konfigurationsansichten -->
+        <record id="view_mcp_config_tree" model="ir.ui.view">
+            <field name="name">mcp.config.tree</field>
+            <field name="model">mcp.config</field>
+            <field name="arch" type="xml">
+                <tree string="MCP Konfiguration">
+                    <field name="key"/>
+                    <field name="value"/>
+                    <field name="value_type"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_mcp_config_form" model="ir.ui.view">
+            <field name="name">mcp.config.form</field>
+            <field name="model">mcp.config</field>
+            <field name="arch" type="xml">
+                <form string="MCP Konfiguration">
+                    <sheet>
+                        <group>
+                            <field name="key"/>
+                            <field name="value_type"/>
+                            <field name="value"/>
+                            <field name="description"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_mcp_config" model="ir.actions.act_window">
+            <field name="name">Konfiguration</field>
+            <field name="res_model">mcp.config</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Erstellen Sie Ihren ersten Konfigurationsparameter
+                </p>
+                <p>
+                    Konfigurationsparameter steuern das Verhalten des MCP-Moduls.
+                </p>
+            </field>
+        </record>
+
+        <!-- Benutzer-Präferenzen-Ansichten -->
+        <record id="view_mcp_user_preferences_tree" model="ir.ui.view">
+            <field name="name">mcp.user.preferences.tree</field>
+            <field name="model">mcp.user.preferences</field>
+            <field name="arch" type="xml">
+                <tree string="Benutzereinstellungen">
+                    <field name="user_id"/>
+                    <field name="provider_id"/>
+                    <field name="model_id"/>
+                    <field name="enable_ai_suggestions"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_mcp_user_preferences_form" model="ir.ui.view">
+            <field name="name">mcp.user.preferences.form</field>
+            <field name="model">mcp.user.preferences</field>
+            <field name="arch" type="xml">
+                <form string="Benutzereinstellungen">
+                    <sheet>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="provider_id"/>
+                            <field name="model_id" domain="[('provider_id', '=', provider_id)]"/>
+                        </group>
+                        <group string="Allgemeine Einstellungen">
+                            <field name="enable_ai_suggestions"/>
+                            <field name="max_tokens_per_request"/>
+                        </group>
+                        <group string="Datenschutzeinstellungen">
+                            <field name="anonymize_sensitive_data"/>
+                            <field name="log_ai_interactions"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_mcp_user_preferences" model="ir.actions.act_window">
+            <field name="name">Benutzereinstellungen</field>
+            <field name="res_model">mcp.user.preferences</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Erstellen Sie Ihre ersten Benutzereinstellungen
+                </p>
+                <p>
+                    Benutzereinstellungen steuern das KI-Verhalten für einzelne Benutzer.
+                </p>
+            </field>
+        </record>
+
+        <!-- Aktionen für die Menüs -->
+        <record id="action_mcp_config_settings" model="ir.actions.act_window">
+            <field name="name">Einstellungen</field>
+            <field name="res_model">mcp.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <field name="context">{'module': 'mcp'}</field>
+        </record>
+
+        <!-- Hauptmenü für MCP -->
+        <menuitem id="menu_mcp_root" name="MCP" sequence="90" web_icon="mcp,static/description/icon.png"/>
+        
+        <!-- Untermenüs -->
+        <menuitem id="menu_mcp_config" name="Konfiguration" parent="menu_mcp_root" sequence="100"/>
+        <menuitem id="menu_mcp_provider" name="KI-Provider" parent="menu_mcp_config" action="action_mcp_provider" sequence="10"/>
+        <menuitem id="menu_mcp_provider_model" name="KI-Modelle" parent="menu_mcp_config" action="action_mcp_provider_model" sequence="20"/>
+        <menuitem id="menu_mcp_config_params" name="Parameter" parent="menu_mcp_config" action="action_mcp_config" sequence="30" groups="mcp.group_mcp_admin"/>
+        <menuitem id="menu_mcp_user_preferences" name="Benutzereinstellungen" parent="menu_mcp_config" action="action_mcp_user_preferences" sequence="40"/>
+        <menuitem id="menu_mcp_settings" name="Einstellungen" parent="menu_mcp_config" action="action_mcp_config_settings" sequence="50" groups="mcp.group_mcp_admin"/>
+    </data>
+</odoo> 

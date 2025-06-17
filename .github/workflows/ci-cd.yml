@@ -1,0 +1,99 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Node.js Setup
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: |
+        cd core/backend
+        npm ci
+        cd ../../frontend
+        npm ci
+
+    - name: Run Backend Tests
+      run: |
+        cd core/backend
+        npm test
+
+    - name: Run Frontend Tests
+      run: |
+        cd frontend
+        npm test
+
+    - name: Build Backend
+      run: |
+        cd core/backend
+        npm run build
+
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm run build
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build and Push Docker images
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        # Backend
+        docker build -t $ECR_REGISTRY/neuroerp-backend:${{ github.sha }} ./core/backend
+        docker push $ECR_REGISTRY/neuroerp-backend:${{ github.sha }}
+        
+        # Frontend
+        docker build -t $ECR_REGISTRY/neuroerp-frontend:${{ github.sha }} ./frontend
+        docker push $ECR_REGISTRY/neuroerp-frontend:${{ github.sha }}
+
+    - name: Update Kubernetes deployment
+      run: |
+        aws eks update-kubeconfig --name neuroerp-cluster
+        
+        # Update image tags in deployment files
+        sed -i "s|image: .*neuroerp-backend.*|image: $ECR_REGISTRY/neuroerp-backend:${{ github.sha }}|" k8s/backend-deployment.yaml
+        sed -i "s|image: .*neuroerp-frontend.*|image: $ECR_REGISTRY/neuroerp-frontend:${{ github.sha }}|" k8s/frontend-deployment.yaml
+        
+        # Apply deployments
+        kubectl apply -f k8s/ 

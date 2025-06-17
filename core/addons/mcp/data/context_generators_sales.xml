@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Kontextgeneratoren für Vertriebsprozesse -->
+        <record id="context_generator_sales_customer" model="mcp.context">
+            <field name="name">Kundenkontext</field>
+            <field name="code">sales_customer</field>
+            <field name="description">Extrahiert Informationen über einen Kunden für Vertriebsaktivitäten</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="active">true</field>
+            <field name="sequence">100</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Kundeninformationen abrufen
+if not record or not record._name == 'res.partner':
+    return {'error': 'Kein gültiger Kunde ausgewählt'}
+
+customer = record
+sales_data = env['sale.order'].search([
+    ('partner_id', '=', customer.id),
+    ('state', 'in', ['sale', 'done'])
+], order='date_order desc', limit=20)
+
+result = {
+    'name': customer.name,
+    'email': customer.email,
+    'phone': customer.phone,
+    'mobile': customer.mobile,
+    'street': customer.street,
+    'city': customer.city,
+    'zip': customer.zip,
+    'country': customer.country_id.name if customer.country_id else '',
+    'category_ids': [cat.name for cat in customer.category_id],
+    'customer_since': customer.create_date.strftime('%Y-%m-%d') if customer.create_date else '',
+    'sales_count': len(sales_data),
+    'total_sales': sum(order.amount_total for order in sales_data),
+    'average_order_value': sum(order.amount_total for order in sales_data) / len(sales_data) if sales_data else 0,
+    'payment_terms': customer.property_payment_term_id.name if customer.property_payment_term_id else '',
+    'recent_orders': [{
+        'reference': order.name,
+        'date': order.date_order.strftime('%Y-%m-%d'),
+        'amount': order.amount_total,
+        'products': [line.product_id.name for line in order.order_line]
+    } for order in sales_data[:5]]
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_sales_opportunity" model="mcp.context">
+            <field name="name">Verkaufschancenkontext</field>
+            <field name="code">sales_opportunity</field>
+            <field name="description">Extrahiert Informationen über eine Verkaufschance</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="active">true</field>
+            <field name="sequence">110</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Verkaufschancendaten abrufen
+if not record or not record._name == 'crm.lead':
+    return {'error': 'Keine gültige Verkaufschance ausgewählt'}
+
+opportunity = record
+customer = opportunity.partner_id
+
+result = {
+    'name': opportunity.name,
+    'customer': customer.name if customer else '',
+    'email': opportunity.email_from,
+    'phone': opportunity.phone,
+    'expected_revenue': opportunity.expected_revenue,
+    'probability': opportunity.probability,
+    'stage': opportunity.stage_id.name if opportunity.stage_id else '',
+    'expected_closing': opportunity.date_deadline.strftime('%Y-%m-%d') if opportunity.date_deadline else '',
+    'create_date': opportunity.create_date.strftime('%Y-%m-%d'),
+    'days_open': (fields.Date.today() - opportunity.create_date.date()).days,
+    'description': opportunity.description or '',
+    'products': [{'name': line.product_id.name, 'quantity': line.product_uom_qty} for line in opportunity.order_line] if hasattr(opportunity, 'order_line') else [],
+    'activities': [{
+        'type': activity.activity_type_id.name,
+        'summary': activity.summary,
+        'date': activity.date_deadline.strftime('%Y-%m-%d'),
+        'done': activity.state == 'done'
+    } for activity in opportunity.activity_ids]
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_sales_quotation" model="mcp.context">
+            <field name="name">Angebotskontext</field>
+            <field name="code">sales_quotation</field>
+            <field name="description">Extrahiert Informationen über ein Verkaufsangebot</field>
+            <field name="model_id" ref="sale.model_sale_order"/>
+            <field name="active">true</field>
+            <field name="sequence">120</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Angebotsdaten abrufen
+if not record or not record._name == 'sale.order' or record.state not in ['draft', 'sent']:
+    return {'error': 'Kein gültiges Angebot ausgewählt'}
+
+quotation = record
+customer = quotation.partner_id
+
+result = {
+    'reference': quotation.name,
+    'customer': customer.name,
+    'date': quotation.date_order.strftime('%Y-%m-%d') if quotation.date_order else '',
+    'expiration_date': quotation.validity_date.strftime('%Y-%m-%d') if quotation.validity_date else '',
+    'salesperson': quotation.user_id.name if quotation.user_id else '',
+    'total_amount': quotation.amount_total,
+    'currency': quotation.currency_id.name,
+    'status': quotation.state,
+    'payment_terms': quotation.payment_term_id.name if quotation.payment_term_id else '',
+    'items': [{
+        'product': line.product_id.name,
+        'description': line.name,
+        'quantity': line.product_uom_qty,
+        'unit_price': line.price_unit,
+        'discount': line.discount,
+        'subtotal': line.price_subtotal
+    } for line in quotation.order_line],
+    'notes': quotation.note or ''
+}
+return result
+            </field>
+        </record>
+    </data>
+</odoo> 

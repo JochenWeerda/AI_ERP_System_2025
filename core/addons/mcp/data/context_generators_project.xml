@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Kontextgeneratoren für Projektmanagementprozesse -->
+        <record id="context_generator_project" model="mcp.context">
+            <field name="name">Projektkontext</field>
+            <field name="code">project_info</field>
+            <field name="description">Extrahiert Informationen über ein Projekt</field>
+            <field name="model_id" ref="project.model_project_project"/>
+            <field name="active">true</field>
+            <field name="sequence">600</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Projektdaten abrufen
+if not record or not record._name == 'project.project':
+    return {'error': 'Kein gültiges Projekt ausgewählt'}
+
+project = record
+company = project.company_id
+
+# Projektmitglieder
+members = []
+for member in project.member_ids:
+    members.append({
+        'name': member.name,
+        'email': member.email,
+        'job_title': member.function if hasattr(member, 'function') else ''
+    })
+
+# Aufgaben
+tasks = env['project.task'].search([
+    ('project_id', '=', project.id)
+], order='priority desc, create_date desc')
+
+task_stats = {
+    'total': len(tasks),
+    'done': len(tasks.filtered(lambda t: t.stage_id.is_closed)),
+    'in_progress': len(tasks.filtered(lambda t: not t.stage_id.is_closed and t.stage_id.sequence > 1)),
+    'not_started': len(tasks.filtered(lambda t: not t.stage_id.is_closed and t.stage_id.sequence <= 1)),
+    'overdue': len(tasks.filtered(lambda t: t.date_deadline and t.date_deadline < fields.Date.today() and not t.stage_id.is_closed))
+}
+
+# Meilensteine
+milestones = []
+if hasattr(project, 'milestone_ids'):
+    for milestone in project.milestone_ids:
+        milestones.append({
+            'name': milestone.name,
+            'deadline': milestone.deadline.strftime('%Y-%m-%d') if milestone.deadline else '',
+            'is_reached': milestone.is_reached if hasattr(milestone, 'is_reached') else False,
+            'reached_date': milestone.reached_date.strftime('%Y-%m-%d') if hasattr(milestone, 'reached_date') and milestone.reached_date else ''
+        })
+
+# Zeiterfassung
+timesheet_data = None
+if hasattr(project, 'timesheet_ids'):
+    timesheets = project.timesheet_ids
+    total_planned_hours = sum(task.planned_hours for task in tasks if hasattr(task, 'planned_hours'))
+    total_spent_hours = sum(ts.unit_amount for ts in timesheets)
+    remaining_hours = total_planned_hours - total_spent_hours if total_planned_hours > 0 else 0
+    progress = (total_spent_hours / total_planned_hours * 100) if total_planned_hours > 0 else 0
+
+    timesheet_data = {
+        'total_planned_hours': total_planned_hours,
+        'total_spent_hours': total_spent_hours,
+        'remaining_hours': remaining_hours,
+        'progress_percentage': progress,
+        'billable_hours': sum(ts.unit_amount for ts in timesheets if hasattr(ts, 'is_billable') and ts.is_billable),
+        'non_billable_hours': sum(ts.unit_amount for ts in timesheets if hasattr(ts, 'is_billable') and not ts.is_billable),
+        'by_employee': {}
+    }
+
+    # Stunden nach Mitarbeiter
+    for ts in timesheets:
+        employee_id = ts.employee_id.id if ts.employee_id else 0
+        employee_name = ts.employee_id.name if ts.employee_id else 'Unbekannt'
+        
+        if employee_id not in timesheet_data['by_employee']:
+            timesheet_data['by_employee'][employee_id] = {
+                'name': employee_name,
+                'hours': 0
+            }
+        
+        timesheet_data['by_employee'][employee_id]['hours'] += ts.unit_amount
+
+    # In Liste umwandeln
+    timesheet_data['by_employee'] = list(timesheet_data['by_employee'].values())
+
+# Budget
+budget_data = None
+if hasattr(project, 'analytic_account_id') and project.analytic_account_id:
+    analytic = project.analytic_account_id
+    
+    # Geplantes Budget
+    planned_amount = analytic.expected_revenue if hasattr(analytic, 'expected_revenue') else 0
+    
+    # Tatsächliche Kosten
+    costs = 0
+    for line in env['account.analytic.line'].search([('account_id', '=', analytic.id), ('amount', '<', 0)]):
+        costs += abs(line.amount)
+    
+    # Tatsächliche Einnahmen
+    revenues = 0
+    for line in env['account.analytic.line'].search([('account_id', '=', analytic.id), ('amount', '>', 0)]):
+        revenues += line.amount
+    
+    margin = revenues - costs
+    margin_percentage = (margin / revenues * 100) if revenues > 0 else 0
+    budget_progress = (revenues / planned_amount * 100) if planned_amount > 0 else 0
+    
+    budget_data = {
+        'planned_amount': planned_amount,
+        'actual_costs': costs,
+        'actual_revenue': revenues,
+        'margin': margin,
+        'margin_percentage': margin_percentage,
+        'budget_progress': budget_progress
+    }
+
+result = {
+    'name': project.name,
+    'reference': project.reference if hasattr(project, 'reference') else '',
+    'description': project.description or '',
+    'company': company.name,
+    'user': project.user_id.name if project.user_id else '',
+    'customer': project.partner_id.name if project.partner_id else '',
+    'date_start': project.date_start.strftime('%Y-%m-%d') if project.date_start else '',
+    'date_end': project.date.strftime('%Y-%m-%d') if hasattr(project, 'date') and project.date else '',
+    'deadline': project.date_deadline.strftime('%Y-%m-%d') if hasattr(project, 'date_deadline') and project.date_deadline else '',
+    'privacy_visibility': project.privacy_visibility,
+    'active': project.active,
+    'members': members,
+    'task_stats': task_stats,
+    'stages': [{
+        'name': stage.name,
+        'sequence': stage.sequence,
+        'is_closed': stage.is_closed,
+        'task_count': len(tasks.filtered(lambda t: t.stage_id.id == stage.id))
+    } for stage in project.type_ids],
+    'recent_tasks': [{
+        'name': task.name,
+        'stage': task.stage_id.name,
+        'user': task.user_id.name if task.user_id else '',
+        'deadline': task.date_deadline.strftime('%Y-%m-%d') if task.date_deadline else '',
+        'priority': task.priority,
+        'description': task.description or ''
+    } for task in tasks[:10]]
+}
+
+# Optionale Felder hinzufügen, wenn verfügbar
+if milestones:
+    result['milestones'] = milestones
+
+if timesheet_data:
+    result['timesheet'] = timesheet_data
+
+if budget_data:
+    result['budget'] = budget_data
+
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_project_task" model="mcp.context">
+            <field name="name">Aufgabenkontext</field>
+            <field name="code">project_task</field>
+            <field name="description">Extrahiert Informationen über eine Projektaufgabe</field>
+            <field name="model_id" ref="project.model_project_task"/>
+            <field name="active">true</field>
+            <field name="sequence">610</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Aufgabendaten abrufen
+if not record or not record._name == 'project.task':
+    return {'error': 'Keine gültige Aufgabe ausgewählt'}
+
+task = record
+project = task.project_id
+
+# Zeiten
+planned_hours = task.planned_hours if hasattr(task, 'planned_hours') else 0
+timesheet_hours = 0
+remaining_hours = 0
+progress = 0
+
+if hasattr(task, 'timesheet_ids'):
+    timesheet_hours = sum(line.unit_amount for line in task.timesheet_ids)
+    remaining_hours = planned_hours - timesheet_hours if planned_hours > 0 else 0
+    progress = (timesheet_hours / planned_hours * 100) if planned_hours > 0 else 0
+
+# Unteraufgaben
+subtasks = []
+if hasattr(task, 'child_ids'):
+    for child in task.child_ids:
+        subtasks.append({
+            'name': child.name,
+            'stage': child.stage_id.name,
+            'user': child.user_id.name if child.user_id else '',
+            'planned_hours': child.planned_hours if hasattr(child, 'planned_hours') else 0,
+            'is_closed': child.stage_id.is_closed
+        })
+
+# Abhängigkeiten
+dependencies = []
+if hasattr(task, 'depend_on_ids'):
+    for dependency in task.depend_on_ids:
+        dependencies.append({
+            'name': dependency.name,
+            'stage': dependency.stage_id.name,
+            'is_closed': dependency.stage_id.is_closed
+        })
+
+# Aktivitäten
+activities = []
+if hasattr(task, 'activity_ids'):
+    for activity in task.activity_ids:
+        activities.append({
+            'type': activity.activity_type_id.name,
+            'summary': activity.summary or '',
+            'date_deadline': activity.date_deadline.strftime('%Y-%m-%d'),
+            'user': activity.user_id.name,
+            'state': activity.state
+        })
+
+# Checkliste/Aufgabenschritte
+checklist = []
+if hasattr(task, 'checklist_progress_ids'):
+    for item in task.checklist_progress_ids:
+        checklist.append({
+            'name': item.name,
+            'completed': item.completed if hasattr(item, 'completed') else False
+        })
+
+result = {
+    'name': task.name,
+    'description': task.description or '',
+    'project': {
+        'id': project.id if project else None,
+        'name': project.name if project else ''
+    },
+    'stage': task.stage_id.name,
+    'is_closed': task.stage_id.is_closed,
+    'sequence': task.sequence if hasattr(task, 'sequence') else 0,
+    'priority': task.priority,
+    'date_start': task.date_start.strftime('%Y-%m-%d %H:%M') if task.date_start else '',
+    'date_deadline': task.date_deadline.strftime('%Y-%m-%d') if task.date_deadline else '',
+    'date_end': task.date_end.strftime('%Y-%m-%d %H:%M') if hasattr(task, 'date_end') and task.date_end else '',
+    'user': task.user_id.name if task.user_id else '',
+    'reviewer': task.reviewer_id.name if hasattr(task, 'reviewer_id') and task.reviewer_id else '',
+    'partner': task.partner_id.name if task.partner_id else '',
+    'company': task.company_id.name,
+    'active': task.active,
+    'tags': [tag.name for tag in task.tag_ids] if hasattr(task, 'tag_ids') else [],
+    'time': {
+        'planned_hours': planned_hours,
+        'spent_hours': timesheet_hours,
+        'remaining_hours': remaining_hours,
+        'progress': progress
+    },
+    'kanban_state': task.kanban_state,
+    'color': task.color if hasattr(task, 'color') else 0
+}
+
+# Optionale Felder hinzufügen, wenn verfügbar
+if subtasks:
+    result['subtasks'] = subtasks
+
+if dependencies:
+    result['dependencies'] = dependencies
+
+if activities:
+    result['activities'] = activities
+
+if checklist:
+    result['checklist'] = checklist
+
+# Zeiterfassung
+if hasattr(task, 'timesheet_ids') and task.timesheet_ids:
+    result['timesheet_entries'] = [{
+        'date': ts.date.strftime('%Y-%m-%d'),
+        'employee': ts.employee_id.name if ts.employee_id else '',
+        'description': ts.name,
+        'hours': ts.unit_amount,
+        'is_billable': ts.is_billable if hasattr(ts, 'is_billable') else False
+    } for ts in task.timesheet_ids]
+
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_project_milestone" model="mcp.context">
+            <field name="name">Meilensteinkontext</field>
+            <field name="code">project_milestone</field>
+            <field name="description">Extrahiert Informationen über einen Projektmeilenstein</field>
+            <field name="model_id" ref="project.model_project_milestone"/>
+            <field name="active">true</field>
+            <field name="sequence">620</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Meilensteindaten abrufen
+if not record or not record._name == 'project.milestone':
+    return {'error': 'Kein gültiger Meilenstein ausgewählt'}
+
+milestone = record
+project = milestone.project_id
+
+# Abhängige Aufgaben
+related_tasks = env['project.task'].search([
+    ('milestone_id', '=', milestone.id)
+]) if hasattr(env['project.task'], 'milestone_id') else []
+
+task_stats = {
+    'total': len(related_tasks),
+    'done': len(related_tasks.filtered(lambda t: t.stage_id.is_closed)),
+    'in_progress': len(related_tasks.filtered(lambda t: not t.stage_id.is_closed and t.stage_id.sequence > 1)),
+    'not_started': len(related_tasks.filtered(lambda t: not t.stage_id.is_closed and t.stage_id.sequence <= 1)),
+    'overdue': len(related_tasks.filtered(lambda t: t.date_deadline and t.date_deadline < fields.Date.today() and not t.stage_id.is_closed))
+}
+
+# Fortschritt berechnen
+progress = (task_stats['done'] / task_stats['total'] * 100) if task_stats['total'] > 0 else 0
+
+result = {
+    'name': milestone.name,
+    'project': {
+        'id': project.id,
+        'name': project.name
+    },
+    'deadline': milestone.deadline.strftime('%Y-%m-%d') if milestone.deadline else '',
+    'is_reached': milestone.is_reached if hasattr(milestone, 'is_reached') else False,
+    'reached_date': milestone.reached_date.strftime('%Y-%m-%d') if hasattr(milestone, 'reached_date') and milestone.reached_date else '',
+    'description': milestone.description if hasattr(milestone, 'description') else '',
+    'sequence': milestone.sequence if hasattr(milestone, 'sequence') else 0,
+    'progress': progress,
+    'task_stats': task_stats,
+    'related_tasks': [{
+        'name': task.name,
+        'stage': task.stage_id.name,
+        'user': task.user_id.name if task.user_id else '',
+        'deadline': task.date_deadline.strftime('%Y-%m-%d') if task.date_deadline else '',
+        'is_closed': task.stage_id.is_closed
+    } for task in related_tasks[:10]]
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_project_report" model="mcp.context">
+            <field name="name">Projektberichtskontext</field>
+            <field name="code">project_report</field>
+            <field name="description">Generiert einen Fortschrittsbericht für ein Projekt</field>
+            <field name="model_id" ref="project.model_project_project"/>
+            <field name="active">true</field>
+            <field name="sequence">630</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Parameter abrufen
+project_id = params.get('project_id')
+date_from = params.get('date_from')
+date_to = params.get('date_to')
+
+if not project_id and record and record._name == 'project.project':
+    project_id = record.id
+
+if not project_id:
+    return {'error': 'Kein Projekt angegeben'}
+
+project = env['project.project'].browse(project_id)
+if not project.exists():
+    return {'error': 'Projekt nicht gefunden'}
+
+# Standarddaten verwenden, wenn keine angegeben
+if not date_from or not date_to:
+    today = fields.Date.today()
+    date_to = fields.Date.to_string(today)
+    date_from = fields.Date.to_string(today - timedelta(days=30))
+
+# Aufgaben im Zeitraum
+created_tasks = env['project.task'].search([
+    ('project_id', '=', project.id),
+    ('create_date', '>=', date_from),
+    ('create_date', '<=', date_to)
+])
+
+completed_tasks = env['project.task'].search([
+    ('project_id', '=', project.id),
+    ('stage_id.is_closed', '=', True),
+    '|',
+    ('date_end', '>=', date_from),
+    ('write_date', '>=', date_from),
+    '|',
+    ('date_end', '<=', date_to),
+    ('write_date', '<=', date_to)
+])
+
+# Alle aktuellen Aufgaben
+all_tasks = env['project.task'].search([
+    ('project_id', '=', project.id)
+])
+
+# Zeiterfassung im Zeitraum
+timesheets = []
+total_hours = 0
+if hasattr(project, 'timesheet_ids'):
+    timesheets = env['account.analytic.line'].search([
+        ('project_id', '=', project.id),
+        ('date', '>=', date_from),
+        ('date', '<=', date_to)
+    ])
+    total_hours = sum(ts.unit_amount for ts in timesheets)
+
+# Projektstatus
+total_tasks = len(all_tasks)
+completed_tasks_count = len(all_tasks.filtered(lambda t: t.stage_id.is_closed))
+progress = (completed_tasks_count / total_tasks * 100) if total_tasks > 0 else 0
+
+# Budget im Zeitraum
+budget_data = None
+if hasattr(project, 'analytic_account_id') and project.analytic_account_id:
+    analytic = project.analytic_account_id
+    
+    # Gesamtbudget
+    planned_amount = analytic.expected_revenue if hasattr(analytic, 'expected_revenue') else 0
+    
+    # Kosten im Zeitraum
+    period_costs = 0
+    for line in env['account.analytic.line'].search([
+        ('account_id', '=', analytic.id),
+        ('amount', '<', 0),
+        ('date', '>=', date_from),
+        ('date', '<=', date_to)
+    ]):
+        period_costs += abs(line.amount)
+    
+    # Einnahmen im Zeitraum
+    period_revenues = 0
+    for line in env['account.analytic.line'].search([
+        ('account_id', '=', analytic.id),
+        ('amount', '>', 0),
+        ('date', '>=', date_from),
+        ('date', '<=', date_to)
+    ]):
+        period_revenues += line.amount
+    
+    # Gesamtkosten und -einnahmen
+    total_costs = 0
+    for line in env['account.analytic.line'].search([
+        ('account_id', '=', analytic.id),
+        ('amount', '<', 0)
+    ]):
+        total_costs += abs(line.amount)
+    
+    total_revenues = 0
+    for line in env['account.analytic.line'].search([
+        ('account_id', '=', analytic.id),
+        ('amount', '>', 0)
+    ]):
+        total_revenues += line.amount
+    
+    budget_data = {
+        'planned_amount': planned_amount,
+        'period': {
+            'costs': period_costs,
+            'revenues': period_revenues,
+            'margin': period_revenues - period_costs
+        },
+        'total': {
+            'costs': total_costs,
+            'revenues': total_revenues,
+            'margin': total_revenues - total_costs,
+            'margin_percentage': (total_revenues - total_costs) / total_revenues * 100 if total_revenues > 0 else 0,
+            'budget_progress': total_revenues / planned_amount * 100 if planned_amount > 0 else 0
+        }
+    }
+
+# Risiken und Probleme
+issues = []
+if hasattr(env, 'project.issue'):
+    project_issues = env['project.issue'].search([
+        ('project_id', '=', project.id),
+        ('create_date', '>=', date_from),
+        ('create_date', '<=', date_to)
+    ])
+    
+    for issue in project_issues:
+        issues.append({
+            'name': issue.name,
+            'date': issue.create_date.strftime('%Y-%m-%d'),
+            'user': issue.user_id.name if issue.user_id else '',
+            'description': issue.description or '',
+            'stage': issue.stage_id.name if hasattr(issue, 'stage_id') else '',
+            'priority': issue.priority
+        })
+
+# Meilensteine im Zeitraum
+milestones = []
+if hasattr(project, 'milestone_ids'):
+    for milestone in project.milestone_ids:
+        if milestone.deadline and date_from <= milestone.deadline.strftime('%Y-%m-%d') <= date_to:
+            milestones.append({
+                'name': milestone.name,
+                'deadline': milestone.deadline.strftime('%Y-%m-%d'),
+                'is_reached': milestone.is_reached if hasattr(milestone, 'is_reached') else False,
+                'reached_date': milestone.reached_date.strftime('%Y-%m-%d') if hasattr(milestone, 'reached_date') and milestone.reached_date else ''
+            })
+
+result = {
+    'project': {
+        'name': project.name,
+        'reference': project.reference if hasattr(project, 'reference') else '',
+        'customer': project.partner_id.name if project.partner_id else '',
+        'manager': project.user_id.name if project.user_id else ''
+    },
+    'period': {
+        'from': date_from,
+        'to': date_to
+    },
+    'status': {
+        'progress': progress,
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks_count,
+        'created_tasks': len(created_tasks),
+        'completed_in_period': len(completed_tasks)
+    },
+    'time': {
+        'hours_in_period': total_hours,
+        'timesheet_entries': len(timesheets)
+    },
+    'highlights': {
+        'completed_tasks': [{
+            'name': task.name,
+            'completed_date': task.date_end.strftime('%Y-%m-%d') if hasattr(task, 'date_end') and task.date_end else task.write_date.strftime('%Y-%m-%d'),
+            'user': task.user_id.name if task.user_id else ''
+        } for task in completed_tasks[:5]],
+        'in_progress': [{
+            'name': task.name,
+            'stage': task.stage_id.name,
+            'user': task.user_id.name if task.user_id else '',
+            'deadline': task.date_deadline.strftime('%Y-%m-%d') if task.date_deadline else '',
+            'progress': (sum(line.unit_amount for line in task.timesheet_ids) / task.planned_hours * 100) if hasattr(task, 'timesheet_ids') and hasattr(task, 'planned_hours') and task.planned_hours > 0 else 0
+        } for task in all_tasks.filtered(lambda t: not t.stage_id.is_closed)[:5]]
+    }
+}
+
+# Optionale Daten hinzufügen
+if budget_data:
+    result['budget'] = budget_data
+
+if issues:
+    result['issues'] = issues
+
+if milestones:
+    result['milestones'] = milestones
+
+return result
+            </field>
+        </record>
+    </data>
+</odoo> 

@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Kontextgeneratoren für Fertigungsprozesse -->
+        <record id="context_generator_manufacturing_order" model="mcp.context">
+            <field name="name">Fertigungsauftragskontext</field>
+            <field name="code">manufacturing_order</field>
+            <field name="description">Extrahiert Informationen über einen Fertigungsauftrag</field>
+            <field name="model_id" ref="mrp.model_mrp_production"/>
+            <field name="active">true</field>
+            <field name="sequence">400</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Fertigungsauftragsdaten abrufen
+if not record or not record._name == 'mrp.production':
+    return {'error': 'Kein gültiger Fertigungsauftrag ausgewählt'}
+
+production = record
+
+result = {
+    'reference': production.name,
+    'product': {
+        'name': production.product_id.name,
+        'code': production.product_id.default_code or '',
+        'category': production.product_id.categ_id.name,
+        'uom': production.product_uom_id.name
+    },
+    'quantity': production.product_qty,
+    'bom': production.bom_id.name if production.bom_id else '',
+    'date_planned_start': production.date_planned_start.strftime('%Y-%m-%d %H:%M') if production.date_planned_start else '',
+    'date_planned_finished': production.date_planned_finished.strftime('%Y-%m-%d %H:%M') if production.date_planned_finished else '',
+    'date_start': production.date_start.strftime('%Y-%m-%d %H:%M') if production.date_start else '',
+    'date_finished': production.date_finished.strftime('%Y-%m-%d %H:%M') if production.date_finished else '',
+    'state': production.state,
+    'origin': production.origin or '',
+    'location_src': production.location_src_id.name,
+    'location_dest': production.location_dest_id.name,
+    'components': [{
+        'product': move.product_id.name,
+        'code': move.product_id.default_code or '',
+        'quantity': move.product_uom_qty,
+        'uom': move.product_uom.name,
+        'state': move.state,
+        'reserved': move.reserved_availability,
+        'done': move.quantity_done
+    } for move in production.move_raw_ids],
+    'workorders': [{
+        'name': wo.name,
+        'workcenter': wo.workcenter_id.name,
+        'state': wo.state,
+        'duration_expected': wo.duration_expected,
+        'duration': wo.duration,
+        'date_start': wo.date_start.strftime('%Y-%m-%d %H:%M') if wo.date_start else '',
+        'date_finished': wo.date_finished.strftime('%Y-%m-%d %H:%M') if wo.date_finished else ''
+    } for wo in production.workorder_ids] if hasattr(production, 'workorder_ids') else []
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_manufacturing_bom" model="mcp.context">
+            <field name="name">Stücklistenkontext</field>
+            <field name="code">manufacturing_bom</field>
+            <field name="description">Extrahiert Informationen über eine Stückliste</field>
+            <field name="model_id" ref="mrp.model_mrp_bom"/>
+            <field name="active">true</field>
+            <field name="sequence">410</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Stücklistendaten abrufen
+if not record or not record._name == 'mrp.bom':
+    return {'error': 'Keine gültige Stückliste ausgewählt'}
+
+bom = record
+
+result = {
+    'name': bom.display_name,
+    'product': {
+        'name': bom.product_tmpl_id.name,
+        'code': bom.product_tmpl_id.default_code or '',
+        'variants': bom.product_tmpl_id.product_variant_count,
+        'specific_product': bom.product_id.name if bom.product_id else ''
+    },
+    'type': bom.type,  # 'normal' oder 'phantom'
+    'quantity': bom.product_qty,
+    'uom': bom.product_uom_id.name,
+    'reference': bom.code or '',
+    'active': bom.active,
+    'components': [{
+        'product': line.product_id.name,
+        'code': line.product_id.default_code or '',
+        'quantity': line.product_qty,
+        'uom': line.product_uom_id.name,
+        'operation': line.operation_id.name if hasattr(line, 'operation_id') and line.operation_id else ''
+    } for line in bom.bom_line_ids],
+    'operations': [{
+        'name': operation.name,
+        'workcenter': operation.workcenter_id.name,
+        'sequence': operation.sequence,
+        'time_cycle': operation.time_cycle,
+        'time_cycle_manual': operation.time_cycle_manual
+    } for operation in bom.operation_ids] if hasattr(bom, 'operation_ids') else []
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_manufacturing_workcenter" model="mcp.context">
+            <field name="name">Arbeitsplatzkontext</field>
+            <field name="code">manufacturing_workcenter</field>
+            <field name="description">Extrahiert Informationen über einen Arbeitsplatz</field>
+            <field name="model_id" ref="mrp.model_mrp_workcenter"/>
+            <field name="active">true</field>
+            <field name="sequence">420</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Arbeitsplatzdaten abrufen
+if not record or not record._name == 'mrp.workcenter':
+    return {'error': 'Kein gültiger Arbeitsplatz ausgewählt'}
+
+workcenter = record
+
+# Arbeitspläne für diesen Arbeitsplatz finden
+operations = env['mrp.routing.workcenter'].search([
+    ('workcenter_id', '=', workcenter.id)
+])
+
+# Aktuelle und geplante Arbeitsvorgänge
+workorders = env['mrp.workorder'].search([
+    ('workcenter_id', '=', workcenter.id),
+    ('state', 'in', ['pending', 'ready', 'progress'])
+], order='date_planned_start asc')
+
+# Kapazitätsauslastung berechnen
+today = fields.Date.today()
+start_date = fields.Date.to_string(today - timedelta(days=30))
+end_date = fields.Date.to_string(today)
+
+time_logs = env['mrp.workcenter.productivity'].search([
+    ('workcenter_id', '=', workcenter.id),
+    ('date_start', '>=', start_date),
+    ('date_start', '<=', end_date)
+])
+
+total_hours = 0
+for log in time_logs:
+    if log.date_end:
+        duration = (log.date_end - log.date_start).total_seconds() / 3600
+        total_hours += duration
+
+capacity_per_day = workcenter.time_efficiency * workcenter.resource_calendar_id.hours_per_day if workcenter.resource_calendar_id else 8
+working_days = len(set(log.date_start.date() for log in time_logs))
+capacity_utilization = (total_hours / (capacity_per_day * working_days)) * 100 if working_days > 0 else 0
+
+result = {
+    'name': workcenter.name,
+    'code': workcenter.code or '',
+    'resource': workcenter.resource_id.name if workcenter.resource_id else '',
+    'active': workcenter.active,
+    'capacity': capacity_per_day,
+    'efficiency': workcenter.time_efficiency,
+    'costs': {
+        'costs_hour': workcenter.costs_hour,
+        'costs_hour_account': workcenter.costs_hour_account_id.name if workcenter.costs_hour_account_id else ''
+    },
+    'capacity_utilization': {
+        'last_30_days': {
+            'hours': total_hours,
+            'working_days': working_days,
+            'utilization_percentage': capacity_utilization
+        }
+    },
+    'current_workorders': [{
+        'name': wo.name,
+        'production': wo.production_id.name,
+        'product': wo.product_id.name,
+        'quantity': wo.qty_production,
+        'state': wo.state,
+        'date_planned': wo.date_planned_start.strftime('%Y-%m-%d %H:%M') if wo.date_planned_start else ''
+    } for wo in workorders],
+    'operations': [{
+        'name': op.name,
+        'bom': op.bom_id.name if op.bom_id else '',
+        'product': op.bom_id.product_tmpl_id.name if op.bom_id else '',
+        'time_cycle': op.time_cycle,
+        'sequence': op.sequence
+    } for op in operations]
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_manufacturing_efficiency" model="mcp.context">
+            <field name="name">Fertigungseffizienzkontext</field>
+            <field name="code">manufacturing_efficiency</field>
+            <field name="description">Ermittelt Effizienzkennzahlen für die Fertigung</field>
+            <field name="model_id" ref="mrp.model_mrp_production"/>
+            <field name="active">true</field>
+            <field name="sequence">430</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Parameter abrufen
+date_from = params.get('date_from')
+date_to = params.get('date_to')
+
+if not date_from or not date_to:
+    # Wenn keine Daten angegeben sind, letzten Monat verwenden
+    today = fields.Date.today()
+    date_to = fields.Date.to_string(today)
+    date_from = fields.Date.to_string(today - timedelta(days=30))
+
+# Abgeschlossene Fertigungsaufträge im Zeitraum suchen
+productions = env['mrp.production'].search([
+    ('state', '=', 'done'),
+    ('date_finished', '>=', date_from),
+    ('date_finished', '<=', date_to)
+])
+
+if not productions:
+    return {
+        'error': 'Keine abgeschlossenen Fertigungsaufträge im angegebenen Zeitraum gefunden',
+        'period': {
+            'from': date_from,
+            'to': date_to
+        }
+    }
+
+# Effizienzmetriken berechnen
+total_productions = len(productions)
+total_planned_hours = 0
+total_actual_hours = 0
+total_planned_qty = 0
+total_actual_qty = 0
+on_time_count = 0
+quality_issues = 0
+
+product_stats = {}
+workcenter_stats = {}
+
+for production in productions:
+    # Geplante vs. tatsächliche Menge
+    planned_qty = production.product_qty
+    actual_qty = production.qty_produced
+    total_planned_qty += planned_qty
+    total_actual_qty += actual_qty
+    
+    # Geplante vs. tatsächliche Zeit
+    planned_hours = sum(wo.duration_expected / 60 for wo in production.workorder_ids) if hasattr(production, 'workorder_ids') else 0
+    actual_hours = sum(wo.duration / 60 for wo in production.workorder_ids) if hasattr(production, 'workorder_ids') else 0
+    total_planned_hours += planned_hours
+    total_actual_hours += actual_hours
+    
+    # Pünktlichkeit
+    if production.date_planned_finished and production.date_finished:
+        if production.date_finished <= production.date_planned_finished:
+            on_time_count += 1
+    
+    # Qualitätsprobleme
+    has_quality_issues = any(move.scrapped for move in production.move_raw_ids)
+    if has_quality_issues:
+        quality_issues += 1
+    
+    # Statistiken nach Produkt
+    product_key = production.product_id.id
+    if product_key not in product_stats:
+        product_stats[product_key] = {
+            'name': production.product_id.name,
+            'code': production.product_id.default_code or '',
+            'count': 0,
+            'planned_qty': 0,
+            'actual_qty': 0,
+            'planned_hours': 0,
+            'actual_hours': 0
+        }
+    
+    product_stats[product_key]['count'] += 1
+    product_stats[product_key]['planned_qty'] += planned_qty
+    product_stats[product_key]['actual_qty'] += actual_qty
+    product_stats[product_key]['planned_hours'] += planned_hours
+    product_stats[product_key]['actual_hours'] += actual_hours
+    
+    # Statistiken nach Arbeitsplatz
+    if hasattr(production, 'workorder_ids'):
+        for wo in production.workorder_ids:
+            workcenter_key = wo.workcenter_id.id
+            if workcenter_key not in workcenter_stats:
+                workcenter_stats[workcenter_key] = {
+                    'name': wo.workcenter_id.name,
+                    'count': 0,
+                    'planned_hours': 0,
+                    'actual_hours': 0
+                }
+            
+            workcenter_stats[workcenter_key]['count'] += 1
+            workcenter_stats[workcenter_key]['planned_hours'] += wo.duration_expected / 60
+            workcenter_stats[workcenter_key]['actual_hours'] += wo.duration / 60
+
+# Gesamtmetriken berechnen
+quantity_efficiency = (total_actual_qty / total_planned_qty * 100) if total_planned_qty > 0 else 0
+time_efficiency = (total_planned_hours / total_actual_hours * 100) if total_actual_hours > 0 else 0
+on_time_delivery = (on_time_count / total_productions * 100) if total_productions > 0 else 0
+quality_rate = ((total_productions - quality_issues) / total_productions * 100) if total_productions > 0 else 0
+overall_oee = (quantity_efficiency * time_efficiency * (100 - quality_rate) / 10000) if quality_rate > 0 else 0
+
+# Produktstatistiken aufbereiten
+products_efficiency = []
+for product_id, stats in product_stats.items():
+    qty_efficiency = (stats['actual_qty'] / stats['planned_qty'] * 100) if stats['planned_qty'] > 0 else 0
+    time_efficiency = (stats['planned_hours'] / stats['actual_hours'] * 100) if stats['actual_hours'] > 0 else 0
+    
+    products_efficiency.append({
+        'name': stats['name'],
+        'code': stats['code'],
+        'count': stats['count'],
+        'quantity_efficiency': qty_efficiency,
+        'time_efficiency': time_efficiency
+    })
+
+# Arbeitsplatzstatistiken aufbereiten
+workcenters_efficiency = []
+for workcenter_id, stats in workcenter_stats.items():
+    wc_time_efficiency = (stats['planned_hours'] / stats['actual_hours'] * 100) if stats['actual_hours'] > 0 else 0
+    
+    workcenters_efficiency.append({
+        'name': stats['name'],
+        'count': stats['count'],
+        'time_efficiency': wc_time_efficiency,
+        'planned_hours': stats['planned_hours'],
+        'actual_hours': stats['actual_hours']
+    })
+
+result = {
+    'period': {
+        'from': date_from,
+        'to': date_to
+    },
+    'overview': {
+        'total_productions': total_productions,
+        'total_planned_qty': total_planned_qty,
+        'total_actual_qty': total_actual_qty,
+        'total_planned_hours': total_planned_hours,
+        'total_actual_hours': total_actual_hours
+    },
+    'efficiency': {
+        'quantity_efficiency': quantity_efficiency,
+        'time_efficiency': time_efficiency,
+        'on_time_delivery': on_time_delivery,
+        'quality_rate': quality_rate,
+        'overall_oee': overall_oee
+    },
+    'products': products_efficiency,
+    'workcenters': workcenters_efficiency
+}
+return result
+            </field>
+        </record>
+    </data>
+</odoo> 

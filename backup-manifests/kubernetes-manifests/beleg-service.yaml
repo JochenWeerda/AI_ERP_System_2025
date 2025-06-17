@@ -1,0 +1,245 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beleg-service
+  namespace: erp-system
+  labels:
+    app: beleg-service
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beleg-service
+  template:
+    metadata:
+      labels:
+        app: beleg-service
+      annotations:
+        # Prometheus-Annotationen für Metrik-Scraping
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8020"
+        prometheus.io/path: "/metrics"
+        # Jaeger-Annotationen für Tracing
+        jaeger.erp-system.svc.cluster.local/inject: "true"
+        jaeger.erp-system.svc.cluster.local/service-name: "beleg-service"
+    spec:
+      containers:
+      - name: beleg-service
+        image: nginx:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 8021
+          name: metrics
+        env:
+        # Umgebungsvariablen für Metriken
+        - name: ENABLE_METRICS
+          value: "true"
+        - name: METRICS_PATH
+          value: "/metrics"
+        - name: METRICS_PORT
+          value: "8020"
+        # Umgebungsvariablen für Jaeger Tracing
+        - name: JAEGER_AGENT_HOST
+          value: "erp-jaeger-agent.erp-system.svc.cluster.local"
+        - name: JAEGER_AGENT_PORT
+          value: "6831"
+        - name: JAEGER_SAMPLER_TYPE
+          value: "const"
+        - name: JAEGER_SAMPLER_PARAM
+          value: "1"
+        - name: JAEGER_SERVICE_NAME
+          value: "beleg-service"
+        - name: ENABLE_TRACING
+          value: "true"
+        # Umgebungsvariablen für strukturiertes Logging
+        - name: LOG_LEVEL
+          value: "info"
+        - name: LOG_FORMAT
+          value: "json"
+        - name: ELASTICSEARCH_HOST
+          value: "elasticsearch.erp-system.svc.cluster.local:9200"
+        - name: USE_ELASTICSEARCH
+          value: "true"
+        # Spezifische Umgebungsvariablen für den Beleg-Service
+        - name: DOCUMENT_STORAGE_PATH
+          value: "/app/data/documents"
+        - name: OCR_ENABLED
+          value: "true"
+        - name: DOCUMENT_CACHE_TTL
+          value: "300"
+        volumeMounts:
+        # Volume für Metriken-Konfiguration
+        - name: metrics-config
+          mountPath: /app/config/metrics
+          readOnly: true
+        # Volume für Tracing-Konfiguration
+        - name: tracing-config
+          mountPath: /app/config/tracing
+          readOnly: true
+        # Volume für Dokumente
+        - name: document-storage
+          mountPath: /app/data/documents
+        # Health Probes für Kubernetes
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+      volumes:
+      # ConfigMap für Metriken
+      - name: metrics-config
+        configMap:
+          name: beleg-service-metrics-config
+      # ConfigMap für Tracing
+      - name: tracing-config
+        configMap:
+          name: beleg-service-tracing-config
+      # PersistentVolumeClaim für Dokumente
+      - name: document-storage
+        persistentVolumeClaim:
+          claimName: beleg-service-document-storage
+---
+# Service für den Beleg-Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: beleg-service
+  namespace: erp-system
+  labels:
+    app: beleg-service
+spec:
+  selector:
+    app: beleg-service
+  ports:
+  - name: http
+    port: 8020
+    targetPort: 80
+  - name: metrics
+    port: 8021
+    targetPort: 8021
+  type: ClusterIP
+---
+# ConfigMap für Metriken-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: beleg-service-metrics-config
+  namespace: erp-system
+data:
+  metrics.yml: |
+    # Metriken-Konfiguration für Beleg-Service
+    metrics:
+      enabled: true
+      endpoint: /metrics
+      port: 8020
+      collectors:
+        - type: counter
+          name: document_operations_total
+          help: "Gesamtzahl der Dokumentenoperationen"
+          labels:
+            - operation_type
+            - document_type
+            - status
+        - type: histogram
+          name: document_processing_duration_seconds
+          help: "Dauer der Dokumentenverarbeitung in Sekunden"
+          labels:
+            - operation_type
+            - document_type
+          buckets: [0.1, 0.5, 1, 2.5, 5, 10, 30, 60, 120]
+        - type: gauge
+          name: document_storage_size_bytes
+          help: "Größe des Dokumentenspeichers in Bytes"
+          labels:
+            - document_type
+        - type: counter
+          name: ocr_operations_total
+          help: "Gesamtzahl der OCR-Operationen"
+          labels:
+            - status
+            - document_type
+        - type: histogram
+          name: ocr_processing_duration_seconds
+          help: "Dauer der OCR-Verarbeitung in Sekunden"
+          labels:
+            - document_type
+          buckets: [0.5, 1, 2.5, 5, 10, 30, 60, 120, 300]
+        - type: gauge
+          name: document_queue_size
+          help: "Anzahl der Dokumente in der Verarbeitungswarteschlange"
+          labels:
+            - queue_type
+---
+# ConfigMap für Tracing-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: beleg-service-tracing-config
+  namespace: erp-system
+data:
+  tracing.yml: |
+    # Tracing-Konfiguration für Beleg-Service
+    tracing:
+      enabled: true
+      service_name: beleg-service
+      jaeger:
+        agent_host: erp-jaeger-agent.erp-system.svc.cluster.local
+        agent_port: 6831
+        sampler_type: const
+        sampler_param: 1
+      # Operation-Tags für bessere Kategorisierung der Traces
+      operation_tags:
+        - key: document_id
+          tag_as: document.id
+        - key: user_id
+          tag_as: user.id
+        - key: document_type
+          tag_as: document.type
+        - key: operation_type
+          tag_as: operation.type
+      # Optionen für detaillierte Tracing-Spans
+      span_options:
+        include_request_headers:
+          - content-type
+          - authorization
+          - x-request-id
+        include_response_headers:
+          - content-type
+          - content-length
+        include_payload: false
+        include_metadata: true
+---
+# PersistentVolumeClaim für Dokumentenspeicher
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: beleg-service-document-storage
+  namespace: erp-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path 

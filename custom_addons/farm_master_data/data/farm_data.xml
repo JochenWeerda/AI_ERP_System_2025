@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Beispiel-Kulturen -->
+        <record id="crop_wheat" model="farm.crop">
+            <field name="name">Weizen</field>
+            <field name="code">WW</field>
+            <field name="crop_type">cereal</field>
+            <field name="scientific_name">Triticum aestivum</field>
+            <field name="family">Poaceae</field>
+            <field name="growing_season">winter</field>
+            <field name="days_to_harvest">270</field>
+            <field name="seeding_rate">180</field>
+            <field name="seeding_depth">3</field>
+            <field name="row_spacing">12.5</field>
+            <field name="nitrogen_need">220</field>
+            <field name="phosphorus_need">80</field>
+            <field name="potassium_need">70</field>
+            <field name="expected_yield_min">70</field>
+            <field name="expected_yield_max">110</field>
+        </record>
+        
+        <!-- Zusätzliche Weizensorten -->
+        <record id="crop_wheat_winter_a" model="farm.crop">
+            <field name="name">Winterweizen A</field>
+            <field name="code">WWA</field>
+            <field name="crop_type">cereal</field>
+            <field name="scientific_name">Triticum aestivum</field>
+            <field name="family">Poaceae</field>
+            <field name="variety">A-Weizen</field>
+            <field name="growing_season">winter</field>
+            <field name="days_to_harvest">275</field>
+            <field name="seeding_rate">170</field>
+            <field name="seeding_depth">3</field>
+            <field name="row_spacing">12.5</field>
+            <field name="nitrogen_need">220</field>
+            <field name="phosphorus_need">80</field>
+            <field name="potassium_need">70</field>
+            <field name="expected_yield_min">75</field>
+            <field name="expected_yield_max">115</field>
+        </record>
+        
+        <record id="crop_wheat_winter_e" model="farm.crop">
+            <field name="name">Winterweizen E</field>
+            <field name="code">WWE</field>
+            <field name="crop_type">cereal</field>
+            <field name="scientific_name">Triticum aestivum</field>
+            <field name="family">Poaceae</field>
+            <field name="variety">Eliteweizen</field>
+            <field name="growing_season">winter</field>
+            <field name="days_to_harvest">280</field>
+            <field name="seeding_rate">180</field>
+            <field name="seeding_depth">3</field>
+            <field name="row_spacing">12.5</field>
+            <field name="nitrogen_need">230</field>
+            <field name="phosphorus_need">85</field>
+            <field name="potassium_need">75</field>
+            <field name="expected_yield_min">65</field>
+            <field name="expected_yield_max">95</field>
+        </record>
+        
+        <record id="crop_wheat_summer" model="farm.crop">
+            <field name="name">Sommerweizen</field>
+            <field name="code">SW</field>
+            <field name="crop_type">cereal</field>
+            <field name="scientific_name">Triticum aestivum</field>
+            <field name="family">Poaceae</field>
+            <field name="growing_season">summer</field>
+            <field name="days_to_harvest">180</field>
+            <field name="seeding_rate">200</field>
+            <field name="seeding_depth">3</field>
+            <field name="row_spacing">12.5</field>
+            <field name="nitrogen_need">180</field>
+            <field name="phosphorus_need">70</field>
+            <field name="potassium_need">65</field>
+            <field name="expected_yield_min">55</field>
+            <field name="expected_yield_max">85</field>
+        </record>
+        
+        <record id="crop_durum_wheat" model="farm.crop">
+            <field name="name">Durumweizen</field>
+            <field name="code">DW</field>
+            <field name="crop_type">cereal</field>
+            <field name="scientific_name">Triticum durum</field>
+            <field name="family">Poaceae</field>
+            <field name="growing_season">summer</field>
+            <field name="days_to_harvest">170</field>
+            <field name="seeding_rate">190</field>
+            <field name="seeding_depth">3</field>
+            <field name="row_spacing">12.5</field>
+            <field name="nitrogen_need">200</field>
+            <field name="phosphorus_need">75</field>
+            <field name="potassium_need">65</field>
+            <field name="expected_yield_min">50</field>
+            <field name="expected_yield_max">75</field>
+        </record>
+        
+        <record id="crop_barley" model="farm.crop">
+            <field name="name">Gerste</field>
+            <field name="code">GE</field>
+            <field name="crop_type">cereal</field>
+            <field name="scientific_name">Hordeum vulgare</field>
+            <field name="family">Poaceae</field>
+            <field name="growing_season">winter</field>
+            <field name="days_to_harvest">250</field>
+            <field name="seeding_rate">160</field>
+            <field name="seeding_depth">3</field>
+            <field name="row_spacing">12.5</field>
+            <field name="nitrogen_need">180</field>
+            <field name="phosphorus_need">60</field>
+            <field name="potassium_need">60</field>
+            <field name="expected_yield_min">60</field>
+            <field name="expected_yield_max">90</field>
+        </record>
+        
+        <record id="crop_corn" model="farm.crop">
+            <field name="name">Mais</field>
+            <field name="code">MA</field>
+            <field name="crop_type">cereal</field>
+            <field name="scientific_name">Zea mays</field>
+            <field name="family">Poaceae</field>
+            <field name="growing_season">summer</field>
+            <field name="days_to_harvest">140</field>
+            <field name="seeding_rate">25</field>
+            <field name="seeding_depth">5</field>
+            <field name="row_spacing">75</field>
+            <field name="nitrogen_need">240</field>
+            <field name="phosphorus_need">90</field>
+            <field name="potassium_need">80</field>
+            <field name="expected_yield_min">90</field>
+            <field name="expected_yield_max">130</field>
+        </record>
+        
+        <record id="crop_canola" model="farm.crop">
+            <field name="name">Raps</field>
+            <field name="code">RA</field>
+            <field name="crop_type">oilseed</field>
+            <field name="scientific_name">Brassica napus</field>
+            <field name="family">Brassicaceae</field>
+            <field name="growing_season">winter</field>
+            <field name="days_to_harvest">320</field>
+            <field name="seeding_rate">3.5</field>
+            <field name="seeding_depth">1.5</field>
+            <field name="row_spacing">12.5</field>
+            <field name="nitrogen_need">200</field>
+            <field name="phosphorus_need">70</field>
+            <field name="potassium_need">60</field>
+            <field name="expected_yield_min">35</field>
+            <field name="expected_yield_max">50</field>
+        </record>
+        
+        <record id="crop_potato" model="farm.crop">
+            <field name="name">Kartoffel</field>
+            <field name="code">KA</field>
+            <field name="crop_type">tuber</field>
+            <field name="scientific_name">Solanum tuberosum</field>
+            <field name="family">Solanaceae</field>
+            <field name="growing_season">summer</field>
+            <field name="days_to_harvest">120</field>
+            <field name="seeding_rate">2000</field>
+            <field name="seeding_depth">10</field>
+            <field name="row_spacing">75</field>
+            <field name="nitrogen_need">180</field>
+            <field name="phosphorus_need">90</field>
+            <field name="potassium_need">300</field>
+            <field name="expected_yield_min">350</field>
+            <field name="expected_yield_max">500</field>
+        </record>
+        
+        <record id="crop_soybean" model="farm.crop">
+            <field name="name">Sojabohne</field>
+            <field name="code">SB</field>
+            <field name="crop_type">legume</field>
+            <field name="scientific_name">Glycine max</field>
+            <field name="family">Fabaceae</field>
+            <field name="growing_season">summer</field>
+            <field name="days_to_harvest">130</field>
+            <field name="seeding_rate">120</field>
+            <field name="seeding_depth">4</field>
+            <field name="row_spacing">50</field>
+            <field name="nitrogen_need">30</field>
+            <field name="phosphorus_need">70</field>
+            <field name="potassium_need">120</field>
+            <field name="expected_yield_min">25</field>
+            <field name="expected_yield_max">40</field>
+        </record>
+    </data>
+</odoo> 

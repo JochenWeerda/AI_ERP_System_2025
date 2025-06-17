@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Formularansicht -->
+    <record id="view_valeo_analytics_form" model="ir.ui.view">
+        <field name="name">valeo.analytics.form</field>
+        <field name="model">valeo.analytics</field>
+        <field name="arch" type="xml">
+            <form string="Analytik">
+                <header>
+                    <button name="action_run_analytics" string="Ausführen" type="object" class="oe_highlight" states="draft,done,error"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,done,error"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="analytics_type"/>
+                            <field name="description"/>
+                            <field name="last_run"/>
+                        </group>
+                        <group>
+                            <field name="scheduled"/>
+                            <field name="interval_number" attrs="{'invisible': [('scheduled', '=', False)]}"/>
+                            <field name="interval_type" attrs="{'invisible': [('scheduled', '=', False)]}"/>
+                            <field name="next_run" attrs="{'invisible': [('scheduled', '=', False)]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Datenquelle">
+                            <group>
+                                <field name="model_id"/>
+                                <field name="domain"/>
+                                <field name="fields_list"/>
+                                <field name="groupby"/>
+                                <field name="orderby"/>
+                                <field name="limit"/>
+                            </group>
+                        </page>
+                        <page string="Visualisierung">
+                            <group>
+                                <field name="chart_type"/>
+                                <field name="chart_options"/>
+                            </group>
+                        </page>
+                        <page string="KI-Konfiguration">
+                            <group>
+                                <field name="enable_ai"/>
+                                <field name="ai_model" attrs="{'invisible': [('enable_ai', '=', False)]}"/>
+                                <field name="ai_parameters" attrs="{'invisible': [('enable_ai', '=', False)]}"/>
+                                <field name="feature_fields" attrs="{'invisible': [('enable_ai', '=', False)]}"/>
+                                <field name="target_field" attrs="{'invisible': [('enable_ai', '=', False)]}"/>
+                                <field name="training_ratio" attrs="{'invisible': [('enable_ai', '=', False)]}"/>
+                            </group>
+                        </page>
+                        <page string="Ergebnisse" attrs="{'invisible': [('state', 'not in', ['done', 'error'])]}">
+                            <group>
+                                <field name="result_data"/>
+                                <field name="result_metrics"/>
+                            </group>
+                            <div class="oe_chart" attrs="{'invisible': [('result_data', '=', False)]}">
+                                <!-- Hier würde in einer realen Implementierung ein JavaScript-Widget für die Diagrammdarstellung eingebunden -->
+                                <p>Diagrammdarstellung (erfordert JavaScript-Widget)</p>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Baumansicht -->
+    <record id="view_valeo_analytics_tree" model="ir.ui.view">
+        <field name="name">valeo.analytics.tree</field>
+        <field name="model">valeo.analytics</field>
+        <field name="arch" type="xml">
+            <tree string="Analytiken" decoration-info="state == 'draft'" decoration-success="state == 'done'" decoration-danger="state == 'error'" decoration-warning="state == 'running'">
+                <field name="name"/>
+                <field name="analytics_type"/>
+                <field name="model_id"/>
+                <field name="chart_type"/>
+                <field name="enable_ai"/>
+                <field name="scheduled"/>
+                <field name="last_run"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Suchansicht -->
+    <record id="view_valeo_analytics_search" model="ir.ui.view">
+        <field name="name">valeo.analytics.search</field>
+        <field name="model">valeo.analytics</field>
+        <field name="arch" type="xml">
+            <search string="Analytiken suchen">
+                <field name="name"/>
+                <field name="analytics_type"/>
+                <field name="model_id"/>
+                <field name="chart_type"/>
+                <filter string="KI aktiviert" name="ai_enabled" domain="[('enable_ai', '=', True)]"/>
+                <filter string="Geplant" name="scheduled" domain="[('scheduled', '=', True)]"/>
+                <separator/>
+                <filter string="Entwurf" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Wird ausgeführt" name="running" domain="[('state', '=', 'running')]"/>
+                <filter string="Abgeschlossen" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Fehler" name="error" domain="[('state', '=', 'error')]"/>
+                <group expand="0" string="Gruppieren nach">
+                    <filter string="Analytik-Typ" name="group_by_type" context="{'group_by': 'analytics_type'}"/>
+                    <filter string="Datenmodell" name="group_by_model" context="{'group_by': 'model_id'}"/>
+                    <filter string="Diagrammtyp" name="group_by_chart" context="{'group_by': 'chart_type'}"/>
+                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Kanban-Ansicht -->
+    <record id="view_valeo_analytics_kanban" model="ir.ui.view">
+        <field name="name">valeo.analytics.kanban</field>
+        <field name="model">valeo.analytics</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="1" sample="1">
+                <field name="name"/>
+                <field name="analytics_type"/>
+                <field name="model_id"/>
+                <field name="chart_type"/>
+                <field name="enable_ai"/>
+                <field name="state"/>
+                <field name="last_run"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click o_kanban_record_has_image_fill">
+                            <div class="o_kanban_image_fill_left d-none d-md-block" t-attf-style="background-color: #{kanban_color(record.analytics_type.raw_value)}">
+                                <i t-if="record.analytics_type.raw_value == 'dashboard'" class="fa fa-tachometer fa-3x" role="img" aria-label="Dashboard" title="Dashboard"/>
+                                <i t-elif="record.analytics_type.raw_value == 'report'" class="fa fa-file-text fa-3x" role="img" aria-label="Bericht" title="Bericht"/>
+                                <i t-elif="record.analytics_type.raw_value == 'prediction'" class="fa fa-line-chart fa-3x" role="img" aria-label="Vorhersage" title="Vorhersage"/>
+                                <i t-elif="record.analytics_type.raw_value == 'anomaly'" class="fa fa-exclamation-triangle fa-3x" role="img" aria-label="Anomalie" title="Anomalie"/>
+                                <i t-elif="record.analytics_type.raw_value == 'clustering'" class="fa fa-object-group fa-3x" role="img" aria-label="Clustering" title="Clustering"/>
+                                <i t-else="1" class="fa fa-bar-chart fa-3x" role="img" aria-label="Analytik" title="Analytik"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="name"/>
+                                        </strong>
+                                    </div>
+                                    <div class="o_dropdown_kanban dropdown">
+                                        <a class="dropdown-toggle o-no-caret btn" data-toggle="dropdown" href="#" role="button">
+                                            <span class="fa fa-ellipsis-v"/>
+                                        </a>
+                                        <div class="dropdown-menu" role="menu">
+                                            <a t-if="widget.editable" role="menuitem" type="edit" class="dropdown-item">Bearbeiten</a>
+                                            <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Löschen</a>
+                                            <a role="menuitem" name="action_run_analytics" type="object" class="dropdown-item">Ausführen</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div>
+                                        <strong>Modell: </strong><field name="model_id"/>
+                                    </div>
+                                    <div>
+                                        <strong>Diagramm: </strong><field name="chart_type"/>
+                                    </div>
+                                    <div t-if="record.enable_ai.raw_value">
+                                        <span class="badge badge-info">KI aktiviert</span>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="last_run" widget="date"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="state" widget="label_selection" options="{'classes': {'draft': 'default', 'running': 'warning', 'done': 'success', 'error': 'danger'}}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    
+    <!-- Aktionen -->
+    <record id="action_valeo_analytics_view" model="ir.actions.act_window">
+        <field name="name">Analytik</field>
+        <field name="res_model">valeo.analytics</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="view_valeo_analytics_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Erstellen Sie Ihre erste Analytik!
+            </p>
+            <p>
+                Analytiken ermöglichen Ihnen, Ihre Daten zu visualisieren und mit KI-Unterstützung zu analysieren.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menüeinträge -->
+    <menuitem id="menu_valeo_analytics_root"
+              name="Analytik"
+              parent="valeo_enterprise_suite.menu_valeo_root"
+              sequence="40"/>
+    
+    <menuitem id="menu_valeo_analytics_all"
+              name="Alle Analytiken"
+              parent="menu_valeo_analytics_root"
+              action="action_valeo_analytics_view"
+              sequence="10"/>
+    
+    <!-- Geplante Aktionen -->
+    <record id="ir_cron_run_scheduled_analytics" model="ir.cron">
+        <field name="name">VALEO: Geplante Analytiken ausführen</field>
+        <field name="model_id" ref="model_valeo_analytics"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_run_scheduled_analytics()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+        <field name="active" eval="True"/>
+    </record>
+</odoo> 

@@ -1,0 +1,282 @@
+# Kubernetes-Manifest für Datenbanken
+# MongoDB für Dokumente und PostgreSQL für Finanzdaten
+
+# MongoDB für Document-Service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-config
+  namespace: erp-system
+  labels:
+    app: mongodb
+    component: database
+data:
+  mongodb.conf: |
+    # MongoDB Konfiguration
+    storage:
+      dbPath: /data/db
+    net:
+      port: 27017
+      bindIp: 0.0.0.0
+    security:
+      authorization: disabled
+    setParameter:
+      enableLocalhostAuthBypass: true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-data
+  namespace: erp-system
+  labels:
+    app: mongodb
+    component: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  namespace: erp-system
+  labels:
+    app: mongodb
+    component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        component: database
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:4.4
+        ports:
+        - containerPort: 27017
+          name: mongodb
+        env:
+        - name: MONGO_INITDB_DATABASE
+          value: "documents"
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+        - name: mongodb-config
+          mountPath: /etc/mongo/mongodb.conf
+          subPath: mongodb.conf
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: mongodb-data
+        persistentVolumeClaim:
+          claimName: mongodb-data
+      - name: mongodb-config
+        configMap:
+          name: mongodb-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  namespace: erp-system
+  labels:
+    app: mongodb
+    component: database
+spec:
+  selector:
+    app: mongodb
+  ports:
+  - port: 27017
+    targetPort: 27017
+    name: mongodb
+  type: ClusterIP
+---
+# PostgreSQL für Finance-Service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: erp-system
+  labels:
+    app: postgres
+    component: database
+data:
+  postgresql.conf: |
+    # PostgreSQL Konfiguration
+    listen_addresses = '*'
+    max_connections = 100
+    shared_buffers = 128MB
+    log_timezone = 'UTC'
+    datestyle = 'iso, mdy'
+    timezone = 'UTC'
+    log_statement = 'none'
+    log_duration = off
+    log_min_duration_statement = 250ms
+    
+  pg_hba.conf: |
+    # TYPE  DATABASE        USER            ADDRESS                 METHOD
+    local   all             all                                     trust
+    host    all             all             127.0.0.1/32            trust
+    host    all             all             ::1/128                 trust
+    host    all             all             0.0.0.0/0               md5
+    
+  init-db.sql: |
+    CREATE DATABASE finance;
+    \c finance;
+    
+    CREATE TABLE accounts (
+      id SERIAL PRIMARY KEY,
+      account_number VARCHAR(20) NOT NULL UNIQUE,
+      name VARCHAR(100) NOT NULL,
+      account_type VARCHAR(50) NOT NULL,
+      balance DECIMAL(15, 2) DEFAULT 0.00,
+      currency VARCHAR(3) DEFAULT 'EUR',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE transactions (
+      id SERIAL PRIMARY KEY,
+      transaction_number VARCHAR(50) NOT NULL UNIQUE,
+      transaction_date TIMESTAMP NOT NULL,
+      account_id INTEGER REFERENCES accounts(id),
+      amount DECIMAL(15, 2) NOT NULL,
+      description TEXT,
+      reference_number VARCHAR(50),
+      category VARCHAR(50),
+      status VARCHAR(20) DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE documents (
+      id SERIAL PRIMARY KEY,
+      document_number VARCHAR(50) NOT NULL,
+      transaction_id INTEGER REFERENCES transactions(id),
+      document_type VARCHAR(50) NOT NULL,
+      file_path VARCHAR(255),
+      uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      status VARCHAR(20) DEFAULT 'active'
+    );
+    
+    -- Erstelle ein paar Beispielkonten
+    INSERT INTO accounts (account_number, name, account_type, balance, currency)
+    VALUES 
+      ('1000', 'Kasse', 'asset', 1000.00, 'EUR'),
+      ('1200', 'Bank', 'asset', 5000.00, 'EUR'),
+      ('3000', 'Warenbestand', 'asset', 7500.00, 'EUR'),
+      ('6000', 'Betriebsausgaben', 'expense', 0.00, 'EUR'),
+      ('8000', 'Umsatzerlöse', 'income', 0.00, 'EUR');
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: erp-system
+  labels:
+    app: postgres
+    component: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: erp-system
+  labels:
+    app: postgres
+    component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: postgres
+        component: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "postgres"
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_DB
+          value: "postgres"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        - name: postgres-config
+          mountPath: /etc/postgresql/pg_hba.conf
+          subPath: pg_hba.conf
+        - name: postgres-init
+          mountPath: /docker-entrypoint-initdb.d/init-db.sql
+          subPath: init-db.sql
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-data
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+      - name: postgres-init
+        configMap:
+          name: postgres-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: erp-system
+  labels:
+    app: postgres
+    component: database
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  type: ClusterIP 

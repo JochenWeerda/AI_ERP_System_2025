@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- CPD-Kontenanalyse -->
+    <record id="view_cpd_account_analysis_tree" model="ir.ui.view">
+        <field name="name">cpd.account.analysis.tree</field>
+        <field name="model">cpd.account.analysis</field>
+        <field name="arch" type="xml">
+            <tree string="CPD-Kontenanalyse" create="false" edit="false" delete="false">
+                <field name="date"/>
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <field name="move_id"/>
+                <field name="debit" sum="Gesamt Soll"/>
+                <field name="credit" sum="Gesamt Haben"/>
+                <field name="balance" sum="Gesamt Saldo"/>
+                <field name="reconciled"/>
+                <field name="days_outstanding" avg="Durchschn. Tage"/>
+                <field name="currency_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="view_cpd_account_analysis_pivot" model="ir.ui.view">
+        <field name="name">cpd.account.analysis.pivot</field>
+        <field name="model">cpd.account.analysis</field>
+        <field name="arch" type="xml">
+            <pivot string="CPD-Kontenanalyse" display_quantity="true">
+                <field name="partner_id" type="row"/>
+                <field name="account_id" type="row"/>
+                <field name="fiscal_month" type="col"/>
+                <field name="debit" type="measure"/>
+                <field name="credit" type="measure"/>
+                <field name="balance" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <record id="view_cpd_account_analysis_graph" model="ir.ui.view">
+        <field name="name">cpd.account.analysis.graph</field>
+        <field name="model">cpd.account.analysis</field>
+        <field name="arch" type="xml">
+            <graph string="CPD-Kontenanalyse" type="line">
+                <field name="fiscal_month"/>
+                <field name="balance" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <record id="view_cpd_account_analysis_search" model="ir.ui.view">
+        <field name="name">cpd.account.analysis.search</field>
+        <field name="model">cpd.account.analysis</field>
+        <field name="arch" type="xml">
+            <search string="CPD-Kontenanalyse">
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <field name="move_id"/>
+                <field name="account_group_code"/>
+                <field name="date"/>
+                <filter name="filter_this_year" string="Aktuelles Jahr" domain="[('date', '&gt;=', time.strftime('%Y-01-01'))]"/>
+                <filter name="filter_this_month" string="Aktueller Monat" domain="[('date', '&gt;=', context_today().strftime('%Y-%m-01'))]"/>
+                <filter name="filter_reconciled" string="Ausgeglichen" domain="[('reconciled', '=', True)]"/>
+                <filter name="filter_unreconciled" string="Offen" domain="[('reconciled', '=', False)]"/>
+                <filter name="filter_alternative_cpd" string="Alternative CPD-Konten" domain="[('is_alternative_cpd', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_partner" string="Partner" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_by_account" string="Konto" context="{'group_by': 'account_id'}"/>
+                    <filter name="group_by_date" string="Datum" context="{'group_by': 'date'}"/>
+                    <filter name="group_by_fiscal_year" string="Geschäftsjahr" context="{'group_by': 'fiscal_year'}"/>
+                    <filter name="group_by_fiscal_quarter" string="Quartal" context="{'group_by': 'fiscal_quarter'}"/>
+                    <filter name="group_by_fiscal_month" string="Monat" context="{'group_by': 'fiscal_month'}"/>
+                    <filter name="group_by_journal" string="Journal" context="{'group_by': 'journal_id'}"/>
+                    <filter name="group_by_move_type" string="Buchungstyp" context="{'group_by': 'move_type'}"/>
+                    <filter name="group_by_status" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <record id="action_cpd_account_analysis" model="ir.actions.act_window">
+        <field name="name">CPD-Kontenanalyse</field>
+        <field name="res_model">cpd.account.analysis</field>
+        <field name="view_mode">tree,pivot,graph</field>
+        <field name="search_view_id" ref="view_cpd_account_analysis_search"/>
+        <field name="context">{'search_default_filter_this_year': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keine Daten für die CPD-Kontenanalyse verfügbar
+            </p>
+            <p>
+                Diese Ansicht zeigt detaillierte Transaktionen auf CPD-Konten (Conto pro diverse).
+            </p>
+        </field>
+    </record>
+    
+    <!-- CPD-Kontenzusammenfassung -->
+    <record id="view_cpd_account_summary_tree" model="ir.ui.view">
+        <field name="name">cpd.account.summary.tree</field>
+        <field name="model">cpd.account.summary</field>
+        <field name="arch" type="xml">
+            <tree string="CPD-Kontenzusammenfassung" create="false" edit="false" delete="false">
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <field name="total_debit" sum="Gesamt Soll"/>
+                <field name="total_credit" sum="Gesamt Haben"/>
+                <field name="balance" sum="Gesamt Saldo"/>
+                <field name="transaction_count" sum="Gesamtzahl Transaktionen"/>
+                <field name="avg_transaction_amount" avg="Durchschn. Betrag"/>
+                <field name="last_transaction_date"/>
+                <field name="open_items_count" sum="Anzahl offene Posten"/>
+                <field name="open_items_balance" sum="Saldo offene Posten"/>
+                <field name="avg_days_to_settle" avg="Durchschn. Ausgleichsdauer"/>
+                <field name="currency_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="view_cpd_account_summary_pivot" model="ir.ui.view">
+        <field name="name">cpd.account.summary.pivot</field>
+        <field name="model">cpd.account.summary</field>
+        <field name="arch" type="xml">
+            <pivot string="CPD-Kontenzusammenfassung">
+                <field name="partner_id" type="row"/>
+                <field name="account_id" type="row"/>
+                <field name="balance" type="measure"/>
+                <field name="open_items_balance" type="measure"/>
+                <field name="transaction_count" type="measure"/>
+                <field name="avg_days_to_settle" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <record id="view_cpd_account_summary_graph" model="ir.ui.view">
+        <field name="name">cpd.account.summary.graph</field>
+        <field name="model">cpd.account.summary</field>
+        <field name="arch" type="xml">
+            <graph string="CPD-Kontenzusammenfassung" type="bar">
+                <field name="partner_id"/>
+                <field name="balance" type="measure"/>
+                <field name="open_items_balance" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <record id="view_cpd_account_summary_search" model="ir.ui.view">
+        <field name="name">cpd.account.summary.search</field>
+        <field name="model">cpd.account.summary</field>
+        <field name="arch" type="xml">
+            <search string="CPD-Kontenzusammenfassung">
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <filter name="filter_with_open_items" string="Mit offenen Posten" domain="[('open_items_count', '>', 0)]"/>
+                <filter name="filter_debit_balance" string="Debitorischer Saldo" domain="[('balance', '>', 0)]"/>
+                <filter name="filter_credit_balance" string="Kreditorischer Saldo" domain="[('balance', '&lt;', 0)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_partner" string="Partner" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_by_account" string="Konto" context="{'group_by': 'account_id'}"/>
+                    <filter name="group_by_company" string="Unternehmen" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <record id="action_cpd_account_summary" model="ir.actions.act_window">
+        <field name="name">CPD-Kontenzusammenfassung</field>
+        <field name="res_model">cpd.account.summary</field>
+        <field name="view_mode">tree,pivot,graph</field>
+        <field name="search_view_id" ref="view_cpd_account_summary_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keine Daten für die CPD-Kontenzusammenfassung verfügbar
+            </p>
+            <p>
+                Diese Ansicht zeigt aggregierte Daten für CPD-Konten (Conto pro diverse) nach Partner und Konto.
+            </p>
+        </field>
+    </record>
+    
+    <!-- CPD-Fälligkeitsbericht -->
+    <record id="view_cpd_aging_report_tree" model="ir.ui.view">
+        <field name="name">cpd.aging.report.tree</field>
+        <field name="model">cpd.aging.report</field>
+        <field name="arch" type="xml">
+            <tree string="CPD-Fälligkeitsbericht" create="false" edit="false" delete="false">
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <field name="not_due" sum="Nicht fällig"/>
+                <field name="days_1_30" sum="1-30 Tage"/>
+                <field name="days_31_60" sum="31-60 Tage"/>
+                <field name="days_61_90" sum="61-90 Tage"/>
+                <field name="days_91_120" sum="91-120 Tage"/>
+                <field name="days_120_plus" sum="> 120 Tage"/>
+                <field name="total" sum="Gesamt"/>
+                <field name="currency_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="view_cpd_aging_report_pivot" model="ir.ui.view">
+        <field name="name">cpd.aging.report.pivot</field>
+        <field name="model">cpd.aging.report</field>
+        <field name="arch" type="xml">
+            <pivot string="CPD-Fälligkeitsbericht">
+                <field name="partner_id" type="row"/>
+                <field name="account_id" type="row"/>
+                <field name="not_due" type="measure"/>
+                <field name="days_1_30" type="measure"/>
+                <field name="days_31_60" type="measure"/>
+                <field name="days_61_90" type="measure"/>
+                <field name="days_91_120" type="measure"/>
+                <field name="days_120_plus" type="measure"/>
+                <field name="total" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <record id="view_cpd_aging_report_graph" model="ir.ui.view">
+        <field name="name">cpd.aging.report.graph</field>
+        <field name="model">cpd.aging.report</field>
+        <field name="arch" type="xml">
+            <graph string="CPD-Fälligkeitsbericht" type="bar" stacked="True">
+                <field name="partner_id"/>
+                <field name="days_1_30" type="measure"/>
+                <field name="days_31_60" type="measure"/>
+                <field name="days_61_90" type="measure"/>
+                <field name="days_91_120" type="measure"/>
+                <field name="days_120_plus" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <record id="view_cpd_aging_report_search" model="ir.ui.view">
+        <field name="name">cpd.aging.report.search</field>
+        <field name="model">cpd.aging.report</field>
+        <field name="arch" type="xml">
+            <search string="CPD-Fälligkeitsbericht">
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <filter name="filter_overdue" string="Überfällig" domain="['|', '|', '|', '|', ('days_1_30', '!=', 0), ('days_31_60', '!=', 0), ('days_61_90', '!=', 0), ('days_91_120', '!=', 0), ('days_120_plus', '!=', 0)]"/>
+                <filter name="filter_critical" string="Kritisch überfällig" domain="['|', '|', ('days_61_90', '!=', 0), ('days_91_120', '!=', 0), ('days_120_plus', '!=', 0)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_partner" string="Partner" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_by_account" string="Konto" context="{'group_by': 'account_id'}"/>
+                    <filter name="group_by_company" string="Unternehmen" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <record id="action_cpd_aging_report" model="ir.actions.act_window">
+        <field name="name">CPD-Fälligkeitsbericht</field>
+        <field name="res_model">cpd.aging.report</field>
+        <field name="view_mode">tree,pivot,graph</field>
+        <field name="search_view_id" ref="view_cpd_aging_report_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keine Daten für den CPD-Fälligkeitsbericht verfügbar
+            </p>
+            <p>
+                Diese Ansicht zeigt die Analyse der Fälligkeiten für offene Posten auf CPD-Konten (Conto pro diverse).
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menüeinträge -->
+    <menuitem id="menu_cpd_reporting"
+              name="CPD-Berichte"
+              parent="account.menu_finance_reports"
+              sequence="30"/>
+              
+    <menuitem id="menu_cpd_account_analysis"
+              name="CPD-Kontenanalyse"
+              parent="menu_cpd_reporting"
+              action="action_cpd_account_analysis"
+              sequence="10"/>
+              
+    <menuitem id="menu_cpd_account_summary"
+              name="CPD-Kontenzusammenfassung"
+              parent="menu_cpd_reporting"
+              action="action_cpd_account_summary"
+              sequence="20"/>
+              
+    <menuitem id="menu_cpd_aging_report"
+              name="CPD-Fälligkeitsbericht"
+              parent="menu_cpd_reporting"
+              action="action_cpd_aging_report"
+              sequence="30"/>
+</odoo> 

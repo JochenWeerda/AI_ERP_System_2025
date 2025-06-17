@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Kontextgeneratoren für Einkaufsprozesse -->
+        <record id="context_generator_purchase_order" model="mcp.context">
+            <field name="name">Einkaufsauftragskontext</field>
+            <field name="code">purchase_order</field>
+            <field name="description">Extrahiert Informationen über einen Einkaufsauftrag</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="active">true</field>
+            <field name="sequence">500</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Einkaufsauftragsdaten abrufen
+if not record or not record._name == 'purchase.order':
+    return {'error': 'Kein gültiger Einkaufsauftrag ausgewählt'}
+
+purchase = record
+vendor = purchase.partner_id
+
+result = {
+    'reference': purchase.name,
+    'vendor': {
+        'name': vendor.name,
+        'code': vendor.ref or '',
+        'email': vendor.email or '',
+        'phone': vendor.phone or '',
+        'payment_terms': purchase.payment_term_id.name if purchase.payment_term_id else ''
+    },
+    'date_order': purchase.date_order.strftime('%Y-%m-%d %H:%M') if purchase.date_order else '',
+    'date_planned': purchase.date_planned.strftime('%Y-%m-%d') if hasattr(purchase, 'date_planned') and purchase.date_planned else '',
+    'currency': purchase.currency_id.name,
+    'company': purchase.company_id.name,
+    'buyer': purchase.user_id.name if purchase.user_id else '',
+    'state': purchase.state,
+    'amount_untaxed': purchase.amount_untaxed,
+    'amount_tax': purchase.amount_tax,
+    'amount_total': purchase.amount_total,
+    'fiscal_position': purchase.fiscal_position_id.name if purchase.fiscal_position_id else '',
+    'incoterm': purchase.incoterm_id.name if hasattr(purchase, 'incoterm_id') and purchase.incoterm_id else '',
+    'items': [{
+        'product': line.product_id.name,
+        'code': line.product_id.default_code or '',
+        'description': line.name,
+        'quantity': line.product_qty,
+        'received_qty': line.qty_received,
+        'billed_qty': line.qty_invoiced,
+        'uom': line.product_uom.name,
+        'price_unit': line.price_unit,
+        'taxes': [tax.name for tax in line.taxes_id],
+        'subtotal': line.price_subtotal,
+        'date_planned': line.date_planned.strftime('%Y-%m-%d') if line.date_planned else ''
+    } for line in purchase.order_line],
+    'notes': purchase.notes or ''
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_purchase_vendor" model="mcp.context">
+            <field name="name">Lieferantenkontext</field>
+            <field name="code">purchase_vendor</field>
+            <field name="description">Extrahiert Informationen über einen Lieferanten</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="active">true</field>
+            <field name="sequence">510</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Lieferantendaten abrufen
+if not record or not record._name == 'res.partner':
+    return {'error': 'Kein gültiger Lieferant ausgewählt'}
+
+vendor = record
+
+# Nur Partner mit Lieferantenzugriff berücksichtigen
+if not vendor.supplier_rank:
+    return {'error': 'Der ausgewählte Partner ist kein Lieferant'}
+
+# Einkaufsaufträge des Lieferanten abrufen
+purchase_orders = env['purchase.order'].search([
+    ('partner_id', '=', vendor.id),
+    ('state', 'in', ['purchase', 'done'])
+], order='date_order desc', limit=20)
+
+# Lieferantenprodukte abrufen
+seller_info = env['product.supplierinfo'].search([
+    ('name', '=', vendor.id)
+], limit=100)
+
+# Rechnungen abrufen
+invoices = env['account.move'].search([
+    ('partner_id', '=', vendor.id),
+    ('move_type', '=', 'in_invoice'),
+    ('state', '!=', 'cancel')
+], order='invoice_date desc', limit=20)
+
+# Leistungsstatistik berechnen
+on_time_deliveries = 0
+late_deliveries = 0
+total_quality_issues = 0
+
+for po in purchase_orders:
+    for picking in po.picking_ids:
+        if picking.state == 'done':
+            scheduled_date = picking.scheduled_date or po.date_planned
+            date_done = picking.date_done
+            
+            if scheduled_date and date_done:
+                if date_done <= scheduled_date:
+                    on_time_deliveries += 1
+                else:
+                    late_deliveries += 1
+    
+    # Qualitätsprobleme aus Rücksendungen und Rückgaben ableiten
+    returns = env['stock.picking'].search([
+        ('origin', '=', po.name),
+        ('picking_type_code', '=', 'outgoing'),
+        ('state', '=', 'done')
+    ])
+    
+    if returns:
+        total_quality_issues += 1
+
+total_deliveries = on_time_deliveries + late_deliveries
+on_time_rate = (on_time_deliveries / total_deliveries * 100) if total_deliveries > 0 else 0
+quality_rate = ((len(purchase_orders) - total_quality_issues) / len(purchase_orders) * 100) if purchase_orders else 0
+
+result = {
+    'name': vendor.name,
+    'code': vendor.ref or '',
+    'contact': {
+        'email': vendor.email or '',
+        'phone': vendor.phone or '',
+        'mobile': vendor.mobile or '',
+        'website': vendor.website or '',
+        'street': vendor.street or '',
+        'city': vendor.city or '',
+        'zip': vendor.zip or '',
+        'country': vendor.country_id.name if vendor.country_id else ''
+    },
+    'company_type': vendor.company_type,
+    'supplier_rank': vendor.supplier_rank,
+    'category_ids': [cat.name for cat in vendor.category_id],
+    'payment_terms': vendor.property_supplier_payment_term_id.name if hasattr(vendor, 'property_supplier_payment_term_id') and vendor.property_supplier_payment_term_id else '',
+    'statistics': {
+        'purchase_count': len(purchase_orders),
+        'product_count': len(seller_info),
+        'total_spend': sum(po.amount_total for po in purchase_orders),
+        'average_order_value': sum(po.amount_total for po in purchase_orders) / len(purchase_orders) if purchase_orders else 0,
+        'on_time_delivery_rate': on_time_rate,
+        'quality_rate': quality_rate
+    },
+    'products': [{
+        'name': seller.product_id.name if seller.product_id else seller.product_tmpl_id.name,
+        'code': seller.product_id.default_code if seller.product_id else (seller.product_tmpl_id.default_code or ''),
+        'price': seller.price,
+        'currency': seller.currency_id.name,
+        'min_qty': seller.min_qty,
+        'delay': seller.delay
+    } for seller in seller_info[:20]],
+    'recent_orders': [{
+        'reference': po.name,
+        'date': po.date_order.strftime('%Y-%m-%d'),
+        'amount': po.amount_total,
+        'status': po.state,
+        'products': [line.product_id.name for line in po.order_line]
+    } for po in purchase_orders[:5]],
+    'recent_invoices': [{
+        'reference': inv.name,
+        'date': inv.invoice_date.strftime('%Y-%m-%d') if inv.invoice_date else '',
+        'amount': inv.amount_total,
+        'status': inv.payment_state
+    } for inv in invoices[:5]]
+}
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_purchase_rfq" model="mcp.context">
+            <field name="name">Angebotsanfragekontext</field>
+            <field name="code">purchase_rfq</field>
+            <field name="description">Extrahiert Informationen über eine Angebotsanfrage</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="active">true</field>
+            <field name="sequence">520</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Angebotsanfragedaten abrufen
+if not record or not record._name == 'purchase.order' or record.state not in ['draft', 'sent', 'to approve']:
+    return {'error': 'Keine gültige Angebotsanfrage ausgewählt'}
+
+rfq = record
+vendor = rfq.partner_id
+
+# Lieferantenprodukte abrufen, um Vergleiche zu ermöglichen
+product_ids = rfq.order_line.mapped('product_id.id')
+seller_info = env['product.supplierinfo'].search([
+    ('name', '=', vendor.id),
+    ('product_id', 'in', product_ids)
+])
+
+seller_products = {}
+for seller in seller_info:
+    product_id = seller.product_id.id
+    seller_products[product_id] = {
+        'price': seller.price,
+        'currency': seller.currency_id.name,
+        'min_qty': seller.min_qty,
+        'delay': seller.delay
+    }
+
+# Andere Lieferanten für die Produkte finden
+other_suppliers = {}
+for product_id in product_ids:
+    other_suppliers_info = env['product.supplierinfo'].search([
+        ('name', '!=', vendor.id),
+        ('product_id', '=', product_id)
+    ], limit=3)
+    
+    if other_suppliers_info:
+        product = env['product.product'].browse(product_id)
+        other_suppliers[product_id] = {
+            'product_name': product.name,
+            'product_code': product.default_code or '',
+            'suppliers': [{
+                'name': supplier.name.name,
+                'price': supplier.price,
+                'currency': supplier.currency_id.name,
+                'min_qty': supplier.min_qty,
+                'delay': supplier.delay
+            } for supplier in other_suppliers_info]
+        }
+
+# RFQ-Produkte mit Lieferanteninformationen anreichern
+rfq_items = []
+for line in rfq.order_line:
+    product_id = line.product_id.id
+    seller_info = seller_products.get(product_id, {})
+    
+    item = {
+        'product': line.product_id.name,
+        'code': line.product_id.default_code or '',
+        'description': line.name,
+        'quantity': line.product_qty,
+        'uom': line.product_uom.name,
+        'price_unit': line.price_unit,
+        'taxes': [tax.name for tax in line.taxes_id],
+        'subtotal': line.price_subtotal,
+        'date_planned': line.date_planned.strftime('%Y-%m-%d') if line.date_planned else ''
+    }
+    
+    # Lieferanteninformationen hinzufügen, wenn vorhanden
+    if seller_info:
+        previous_price = seller_info.get('price', 0)
+        price_difference = ((line.price_unit - previous_price) / previous_price * 100) if previous_price > 0 else None
+        
+        item.update({
+            'previous_price': previous_price,
+            'price_difference_percent': price_difference,
+            'usual_delay': seller_info.get('delay', 0)
+        })
+    
+    rfq_items.append(item)
+
+result = {
+    'reference': rfq.name,
+    'state': rfq.state,
+    'vendor': {
+        'name': vendor.name,
+        'code': vendor.ref or '',
+        'email': vendor.email or '',
+        'phone': vendor.phone or ''
+    },
+    'date_order': rfq.date_order.strftime('%Y-%m-%d %H:%M') if rfq.date_order else '',
+    'currency': rfq.currency_id.name,
+    'buyer': rfq.user_id.name if rfq.user_id else '',
+    'amount_untaxed': rfq.amount_untaxed,
+    'amount_tax': rfq.amount_tax,
+    'amount_total': rfq.amount_total,
+    'items': rfq_items,
+    'other_suppliers_info': other_suppliers,
+    'notes': rfq.notes or ''
+}
+return result
+            </field>
+        </record>
+    </data>
+</odoo> 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_valeo_dashboard_widget_chart_tree" model="ir.ui.view">
+            <field name="name">valeo.dashboard.widget.chart.tree</field>
+            <field name="model">valeo.dashboard.widget.chart</field>
+            <field name="arch" type="xml">
+                <tree string="Chart Widgets">
+                    <field name="name"/>
+                    <field name="dashboard_id"/>
+                    <field name="chart_type"/>
+                    <field name="show_legend"/>
+                </tree>
+            </field>
+        </record>
+    </data>
+</odoo> 

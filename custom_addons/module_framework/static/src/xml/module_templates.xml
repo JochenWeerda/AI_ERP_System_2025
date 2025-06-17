@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        Basisvorlage für Formularfelder
+        @param {Object} props - Komponenteneigenschaften
+        @param {String} props.name - Feldname
+        @param {String} props.label - Feldbezeichnung
+        @param {String} props.mode - 'readonly' oder 'edit'
+        @param {Object} props.record - Datensatz
+        @param {Object} props.validationErrors - Validierungsfehler
+        @param {Function} props.setFieldValue - Callback-Funktion zum Setzen des Feldwerts
+    -->
+    <t t-name="module_framework.FormField" owl="1">
+        <div class="o_module_form_field" t-att-class="{'o_module_form_field_invalid': props.validationErrors[props.name]}">
+            <label t-att-for="props.id || props.name" class="o_module_form_label">
+                <t t-esc="props.label"/>
+                <t t-if="props.required">
+                    <span class="o_module_form_required">*</span>
+                </t>
+            </label>
+            <div class="o_module_form_field_container">
+                <t t-slot="default" />
+                <div t-if="props.validationErrors[props.name]" class="o_module_form_field_error">
+                    <span t-esc="props.validationErrors[props.name]" />
+                </div>
+            </div>
+        </div>
+    </t>
+    
+    <!--
+        Eingabefeld für Text
+    -->
+    <t t-name="module_framework.InputField" owl="1">
+        <t t-component="module_framework.FormField" 
+            name="props.name"
+            label="props.label"
+            required="props.required"
+            mode="props.mode"
+            validationErrors="props.validationErrors">
+            <t t-if="props.mode === 'readonly'">
+                <div class="o_module_form_readonly_value">
+                    <t t-esc="props.record[props.name] || ''"/>
+                </div>
+            </t>
+            <t t-else="">
+                <input type="text"
+                    t-att-id="props.id || props.name"
+                    t-att-name="props.name"
+                    t-att-placeholder="props.placeholder"
+                    t-att-class="{'is-invalid': props.validationErrors[props.name]}"
+                    t-att-value="props.record[props.name] || ''"
+                    t-on-input="ev => props.setFieldValue(props.name, ev.target.value)"
+                    class="o_module_form_input form-control" />
+            </t>
+        </t>
+    </t>
+    
+    <!--
+        Auswahlfeld
+    -->
+    <t t-name="module_framework.SelectField" owl="1">
+        <t t-component="module_framework.FormField" 
+            name="props.name"
+            label="props.label"
+            required="props.required"
+            mode="props.mode"
+            validationErrors="props.validationErrors">
+            <t t-if="props.mode === 'readonly'">
+                <div class="o_module_form_readonly_value">
+                    <t t-set="selectedOption" t-value="props.options.find(o => o.value === props.record[props.name])" />
+                    <t t-esc="selectedOption ? selectedOption.label : ''"/>
+                </div>
+            </t>
+            <t t-else="">
+                <select 
+                    t-att-id="props.id || props.name"
+                    t-att-name="props.name"
+                    t-att-class="{'is-invalid': props.validationErrors[props.name]}"
+                    t-on-change="ev => props.setFieldValue(props.name, ev.target.value)"
+                    class="o_module_form_select form-control">
+                    <option value="" t-if="!props.required">-</option>
+                    <t t-foreach="props.options" t-as="option" t-key="option.value">
+                        <option t-att-value="option.value" t-att-selected="option.value === props.record[props.name]">
+                            <t t-esc="option.label"/>
+                        </option>
+                    </t>
+                </select>
+            </t>
+        </t>
+    </t>
+    
+    <!--
+        Checkbox
+    -->
+    <t t-name="module_framework.CheckboxField" owl="1">
+        <t t-component="module_framework.FormField" 
+            name="props.name"
+            label="props.label"
+            required="props.required"
+            mode="props.mode"
+            validationErrors="props.validationErrors">
+            <t t-if="props.mode === 'readonly'">
+                <div class="o_module_form_readonly_value">
+                    <i t-if="props.record[props.name]" class="fa fa-check-square-o"/>
+                    <i t-else="" class="fa fa-square-o"/>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="form-check">
+                    <input type="checkbox"
+                        t-att-id="props.id || props.name"
+                        t-att-name="props.name"
+                        t-att-checked="props.record[props.name]"
+                        t-on-change="ev => props.setFieldValue(props.name, ev.target.checked)"
+                        class="o_module_form_checkbox form-check-input" />
+                </div>
+            </t>
+        </t>
+    </t>
+    
+    <!--
+        Textbereich
+    -->
+    <t t-name="module_framework.TextareaField" owl="1">
+        <t t-component="module_framework.FormField" 
+            name="props.name"
+            label="props.label"
+            required="props.required"
+            mode="props.mode"
+            validationErrors="props.validationErrors">
+            <t t-if="props.mode === 'readonly'">
+                <div class="o_module_form_readonly_value o_module_form_textarea_value">
+                    <t t-esc="props.record[props.name] || ''"/>
+                </div>
+            </t>
+            <t t-else="">
+                <textarea
+                    t-att-id="props.id || props.name"
+                    t-att-name="props.name"
+                    t-att-placeholder="props.placeholder"
+                    t-att-class="{'is-invalid': props.validationErrors[props.name]}"
+                    t-on-input="ev => props.setFieldValue(props.name, ev.target.value)"
+                    t-att-rows="props.rows || 4"
+                    class="o_module_form_textarea form-control">
+                    <t t-esc="props.record[props.name] || ''"/>
+                </textarea>
+            </t>
+        </t>
+    </t>
+    
+    <!--
+        Datumsfeld
+    -->
+    <t t-name="module_framework.DateField" owl="1">
+        <t t-component="module_framework.FormField" 
+            name="props.name"
+            label="props.label"
+            required="props.required"
+            mode="props.mode"
+            validationErrors="props.validationErrors">
+            <t t-if="props.mode === 'readonly'">
+                <div class="o_module_form_readonly_value">
+                    <t t-esc="props.record[props.name] ? props.formatDate(props.record[props.name]) : ''"/>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="o_module_form_date_container">
+                    <input type="date"
+                        t-att-id="props.id || props.name"
+                        t-att-name="props.name"
+                        t-att-class="{'is-invalid': props.validationErrors[props.name]}"
+                        t-att-value="props.record[props.name] || ''"
+                        t-on-change="ev => props.setFieldValue(props.name, ev.target.value)"
+                        class="o_module_form_date form-control" />
+                    <i class="fa fa-calendar"/>
+                </div>
+            </t>
+        </t>
+    </t>
+    
+    <!--
+        Many2One Auswahlfeld
+    -->
+    <t t-name="module_framework.Many2OneField" owl="1">
+        <t t-component="module_framework.FormField" 
+            name="props.name"
+            label="props.label"
+            required="props.required"
+            mode="props.mode"
+            validationErrors="props.validationErrors">
+            <t t-if="props.mode === 'readonly'">
+                <div class="o_module_form_readonly_value">
+                    <t t-if="props.record[props.name]">
+                        <t t-esc="props.record[props.name][1] || ''"/>
+                    </t>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="o_module_form_many2one_container">
+                    <div class="input-group">
+                        <select 
+                            t-att-id="props.id || props.name"
+                            t-att-name="props.name"
+                            t-att-class="{'is-invalid': props.validationErrors[props.name]}"
+                            t-on-change="ev => props.setFieldValue(props.name, parseInt(ev.target.value) || false)"
+                            class="o_module_form_many2one form-control">
+                            <option value="" t-if="!props.required">-</option>
+                            <t t-foreach="props.options" t-as="option" t-key="option.id">
+                                <option t-att-value="option.id" 
+                                        t-att-selected="props.record[props.name] && props.record[props.name][0] === option.id">
+                                    <t t-esc="option.display_name"/>
+                                </option>
+                            </t>
+                        </select>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    t-on-click="props.onOpenRecord">
+                                <i class="fa fa-external-link"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </t>
+    
+    <!--
+        Suchfeld für Listen
+    -->
+    <t t-name="module_framework.ListSearchField" owl="1">
+        <div class="o_module_list_search">
+            <div class="input-group">
+                <input type="text"
+                    t-att-value="props.value || ''"
+                    t-on-input="ev => props.onInput(ev.target.value)"
+                    class="form-control"
+                    t-att-placeholder="props.placeholder || 'Suchen...'" />
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-primary" t-on-click="() => props.onSearch()">
+                        <i class="fa fa-search"/>
+                    </button>
+                    <button type="button" class="btn btn-secondary" t-on-click="() => props.onClear()">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </t>
+    
+    <!--
+        Filtergruppe für Listen
+    -->
+    <t t-name="module_framework.ListFilterGroup" owl="1">
+        <div class="o_module_list_filter_group">
+            <div class="o_module_list_filter_group_title">
+                <t t-esc="props.title"/>
+            </div>
+            <div class="o_module_list_filter_group_content">
+                <t t-slot="default"/>
+            </div>
+        </div>
+    </t>
+    
+    <!--
+        Aktionsknopf
+    -->
+    <t t-name="module_framework.ActionButton" owl="1">
+        <button t-att-type="props.type || 'button'"
+                t-att-class="'btn ' + (props.className || 'btn-primary')"
+                t-att-disabled="props.disabled"
+                t-on-click="() => props.onClick()">
+            <i t-if="props.icon" t-att-class="'fa ' + props.icon + ' me-1'"/>
+            <t t-esc="props.label"/>
+        </button>
+    </t>
+    
+    <!--
+        Tabpanel
+    -->
+    <t t-name="module_framework.TabPanel" owl="1">
+        <div class="o_module_tab_panel">
+            <ul class="nav nav-tabs">
+                <t t-foreach="props.tabs" t-as="tab" t-key="tab.id">
+                    <li class="nav-item">
+                        <a t-att-class="'nav-link ' + (tab.id === props.activeTab ? 'active' : '')"
+                           t-on-click="() => props.onTabChange(tab.id)"
+                           href="#">
+                            <i t-if="tab.icon" t-att-class="'fa ' + tab.icon + ' me-1'"/>
+                            <t t-esc="tab.label"/>
+                        </a>
+                    </li>
+                </t>
+            </ul>
+            <div class="o_module_tab_content">
+                <t t-slot="default" activeTab="props.activeTab"/>
+            </div>
+        </div>
+    </t>
+    
+    <!--
+        Tab-Inhalt
+    -->
+    <t t-name="module_framework.TabContent" owl="1">
+        <div t-att-class="'o_module_tab_pane ' + (props.id === props.activeTab ? 'active' : 'd-none')">
+            <t t-slot="default"/>
+        </div>
+    </t>
+    
+    <!--
+        Statusanzeige
+    -->
+    <t t-name="module_framework.StatusBadge" owl="1">
+        <span t-att-class="'badge badge-' + props.type">
+            <i t-if="props.icon" t-att-class="'fa ' + props.icon + ' me-1'"/>
+            <t t-esc="props.label"/>
+        </span>
+    </t>
+    
+    <!--
+        Bestätigungsdialog
+    -->
+    <t t-name="module_framework.ConfirmDialog" owl="1">
+        <div class="o_module_confirm_dialog">
+            <div class="modal-header">
+                <h5 class="modal-title"><t t-esc="props.title"/></h5>
+                <button type="button" class="close" t-on-click="() => props.onCancel()">
+                    <span>×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <t t-esc="props.message"/>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" t-on-click="() => props.onCancel()">
+                    <t t-esc="props.cancelLabel || 'Abbrechen'"/>
+                </button>
+                <button type="button" class="btn btn-primary" t-on-click="() => props.onConfirm()">
+                    <t t-esc="props.confirmLabel || 'OK'"/>
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates> 

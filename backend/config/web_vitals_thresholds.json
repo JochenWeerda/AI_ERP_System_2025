@@ -1,0 +1,43 @@
+{
+  "thresholds": {
+    "CLS": {
+      "good": 0.1,
+      "needs_improvement": 0.25
+    },
+    "FID": {
+      "good": 100,
+      "needs_improvement": 300
+    },
+    "LCP": {
+      "good": 2500,
+      "needs_improvement": 4000
+    },
+    "FCP": {
+      "good": 1800,
+      "needs_improvement": 3000
+    },
+    "TTFB": {
+      "good": 800,
+      "needs_improvement": 1800
+    }
+  },
+  "descriptions": {
+    "CLS": "Cumulative Layout Shift - Misst die visuelle Stabilität der Seite während des Ladevorgangs",
+    "FID": "First Input Delay (ms) - Misst die Zeit bis zur ersten Interaktion des Benutzers",
+    "LCP": "Largest Contentful Paint (ms) - Misst die Zeit bis zur Darstellung des größten Inhaltselements",
+    "FCP": "First Contentful Paint (ms) - Misst die Zeit bis zur ersten Darstellung von Inhalten",
+    "TTFB": "Time to First Byte (ms) - Misst die Serverantwortzeit"
+  },
+  "units": {
+    "CLS": "",
+    "FID": "ms",
+    "LCP": "ms",
+    "FCP": "ms",
+    "TTFB": "ms"
+  },
+  "colors": {
+    "good": "#4caf50",
+    "needs_improvement": "#ff9800",
+    "poor": "#f44336"
+  }
+} 

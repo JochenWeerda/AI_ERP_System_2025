@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Formularansicht für ENNI-Import -->
+        <record id="view_enni_import_form" model="ir.ui.view">
+            <field name="name">farm.enni.import.form</field>
+            <field name="model">farm.enni.import</field>
+            <field name="arch" type="xml">
+                <form string="ENNI Datenimport">
+                    <sheet>
+                        <group states="draft">
+                            <field name="state" invisible="1"/>
+                            <field name="farm_id"/>
+                            <field name="year"/>
+                            <field name="import_file" filename="file_name"/>
+                            <field name="file_name" invisible="1"/>
+                        </group>
+                        <group states="done">
+                            <field name="import_log" readonly="1" widget="html"/>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="import_xml" string="XML importieren" type="object" 
+                                class="btn-primary" states="draft"/>
+                        <button special="cancel" string="Schließen" class="btn-secondary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        
+        <!-- Aktion für ENNI-Import -->
+        <record id="action_enni_import" model="ir.actions.act_window">
+            <field name="name">ENNI-Import</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">farm.enni.import</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <!-- Menüeintrag für ENNI-Import -->
+        <menuitem id="menu_enni_import"
+                  name="ENNI-Import"
+                  parent="menu_farm_root"
+                  action="action_enni_import"
+                  sequence="50"/>
+                  
+        <!-- Kontextmenü für ENNI-Import von Betrieb -->
+        <record id="action_farm_enni_import" model="ir.actions.act_window">
+            <field name="name">ENNI-Import</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">farm.enni.import</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="model_farm_farm"/>
+            <field name="binding_view_types">form</field>
+        </record>
+    </data>
+</odoo> 

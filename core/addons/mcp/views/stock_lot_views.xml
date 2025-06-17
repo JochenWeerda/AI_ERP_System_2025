@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Erweiterung der Chargen-Formularansicht -->
+    <record id="view_production_lot_form_inherited" model="ir.ui.view">
+        <field name="name">stock.lot.form.inherited</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <!-- Erweiterte Qualitätsmanagement- und Kontoinformationen -->
+            <xpath expr="//sheet/group" position="after">
+                <notebook>
+                    <page string="Finanzen" name="accounting">
+                        <group>
+                            <field name="account_id"/>
+                            <field name="cost_price"/>
+                            <field name="valuation_value" widget="monetary"/>
+                        </group>
+                    </page>
+                    <page string="Qualitätsmanagement" name="quality">
+                        <group>
+                            <field name="quality_state" widget="statusbar" 
+                                   statusbar_visible="draft,pending,approved,rejected"/>
+                            <field name="supplier_lot_number"/>
+                            <field name="production_date"/>
+                            <field name="best_before_date"/>
+                        </group>
+                        <label for="quality_notes"/>
+                        <field name="quality_notes"/>
+                    </page>
+                </notebook>
+            </xpath>
+            
+            <!-- Statusleiste mit Qualitätsstatus -->
+            <xpath expr="//form/sheet" position="before">
+                <header>
+                    <field name="quality_state" widget="statusbar" 
+                           statusbar_visible="draft,pending,approved,rejected"/>
+                    <button name="action_approve_quality" string="Freigeben" 
+                            type="object" class="btn-primary"
+                            attrs="{'invisible': [('quality_state', 'in', ['approved', 'rejected'])]}"/>
+                    <button name="action_reject_quality" string="Sperren" 
+                            type="object" class="btn-danger"
+                            attrs="{'invisible': [('quality_state', '=', 'rejected')]}"/>
+                    <button name="action_set_pending_quality" string="Zur Prüfung" 
+                            type="object" 
+                            attrs="{'invisible': [('quality_state', '=', 'pending')]}"/>
+                </header>
+            </xpath>
+            
+            <!-- Button für Bewegungen und Bewertung -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button type="object" name="action_view_valuation" class="oe_stat_button" icon="fa-money">
+                    <field name="valuation_value" widget="statinfo" string="Bestandswert"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Chargen-Listenansicht -->
+    <record id="view_production_lot_tree_inherited" model="ir.ui.view">
+        <field name="name">stock.lot.tree.inherited</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='create_date']" position="after">
+                <field name="quality_state" decoration-success="quality_state == 'approved'" 
+                       decoration-warning="quality_state == 'pending'" 
+                       decoration-danger="quality_state == 'rejected'"
+                       decoration-info="quality_state == 'draft'" widget="badge"/>
+                <field name="cost_price" optional="show"/>
+                <field name="valuation_value" sum="Gesamt" optional="show"/>
+                <field name="supplier_lot_number" optional="hide"/>
+                <field name="production_date" optional="hide"/>
+                <field name="best_before_date" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Chargen-Suchansicht -->
+    <record id="search_product_lot_filter_inherited" model="ir.ui.view">
+        <field name="name">stock.lot.search.inherited</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="supplier_lot_number"/>
+                <field name="account_id"/>
+                <separator/>
+                <filter name="quality_approved" string="Freigegeben" domain="[('quality_state', '=', 'approved')]"/>
+                <filter name="quality_pending" string="Prüfung ausstehend" domain="[('quality_state', '=', 'pending')]"/>
+                <filter name="quality_rejected" string="Gesperrt" domain="[('quality_state', '=', 'rejected')]"/>
+                <filter name="quality_draft" string="Neu" domain="[('quality_state', '=', 'draft')]"/>
+                <separator/>
+                <filter name="has_account" string="Mit Artikelkonto" domain="[('account_id', '!=', False)]"/>
+                <filter name="no_account" string="Ohne Artikelkonto" domain="[('account_id', '=', False)]"/>
+                <separator/>
+                <filter string="Artikelkonto" name="groupby_account" domain="[]" context="{'group_by': 'account_id'}"/>
+                <filter string="Qualitätsstatus" name="groupby_quality" domain="[]" context="{'group_by': 'quality_state'}"/>
+                <filter string="Produktionsdatum" name="groupby_production" domain="[]" context="{'group_by': 'production_date'}"/>
+                <filter string="MHD" name="groupby_best_before" domain="[]" context="{'group_by': 'best_before_date'}"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Spezielle Aktion für Chargen mit Finanzdaten -->
+    <record id="action_lot_accounting_report" model="ir.actions.act_window">
+        <field name="name">Chargenwertbericht</field>
+        <field name="res_model">stock.lot</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="context">{'search_default_has_account': 1, 'search_default_groupby_account': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keine Chargen mit Artikelkonten gefunden
+            </p>
+            <p>
+                Hier werden Chargen mit zugeordneten Artikelkonten und Bewertungsdaten angezeigt.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Spezielle Aktion für Qualitätsmanagement -->
+    <record id="action_lot_quality_management" model="ir.actions.act_window">
+        <field name="name">Chargenqualität</field>
+        <field name="res_model">stock.lot</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="context">{'search_default_quality_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keine ausstehenden Qualitätsprüfungen gefunden
+            </p>
+            <p>
+                Hier werden Chargen angezeigt, die auf Qualitätsprüfung warten.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menüpunkte -->
+    <menuitem id="menu_lot_accounting" name="Chargenwerte" 
+              action="action_lot_accounting_report" 
+              parent="stock.menu_stock_inventory_control" 
+              sequence="101"/>
+              
+    <menuitem id="menu_lot_quality" name="Chargenqualität" 
+              action="action_lot_quality_management" 
+              parent="stock.menu_stock_inventory_control" 
+              sequence="102"/>
+</odoo> 

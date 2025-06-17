@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Analytics AI Form View -->
+        <record id="view_valeo_analytics_ai_form" model="ir.ui.view">
+            <field name="name">valeo.analytics.ai.form</field>
+            <field name="model">valeo.analytics.ai</field>
+            <field name="arch" type="xml">
+                <form string="KI-Analyse">
+                    <header>
+                        <button name="action_analyze_data" string="Daten analysieren" type="object" class="oe_highlight" attrs="{'invisible': [('is_active', '=', False)]}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_results" type="object" class="oe_stat_button" icon="fa-list-alt">
+                                <field name="result_ids" widget="statinfo" string="Ergebnisse"/>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Name der KI-Analyse"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="model_id"/>
+                                <field name="model_name" invisible="1"/>
+                                <field name="is_active"/>
+                                <field name="last_run" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="ai_provider"/>
+                                <field name="api_model" attrs="{'invisible': [('ai_provider', 'not in', ['openai', 'azure'])]}"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Zu analysierende Felder">
+                                <field name="field_ids" domain="[('model_id', '=', model_id)]">
+                                    <tree>
+                                        <field name="name"/>
+                                        <field name="field_description"/>
+                                        <field name="ttype"/>
+                                    </tree>
+                                </field>
+                                <p class="text-muted">Wenn keine Felder ausgewählt sind, werden alle Felder des Modells analysiert.</p>
+                            </page>
+                            <page string="API-Konfiguration" attrs="{'invisible': [('ai_provider', '=', 'local')]}">
+                                <group>
+                                    <field name="api_key" password="True" attrs="{'required': [('ai_provider', 'in', ['openai', 'azure'])]}"/>
+                                    <field name="api_endpoint" attrs="{'required': [('ai_provider', 'in', ['azure', 'custom'])]}"/>
+                                </group>
+                            </page>
+                            <page string="Beschreibung">
+                                <field name="description" placeholder="Beschreiben Sie den Zweck dieser KI-Analyse..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Analytics AI Tree View -->
+        <record id="view_valeo_analytics_ai_tree" model="ir.ui.view">
+            <field name="name">valeo.analytics.ai.tree</field>
+            <field name="model">valeo.analytics.ai</field>
+            <field name="arch" type="xml">
+                <tree string="KI-Analysen">
+                    <field name="name"/>
+                    <field name="model_id"/>
+                    <field name="ai_provider"/>
+                    <field name="is_active"/>
+                    <field name="last_run"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Analytics AI Search View -->
+        <record id="view_valeo_analytics_ai_search" model="ir.ui.view">
+            <field name="name">valeo.analytics.ai.search</field>
+            <field name="model">valeo.analytics.ai</field>
+            <field name="arch" type="xml">
+                <search string="KI-Analysen">
+                    <field name="name"/>
+                    <field name="model_id"/>
+                    <filter string="Aktiv" name="active" domain="[('is_active', '=', True)]"/>
+                    <group expand="0" string="Gruppieren nach">
+                        <filter string="Modell" name="group_by_model" context="{'group_by': 'model_id'}"/>
+                        <filter string="KI-Anbieter" name="group_by_provider" context="{'group_by': 'ai_provider'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Analytics AI Result Form View -->
+        <record id="view_valeo_analytics_ai_result_form" model="ir.ui.view">
+            <field name="name">valeo.analytics.ai.result.form</field>
+            <field name="model">valeo.analytics.ai.result</field>
+            <field name="arch" type="xml">
+                <form string="Analyseergebnis">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <field name="analytics_id"/>
+                            <field name="create_date"/>
+                            <field name="record_count"/>
+                        </group>
+                        <notebook>
+                            <page string="Zusammenfassung">
+                                <field name="result_summary" widget="html"/>
+                            </page>
+                            <page string="Einblicke">
+                                <field name="insight_ids">
+                                    <tree>
+                                        <field name="name"/>
+                                        <field name="priority" widget="priority"/>
+                                        <field name="user_id"/>
+                                        <field name="is_favorite"/>
+                                        <field name="is_implemented"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Rohdaten">
+                                <field name="result_data" widget="ace" options="{'mode': 'json'}"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Analytics AI Result Tree View -->
+        <record id="view_valeo_analytics_ai_result_tree" model="ir.ui.view">
+            <field name="name">valeo.analytics.ai.result.tree</field>
+            <field name="model">valeo.analytics.ai.result</field>
+            <field name="arch" type="xml">
+                <tree string="Analyseergebnisse">
+                    <field name="name"/>
+                    <field name="analytics_id"/>
+                    <field name="create_date"/>
+                    <field name="record_count"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Analytics AI Insight Form View -->
+        <record id="view_valeo_analytics_ai_insight_form" model="ir.ui.view">
+            <field name="name">valeo.analytics.ai.insight.form</field>
+            <field name="model">valeo.analytics.ai.insight</field>
+            <field name="arch" type="xml">
+                <form string="KI-Einblick">
+                    <header>
+                        <button name="action_mark_implemented" string="Als umgesetzt markieren" type="object" class="oe_highlight" attrs="{'invisible': [('is_implemented', '=', True)]}"/>
+                        <button name="action_toggle_favorite" string="Zu Favoriten hinzufügen" type="object" attrs="{'invisible': [('is_favorite', '=', True)]}"/>
+                        <button name="action_toggle_favorite" string="Aus Favoriten entfernen" type="object" attrs="{'invisible': [('is_favorite', '=', False)]}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="result_id"/>
+                                <field name="priority" widget="priority"/>
+                                <field name="user_id"/>
+                            </group>
+                            <group>
+                                <field name="is_favorite"/>
+                                <field name="is_implemented"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Beschreibung">
+                                <field name="description" widget="html"/>
+                            </page>
+                            <page string="Notizen">
+                                <field name="notes" placeholder="Fügen Sie hier Ihre Notizen hinzu..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Analytics AI Insight Tree View -->
+        <record id="view_valeo_analytics_ai_insight_tree" model="ir.ui.view">
+            <field name="name">valeo.analytics.ai.insight.tree</field>
+            <field name="model">valeo.analytics.ai.insight</field>
+            <field name="arch" type="xml">
+                <tree string="KI-Einblicke" decoration-success="is_implemented" decoration-warning="is_favorite and not is_implemented">
+                    <field name="name"/>
+                    <field name="result_id"/>
+                    <field name="priority" widget="priority"/>
+                    <field name="user_id"/>
+                    <field name="is_favorite" widget="boolean_toggle"/>
+                    <field name="is_implemented" widget="boolean_toggle"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Analytics AI Action -->
+        <record id="action_valeo_analytics_ai" model="ir.actions.act_window">
+            <field name="name">KI-Analysen</field>
+            <field name="res_model">valeo.analytics.ai</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_valeo_analytics_ai_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Erstellen Sie Ihre erste KI-Analyse
+                </p>
+                <p>
+                    KI-Analysen helfen Ihnen, wertvolle Einblicke aus Ihren Geschäftsdaten zu gewinnen.
+                </p>
+            </field>
+        </record>
+
+        <!-- Analytics AI Result Action -->
+        <record id="action_valeo_analytics_ai_result" model="ir.actions.act_window">
+            <field name="name">Analyseergebnisse</field>
+            <field name="res_model">valeo.analytics.ai.result</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Noch keine Analyseergebnisse
+                </p>
+                <p>
+                    Führen Sie eine KI-Analyse durch, um Ergebnisse zu sehen.
+                </p>
+            </field>
+        </record>
+
+        <!-- Analytics AI Insight Action -->
+        <record id="action_valeo_analytics_ai_insight" model="ir.actions.act_window">
+            <field name="name">KI-Einblicke</field>
+            <field name="res_model">valeo.analytics.ai.insight</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Noch keine KI-Einblicke
+                </p>
+                <p>
+                    KI-Einblicke werden automatisch aus Analyseergebnissen generiert.
+                </p>
+            </field>
+        </record>
+
+        <!-- Analytics Menu -->
+        <menuitem id="menu_valeo_analytics"
+                  name="Analytik"
+                  parent="valeo_enterprise_suite.menu_valeo_enterprise_suite"
+                  sequence="20"/>
+
+        <!-- Analytics AI Menu -->
+        <menuitem id="menu_valeo_analytics_ai"
+                  name="KI-Analysen"
+                  parent="menu_valeo_analytics"
+                  action="action_valeo_analytics_ai"
+                  sequence="10"/>
+
+        <!-- Analytics AI Results Menu -->
+        <menuitem id="menu_valeo_analytics_ai_result"
+                  name="Analyseergebnisse"
+                  parent="menu_valeo_analytics"
+                  action="action_valeo_analytics_ai_result"
+                  sequence="20"/>
+
+        <!-- Analytics AI Insights Menu -->
+        <menuitem id="menu_valeo_analytics_ai_insight"
+                  name="KI-Einblicke"
+                  parent="menu_valeo_analytics"
+                  action="action_valeo_analytics_ai_insight"
+                  sequence="30"/>
+    </data>
+</odoo> 

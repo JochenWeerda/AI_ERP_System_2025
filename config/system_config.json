@@ -1,0 +1,92 @@
+{
+    "System": {
+        "Name": "AI-driven ERP System",
+        "Version": "1.0.0",
+        "Environment": "Development",
+        "WorkspaceRoot": "C:\\AI_driven_ERP\\AI_driven_ERP"
+    },
+    "Services": {
+        "Redis": {
+            "Enabled": true,
+            "AutoStart": true,
+            "Port": 6379,
+            "ConfigPath": "redis/redis.conf"
+        },
+        "API": {
+            "Enabled": true,
+            "AutoStart": true,
+            "Host": "localhost",
+            "Port": 8003
+        },
+        "Celery": {
+            "Enabled": true,
+            "AutoStart": true,
+            "Workers": 2,
+            "LogLevel": "INFO"
+        },
+        "Flower": {
+            "Enabled": true,
+            "AutoStart": true,
+            "Port": 5555
+        }
+    },
+    "ConnectionMonitor": {
+        "Enabled": true,
+        "AutoStart": true,
+        "Mode": "Background",
+        "ScriptPath": "scripts/connection_monitor.ps1",
+        "CheckInterval": 60,
+        "MaxRestartAttempts": 3,
+        "ServicesToMonitor": [
+            "frontend",
+            "frontend-custom",
+            "frontend-react",
+            "grafana",
+            "jaeger",
+            "api-gateway-simple",
+            "service-mesh-dashboard"
+        ]
+    },
+    "Kubernetes": {
+        "Namespace": "erp-system",
+        "EnableAutoRestart": true,
+        "PortForwardConfig": {
+            "frontend": {
+                "Primary": 8080,
+                "Alternatives": [8081, 8082, 8083, 8084]
+            },
+            "frontend-custom": {
+                "Primary": 8082,
+                "Alternatives": [8182, 8282, 8382, 8482]
+            },
+            "frontend-react": {
+                "Primary": 8090,
+                "Alternatives": [8091, 8092, 8093, 8094]
+            },
+            "grafana": {
+                "Primary": 3000,
+                "Alternatives": [3001, 3002, 3003, 3004]
+            },
+            "jaeger": {
+                "Primary": 16686,
+                "Alternatives": [16687, 16688, 16689, 16690]
+            },
+            "api-gateway-simple": {
+                "Primary": 8085,
+                "Alternatives": [8185, 8285, 8385, 8485]
+            },
+            "service-mesh-dashboard": {
+                "Primary": 8095,
+                "Alternatives": [8195, 8295, 8395, 8495]
+            }
+        }
+    },
+    "Logging": {
+        "LogDir": "logs",
+        "Level": "Info",
+        "MaxFileSize": 10,
+        "MaxFiles": 5,
+        "EnableConsoleOutput": true,
+        "EnableEventLog": true
+    }
+} 

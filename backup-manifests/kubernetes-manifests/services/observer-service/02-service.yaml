@@ -1,0 +1,19 @@
+# Service für den Observer-Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: observer-service
+  namespace: erp-system
+  labels:
+    app: observer-service
+spec:
+  selector:
+    app: observer-service
+  ports:
+  - name: http
+    port: 8010
+    targetPort: 80
+  - name: metrics
+    port: 8011
+    targetPort: 8011
+  type: ClusterIP 

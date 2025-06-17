@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- KI-gestützte Analyseberichte -->
+    <record id="view_mcp_analytics_report_tree" model="ir.ui.view">
+        <field name="name">mcp.analytics.report.tree</field>
+        <field name="model">mcp.analytics.report</field>
+        <field name="arch" type="xml">
+            <tree string="KI-Analyseberichte" decoration-info="state == 'draft'" decoration-muted="state == 'processing'" decoration-success="state == 'done'" decoration-danger="state == 'error'">
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="data_source"/>
+                <field name="time_range"/>
+                <field name="user_id"/>
+                <field name="create_date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="view_mcp_analytics_report_form" model="ir.ui.view">
+        <field name="name">mcp.analytics.report.form</field>
+        <field name="model">mcp.analytics.report</field>
+        <field name="arch" type="xml">
+            <form string="KI-Analysebericht">
+                <header>
+                    <button name="generate_report" string="Bericht generieren" type="object" class="oe_highlight" states="draft"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,processing,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Berichtsname"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="report_type"/>
+                            <field name="data_source"/>
+                            <field name="model_id" options="{'no_create': True}"/>
+                            <field name="chart_type" attrs="{'invisible': [('state', '!=', 'done')]}"/>
+                        </group>
+                        <group>
+                            <field name="time_range"/>
+                            <field name="date_from" attrs="{'invisible': [('time_range', '!=', 'custom')], 'required': [('time_range', '=', 'custom')]}"/>
+                            <field name="date_to" attrs="{'invisible': [('time_range', '!=', 'custom')], 'required': [('time_range', '=', 'custom')]}"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Beschreibung" name="description">
+                            <field name="description" placeholder="Beschreibung des Berichts..."/>
+                        </page>
+                        <page string="Datenquelle" name="data_source" attrs="{'invisible': [('data_source', '!=', 'custom_query')]}">
+                            <field name="query" widget="ace" options="{'mode': 'sql'}" placeholder="SELECT * FROM ..."/>
+                        </page>
+                        <page string="Rohdaten" name="raw_data" attrs="{'invisible': [('raw_data', '=', False)]}">
+                            <field name="raw_data" widget="ace" options="{'mode': 'json'}" readonly="1"/>
+                        </page>
+                        <page string="Ergebnisse" name="results" attrs="{'invisible': [('state', '!=', 'done')]}">
+                            <group>
+                                <field name="summary" widget="html"/>
+                            </group>
+                            <group>
+                                <field name="result" widget="ace" options="{'mode': 'json'}" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Diagrammkonfiguration" name="chart_config" attrs="{'invisible': [('state', '!=', 'done')]}">
+                            <field name="chart_config" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                        <page string="Fehler" name="error" attrs="{'invisible': [('state', '!=', 'error')]}">
+                            <field name="error_message"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <record id="view_mcp_analytics_report_search" model="ir.ui.view">
+        <field name="name">mcp.analytics.report.search</field>
+        <field name="model">mcp.analytics.report</field>
+        <field name="arch" type="xml">
+            <search string="Suche in KI-Analyseberichten">
+                <field name="name"/>
+                <field name="description"/>
+                <field name="user_id"/>
+                <filter string="Meine Berichte" name="my_reports" domain="[('user_id', '=', uid)]"/>
+                <filter string="Entwürfe" name="draft_reports" domain="[('state', '=', 'draft')]"/>
+                <filter string="Abgeschlossen" name="done_reports" domain="[('state', '=', 'done')]"/>
+                <filter string="In Bearbeitung" name="processing_reports" domain="[('state', '=', 'processing')]"/>
+                <filter string="Fehler" name="error_reports" domain="[('state', '=', 'error')]"/>
+                <separator/>
+                <filter string="Anomalieerkennung" name="anomaly_detection" domain="[('report_type', '=', 'anomaly_detection')]"/>
+                <filter string="Trendanalyse" name="trend_analysis" domain="[('report_type', '=', 'trend_analysis')]"/>
+                <filter string="Prognose" name="forecast" domain="[('report_type', '=', 'forecast')]"/>
+                <filter string="Kundensegmentierung" name="customer_segmentation" domain="[('report_type', '=', 'customer_segmentation')]"/>
+                <group expand="0" string="Gruppieren nach">
+                    <filter string="Berichtstyp" name="group_by_report_type" context="{'group_by': 'report_type'}"/>
+                    <filter string="Datenquelle" name="group_by_data_source" context="{'group_by': 'data_source'}"/>
+                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                    <filter string="Erstellt von" name="group_by_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Erstellungsdatum" name="group_by_create_date" context="{'group_by': 'create_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <record id="action_mcp_analytics_report" model="ir.actions.act_window">
+        <field name="name">KI-Analyseberichte</field>
+        <field name="res_model">mcp.analytics.report</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_mcp_analytics_report_search"/>
+        <field name="context">{'search_default_my_reports': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Erstellen Sie Ihren ersten KI-gestützten Analysebericht
+            </p>
+            <p>
+                Mit KI-Analyseberichten können Sie automatisch Muster, Trends und Anomalien 
+                in Ihren Geschäftsdaten erkennen. Die künstliche Intelligenz generiert 
+                Zusammenfassungen und Erkenntnisse, die Ihnen bei datengestützten 
+                Entscheidungen helfen.
+            </p>
+        </field>
+    </record>
+    
+    <!-- KI-Analysedashboard -->
+    <record id="view_mcp_analytics_dashboard_tree" model="ir.ui.view">
+        <field name="name">mcp.analytics.dashboard.tree</field>
+        <field name="model">mcp.analytics.dashboard</field>
+        <field name="arch" type="xml">
+            <tree string="KI-Analysedashboards">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="is_favorite"/>
+                <field name="is_public"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="view_mcp_analytics_dashboard_form" model="ir.ui.view">
+        <field name="name">mcp.analytics.dashboard.form</field>
+        <field name="model">mcp.analytics.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="KI-Analysedashboard">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_favorite" type="object" class="oe_stat_button" icon="fa-star">
+                            <field name="is_favorite" widget="boolean_favorite"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Dashboard-Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="user_id" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="is_public"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Beschreibung" name="description">
+                            <field name="description" placeholder="Dashboard-Beschreibung..."/>
+                        </page>
+                        <page string="Berichte" name="reports">
+                            <field name="report_ids" widget="many2many_tags"/>
+                        </page>
+                        <page string="Layout" name="layout">
+                            <field name="layout" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <record id="view_mcp_analytics_dashboard_search" model="ir.ui.view">
+        <field name="name">mcp.analytics.dashboard.search</field>
+        <field name="model">mcp.analytics.dashboard</field>
+        <field name="arch" type="xml">
+            <search string="Suche in KI-Analysedashboards">
+                <field name="name"/>
+                <field name="description"/>
+                <field name="user_id"/>
+                <filter string="Meine Dashboards" name="my_dashboards" domain="[('user_id', '=', uid)]"/>
+                <filter string="Favoriten" name="favorites" domain="[('is_favorite', '=', True)]"/>
+                <filter string="Öffentlich" name="public" domain="[('is_public', '=', True)]"/>
+                <group expand="0" string="Gruppieren nach">
+                    <filter string="Erstellt von" name="group_by_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Unternehmen" name="group_by_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <record id="action_mcp_analytics_dashboard" model="ir.actions.act_window">
+        <field name="name">KI-Analysedashboards</field>
+        <field name="res_model">mcp.analytics.dashboard</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_mcp_analytics_dashboard_search"/>
+        <field name="context">{'search_default_my_dashboards': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Erstellen Sie Ihr erstes KI-Analysedashboard
+            </p>
+            <p>
+                Dashboards bieten einen schnellen Überblick über mehrere Analyseberichte
+                und ermöglichen es Ihnen, wichtige KPIs und Erkenntnisse auf einen Blick zu sehen.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menüeinträge -->
+    <menuitem id="menu_mcp_analytics"
+              name="KI-Analytics"
+              parent="account.menu_finance_reports"
+              sequence="40"/>
+              
+    <menuitem id="menu_mcp_analytics_report"
+              name="Analyseberichte"
+              parent="menu_mcp_analytics"
+              action="action_mcp_analytics_report"
+              sequence="10"/>
+              
+    <menuitem id="menu_mcp_analytics_dashboard"
+              name="Dashboards"
+              parent="menu_mcp_analytics"
+              action="action_mcp_analytics_dashboard"
+              sequence="20"/>
+</odoo> 

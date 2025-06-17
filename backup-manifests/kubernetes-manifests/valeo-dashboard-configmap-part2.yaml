@@ -1,0 +1,351 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: valeo-dashboard-html-part2
+  namespace: erp-system
+data:
+  index-part2.html: |-
+      <div class="main-content">
+        <div class="menu">
+          <a href="/dashboard" class="active"><i class="fas fa-home"></i> Dashboard</a>
+          <a href="/finance"><i class="fas fa-chart-line"></i> Finanzen</a>
+          <a href="/inventory"><i class="fas fa-warehouse"></i> Lager</a>
+          <a href="/crm"><i class="fas fa-user-tie"></i> Kunden</a>
+          <a href="/system-status"><i class="fas fa-heartbeat"></i> System-Status</a>
+          <a href="/analytics"><i class="fas fa-chart-bar"></i> Analysen</a>
+          <a href="/settings"><i class="fas fa-cog"></i> Einstellungen</a>
+        </div>
+        
+        <!-- Belegfolgen-Übersicht -->
+        <div class="belegfolgen-container">
+          <h2 class="section-title"><i class="fas fa-file-invoice"></i> Belegfolgen im Überblick</h2>
+          
+          <!-- Tabs für ein- und ausgehende Belegfolgen -->
+          <div class="belegfolgen-tabs">
+            <button class="belegfolgen-tab active" data-target="ausgehend">Ausgehend (Verkauf)</button>
+            <button class="belegfolgen-tab" data-target="eingehend">Eingehend (Einkauf)</button>
+          </div>
+          
+          <!-- Ausgehende Belegfolge (Verkauf) -->
+          <div class="belegfolgen-content" id="ausgehend">
+            <div class="belegfolge-flow">
+              <div class="belegfolge-item">
+                <div class="belegfolge-icon">
+                  <i class="fas fa-file-alt"></i>
+                </div>
+                <h4>Angebot</h4>
+                <div class="belegfolge-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">42</div>
+                    <div class="stat-label">Offen</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">18</div>
+                    <div class="stat-label">Heute</div>
+                  </div>
+                </div>
+                <div class="belegfolge-actions">
+                  <button class="btn btn-small"><i class="fas fa-plus"></i> Neu</button>
+                  <button class="btn btn-small btn-secondary"><i class="fas fa-list"></i> Liste</button>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <div class="belegfolge-item">
+                <div class="belegfolge-icon">
+                  <i class="fas fa-file-contract"></i>
+                </div>
+                <h4>Auftrag</h4>
+                <div class="belegfolge-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">28</div>
+                    <div class="stat-label">Offen</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">Heute</div>
+                  </div>
+                </div>
+                <div class="belegfolge-actions">
+                  <button class="btn btn-small"><i class="fas fa-plus"></i> Neu</button>
+                  <button class="btn btn-small btn-secondary"><i class="fas fa-list"></i> Liste</button>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <div class="belegfolge-item">
+                <div class="belegfolge-icon">
+                  <i class="fas fa-truck"></i>
+                </div>
+                <h4>Lieferschein</h4>
+                <div class="belegfolge-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">15</div>
+                    <div class="stat-label">Offen</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Heute</div>
+                  </div>
+                </div>
+                <div class="belegfolge-actions">
+                  <button class="btn btn-small"><i class="fas fa-plus"></i> Neu</button>
+                  <button class="btn btn-small btn-secondary"><i class="fas fa-list"></i> Liste</button>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <div class="belegfolge-item">
+                <div class="belegfolge-icon">
+                  <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h4>Rechnung</h4>
+                <div class="belegfolge-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">23</div>
+                    <div class="stat-label">Offen</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">7</div>
+                    <div class="stat-label">Heute</div>
+                  </div>
+                </div>
+                <div class="belegfolge-actions">
+                  <button class="btn btn-small"><i class="fas fa-plus"></i> Neu</button>
+                  <button class="btn btn-small btn-secondary"><i class="fas fa-list"></i> Liste</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Eingehende Belegfolge (Einkauf) -->
+          <div class="belegfolgen-content" id="eingehend" style="display: none;">
+            <div class="belegfolge-flow">
+              <div class="belegfolge-item">
+                <div class="belegfolge-icon blue">
+                  <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h4>Anfrage</h4>
+                <div class="belegfolge-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">16</div>
+                    <div class="stat-label">Offen</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Heute</div>
+                  </div>
+                </div>
+                <div class="belegfolge-actions">
+                  <button class="btn btn-small"><i class="fas fa-plus"></i> Neu</button>
+                  <button class="btn btn-small btn-secondary"><i class="fas fa-list"></i> Liste</button>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <div class="belegfolge-item">
+                <div class="belegfolge-icon blue">
+                  <i class="fas fa-file-signature"></i>
+                </div>
+                <h4>Bestellung</h4>
+                <div class="belegfolge-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">22</div>
+                    <div class="stat-label">Offen</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">9</div>
+                    <div class="stat-label">Heute</div>
+                  </div>
+                </div>
+                <div class="belegfolge-actions">
+                  <button class="btn btn-small"><i class="fas fa-plus"></i> Neu</button>
+                  <button class="btn btn-small btn-secondary"><i class="fas fa-list"></i> Liste</button>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <div class="belegfolge-item">
+                <div class="belegfolge-icon blue">
+                  <i class="fas fa-dolly-flatbed"></i>
+                </div>
+                <h4>Wareneingang</h4>
+                <div class="belegfolge-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">13</div>
+                    <div class="stat-label">Offen</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Heute</div>
+                  </div>
+                </div>
+                <div class="belegfolge-actions">
+                  <button class="btn btn-small"><i class="fas fa-plus"></i> Neu</button>
+                  <button class="btn btn-small btn-secondary"><i class="fas fa-list"></i> Liste</button>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <div class="belegfolge-item">
+                <div class="belegfolge-icon blue">
+                  <i class="fas fa-file-invoice"></i>
+                </div>
+                <h4>Eingangsrechnung</h4>
+                <div class="belegfolge-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">19</div>
+                    <div class="stat-label">Offen</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">4</div>
+                    <div class="stat-label">Heute</div>
+                  </div>
+                </div>
+                <div class="belegfolge-actions">
+                  <button class="btn btn-small"><i class="fas fa-plus"></i> Neu</button>
+                  <button class="btn btn-small btn-secondary"><i class="fas fa-list"></i> Liste</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Module-Grid für schnellen Zugriff -->
+        <div class="modules-container">
+          <h2 class="section-title"><i class="fas fa-th-large"></i> Module</h2>
+          <div class="module-grid">
+            <!-- Verkauf Modul -->
+            <div class="module-card">
+              <div class="module-header">
+                <div class="module-icon icon-sales">
+                  <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="module-badge">Neu</div>
+              </div>
+              <div class="module-title">Verkauf</div>
+              <div class="module-content">
+                <ul class="module-features">
+                  <li class="module-feature">
+                    <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+                    <span>Angebote erstellen</span>
+                  </li>
+                  <li class="module-feature">
+                    <div class="feature-icon"><i class="fas fa-file-invoice"></i></div>
+                    <span>Rechnungen verwalten</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- Lager Modul -->
+            <div class="module-card">
+              <div class="module-header">
+                <div class="module-icon icon-inventory">
+                  <i class="fas fa-boxes"></i>
+                </div>
+              </div>
+              <div class="module-title">Lager</div>
+              <div class="module-content">
+                <ul class="module-features">
+                  <li class="module-feature">
+                    <div class="feature-icon"><i class="fas fa-barcode"></i></div>
+                    <span>Artikel verwalten</span>
+                  </li>
+                  <li class="module-feature">
+                    <div class="feature-icon"><i class="fas fa-dolly"></i></div>
+                    <span>Warenbewegungen</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- Finanzen Modul -->
+            <div class="module-card">
+              <div class="module-header">
+                <div class="module-icon icon-finance">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+              </div>
+              <div class="module-title">Finanzen</div>
+              <div class="module-content">
+                <ul class="module-features">
+                  <li class="module-feature">
+                    <div class="feature-icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <span>Zahlungen</span>
+                  </li>
+                  <li class="module-feature">
+                    <div class="feature-icon"><i class="fas fa-chart-pie"></i></div>
+                    <span>Auswertungen</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- System-Status Modul -->
+            <div class="module-card">
+              <div class="module-header">
+                <div class="module-icon icon-quality">
+                  <i class="fas fa-heartbeat"></i>
+                </div>
+              </div>
+              <div class="module-title">System-Status</div>
+              <div class="module-content">
+                <ul class="module-features">
+                  <li class="module-feature">
+                    <div class="feature-icon"><i class="fas fa-server"></i></div>
+                    <span>Dienst-Status</span>
+                  </li>
+                  <li class="module-feature">
+                    <div class="feature-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <span>Performance-Metriken</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          // Belegfolgen-Tabs Funktionalität
+          const belegfolgenTabs = document.querySelectorAll('.belegfolgen-tab');
+          
+          belegfolgenTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+              // Aktiven Tab wechseln
+              document.querySelector('.belegfolgen-tab.active').classList.remove('active');
+              this.classList.add('active');
+              
+              // Inhalte wechseln
+              const targetId = this.getAttribute('data-target');
+              document.querySelectorAll('.belegfolgen-content').forEach(content => {
+                content.style.display = 'none';
+              });
+              document.getElementById(targetId).style.display = 'block';
+            });
+          });
+          
+          // Klickbare Module
+          const moduleCards = document.querySelectorAll('.module-card');
+          moduleCards.forEach(card => {
+            card.addEventListener('click', function() {
+              const moduleTitle = this.querySelector('.module-title').textContent.toLowerCase();
+              if (moduleTitle === 'system-status') {
+                window.location.href = '/system-status';
+              } else {
+                window.location.href = '/' + moduleTitle;
+              }
+            });
+          });
+        });
+      </script>
+    </body>
+    </html> 

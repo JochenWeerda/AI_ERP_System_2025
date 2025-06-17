@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Kontextgeneratoren für CRM-Prozesse -->
+        <record id="context_generator_crm_lead" model="mcp.context">
+            <field name="name">Lead/Opportunity-Kontext</field>
+            <field name="code">crm_lead</field>
+            <field name="description">Extrahiert Informationen über einen Lead oder eine Verkaufschance</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="active">true</field>
+            <field name="sequence">800</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Lead/Opportunity-Daten abrufen
+if not record or not record._name == 'crm.lead':
+    return {'error': 'Kein gültiger Lead ausgewählt'}
+
+lead = record
+company = lead.company_id
+
+# Bestimmen, ob es sich um eine Opportunity handelt
+is_opportunity = lead.type == 'opportunity'
+
+# Berechnen der Verweildauer in Tagen
+create_date = lead.create_date.date()
+today = fields.Date.today()
+days_open = (today - create_date).days
+
+# Berechnen der Verweildauer in der aktuellen Phase
+stage_entry_date = lead.date_last_stage_update.date() if lead.date_last_stage_update else create_date
+days_in_stage = (today - stage_entry_date).days
+
+# Aktivitäten abrufen
+activities = []
+for activity in lead.activity_ids:
+    activities.append({
+        'type': activity.activity_type_id.name,
+        'summary': activity.summary or '',
+        'date_deadline': activity.date_deadline.strftime('%Y-%m-%d'),
+        'user': activity.user_id.name,
+        'state': activity.state
+    })
+
+# Kommunikation (E-Mails, Nachrichten) abrufen
+communications = []
+if hasattr(lead, 'message_ids'):
+    messages = lead.message_ids.filtered(lambda m: m.message_type in ['email', 'comment'])
+    
+    for message in messages[:10]:  # Begrenzen auf die letzten 10 Nachrichten
+        communications.append({
+            'type': 'E-Mail' if message.message_type == 'email' else 'Nachricht',
+            'date': message.date.strftime('%Y-%m-%d %H:%M'),
+            'author': message.author_id.name if message.author_id else '',
+            'subject': message.subject or '',
+            'body': message.body[:150] + '...' if len(message.body) > 150 else message.body
+        })
+
+# Dokumente abrufen
+documents = []
+if hasattr(env, 'documents.document'):
+    docs = env['documents.document'].search([
+        ('res_model', '=', 'crm.lead'),
+        ('res_id', '=', lead.id)
+    ], limit=10)
+    
+    for doc in docs:
+        documents.append({
+            'name': doc.name,
+            'type': doc.mimetype or '',
+            'size': doc.file_size,
+            'owner': doc.owner_id.name if doc.owner_id else '',
+            'create_date': doc.create_date.strftime('%Y-%m-%d')
+        })
+
+# Verwandte Verkaufsaufträge
+sale_orders = []
+if hasattr(env, 'sale.order'):
+    orders = env['sale.order'].search([
+        ('opportunity_id', '=', lead.id)
+    ], order='date_order desc')
+    
+    for order in orders:
+        sale_orders.append({
+            'name': order.name,
+            'date': order.date_order.strftime('%Y-%m-%d') if order.date_order else '',
+            'customer': order.partner_id.name,
+            'total': order.amount_total,
+            'state': order.state
+        })
+
+# Verwandte Angebote (nur bei Enterprise-Edition mit Quotation Builder)
+quotations = []
+if hasattr(env, 'sale.order') and is_opportunity:
+    quotes = env['sale.order'].search([
+        ('opportunity_id', '=', lead.id),
+        ('state', 'in', ['draft', 'sent'])
+    ], order='date_order desc')
+    
+    for quote in quotes:
+        quotations.append({
+            'name': quote.name,
+            'date': quote.date_order.strftime('%Y-%m-%d') if quote.date_order else '',
+            'amount': quote.amount_total,
+            'state': quote.state
+        })
+
+# Wettbewerber
+competitors = []
+if hasattr(lead, 'lost_reason_id') and lead.lost_reason_id:
+    competitors.append({
+        'name': lead.lost_reason_id.name,
+        'comment': lead.lost_reason_comment if hasattr(lead, 'lost_reason_comment') else ''
+    })
+
+# Teammitglieder
+team_members = []
+if lead.team_id and lead.team_id.member_ids:
+    for member in lead.team_id.member_ids:
+        team_members.append({
+            'name': member.name,
+            'email': member.email,
+            'phone': member.phone or ''
+        })
+
+result = {
+    'name': lead.name,
+    'type': 'Opportunity' if is_opportunity else 'Lead',
+    'partner': {
+        'name': lead.partner_id.name if lead.partner_id else lead.contact_name or '',
+        'email': lead.email_from or '',
+        'phone': lead.phone or lead.mobile or '',
+        'function': lead.function or '',
+        'title': lead.title.name if lead.title else '',
+        'company': lead.partner_name or ''
+    },
+    'team': lead.team_id.name if lead.team_id else '',
+    'salesperson': lead.user_id.name if lead.user_id else '',
+    'priority': lead.priority,
+    'tag_ids': [tag.name for tag in lead.tag_ids] if hasattr(lead, 'tag_ids') else [],
+    'stage': {
+        'name': lead.stage_id.name if lead.stage_id else '',
+        'probability': lead.probability,
+        'days_in_stage': days_in_stage
+    },
+    'dates': {
+        'create_date': create_date.strftime('%Y-%m-%d'),
+        'days_open': days_open,
+        'date_deadline': lead.date_deadline.strftime('%Y-%m-%d') if lead.date_deadline else '',
+        'date_closed': lead.date_closed.strftime('%Y-%m-%d') if lead.date_closed else ''
+    },
+    'financials': {
+        'expected_revenue': lead.expected_revenue,
+        'planned_revenue': lead.planned_revenue if hasattr(lead, 'planned_revenue') else 0,
+        'currency': company.currency_id.name
+    },
+    'description': lead.description or '',
+    'activities': activities,
+    'communications': communications,
+    'kanban_state': lead.kanban_state,
+    'active': lead.active
+}
+
+# Optionale Felder hinzufügen, wenn verfügbar
+if documents:
+    result['documents'] = documents
+
+if sale_orders:
+    result['sale_orders'] = sale_orders
+
+if quotations:
+    result['quotations'] = quotations
+
+if competitors:
+    result['competitors'] = competitors
+
+if team_members:
+    result['team_members'] = team_members
+
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_crm_customer" model="mcp.context">
+            <field name="name">CRM-Kundenkontext</field>
+            <field name="code">crm_customer</field>
+            <field name="description">Extrahiert CRM-relevante Informationen über einen Kunden</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="active">true</field>
+            <field name="sequence">810</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Kundendaten abrufen
+if not record or not record._name == 'res.partner':
+    return {'error': 'Kein gültiger Kunde ausgewählt'}
+
+partner = record
+company = partner.company_id
+
+# Offene Opportunities
+opportunities = env['crm.lead'].search([
+    ('partner_id', '=', partner.id),
+    ('type', '=', 'opportunity'),
+    ('active', '=', True),
+    ('probability', '<', 100),
+    ('probability', '>', 0)
+], order='expected_revenue desc')
+
+open_opportunities = [{
+    'name': opp.name,
+    'stage': opp.stage_id.name if opp.stage_id else '',
+    'expected_revenue': opp.expected_revenue,
+    'probability': opp.probability,
+    'date_deadline': opp.date_deadline.strftime('%Y-%m-%d') if opp.date_deadline else '',
+    'user': opp.user_id.name if opp.user_id else ''
+} for opp in opportunities]
+
+# Gewonnene Opportunities der letzten 12 Monate
+won_date = fields.Date.to_string(fields.Date.today() - timedelta(days=365))
+won_opportunities = env['crm.lead'].search([
+    ('partner_id', '=', partner.id),
+    ('type', '=', 'opportunity'),
+    ('probability', '=', 100),
+    ('date_closed', '>=', won_date)
+], order='date_closed desc')
+
+won_opportunities_data = [{
+    'name': opp.name,
+    'date_closed': opp.date_closed.strftime('%Y-%m-%d') if opp.date_closed else '',
+    'expected_revenue': opp.expected_revenue,
+    'user': opp.user_id.name if opp.user_id else ''
+} for opp in won_opportunities]
+
+# Verlorene Opportunities der letzten 12 Monate
+lost_opportunities = env['crm.lead'].search([
+    ('partner_id', '=', partner.id),
+    ('type', '=', 'opportunity'),
+    ('active', '=', False),
+    ('probability', '=', 0),
+    ('date_closed', '>=', won_date)
+], order='date_closed desc')
+
+lost_opportunities_data = [{
+    'name': opp.name,
+    'date_closed': opp.date_closed.strftime('%Y-%m-%d') if opp.date_closed else '',
+    'stage': opp.stage_id.name if opp.stage_id else '',
+    'expected_revenue': opp.expected_revenue,
+    'lost_reason': opp.lost_reason_id.name if hasattr(opp, 'lost_reason_id') and opp.lost_reason_id else ''
+} for opp in lost_opportunities]
+
+# Verkäufe der letzten 12 Monate
+sales_data = None
+if hasattr(env, 'sale.order'):
+    sale_date = fields.Date.to_string(fields.Date.today() - timedelta(days=365))
+    sales = env['sale.order'].search([
+        ('partner_id', '=', partner.id),
+        ('date_order', '>=', sale_date),
+        ('state', 'in', ['sale', 'done'])
+    ], order='date_order desc')
+    
+    sales_data = {
+        'count': len(sales),
+        'total_amount': sum(sale.amount_total for sale in sales),
+        'average_amount': sum(sale.amount_total for sale in sales) / len(sales) if sales else 0,
+        'recent_orders': [{
+            'name': sale.name,
+            'date': sale.date_order.strftime('%Y-%m-%d') if sale.date_order else '',
+            'amount': sale.amount_total,
+            'state': sale.state
+        } for sale in sales[:5]]
+    }
+
+# Meetings/Kalendertermine
+meetings = []
+if hasattr(env, 'calendar.event'):
+    calendar_events = env['calendar.event'].search([
+        ('partner_ids', 'in', partner.id),
+        ('start', '>=', fields.Datetime.now())
+    ], order='start asc', limit=5)
+    
+    meetings = [{
+        'name': event.name,
+        'start': event.start.strftime('%Y-%m-%d %H:%M'),
+        'duration': event.duration,
+        'location': event.location or '',
+        'organizer': event.user_id.name if event.user_id else ''
+    } for event in calendar_events]
+
+# Aktivitäten
+activities = []
+activity_models = ['crm.lead', 'sale.order', 'project.task']
+for model in activity_models:
+    if hasattr(env, model):
+        model_obj = env[model]
+        records = model_obj.search([('partner_id', '=', partner.id)])
+        
+        for record in records:
+            if hasattr(record, 'activity_ids'):
+                for activity in record.activity_ids:
+                    activities.append({
+                        'model': model,
+                        'record_name': record.name,
+                        'type': activity.activity_type_id.name,
+                        'summary': activity.summary or '',
+                        'date_deadline': activity.date_deadline.strftime('%Y-%m-%d'),
+                        'user': activity.user_id.name,
+                        'state': activity.state
+                    })
+
+# Kundenzufriedenheitsumfragen
+surveys = []
+if hasattr(env, 'survey.user_input'):
+    survey_inputs = env['survey.user_input'].search([
+        ('partner_id', '=', partner.id)
+    ], order='create_date desc', limit=5)
+    
+    for survey_input in survey_inputs:
+        surveys.append({
+            'survey': survey_input.survey_id.title if hasattr(survey_input, 'survey_id') else '',
+            'date': survey_input.create_date.strftime('%Y-%m-%d'),
+            'state': survey_input.state,
+            'scoring_percentage': survey_input.scoring_percentage if hasattr(survey_input, 'scoring_percentage') else 0
+        })
+
+# Teamzuständigkeit
+team = None
+if hasattr(env, 'crm.team') and hasattr(partner, 'team_id') and partner.team_id:
+    team = {
+        'name': partner.team_id.name,
+        'leader': partner.team_id.user_id.name if partner.team_id.user_id else '',
+        'members': [member.name for member in partner.team_id.member_ids] if hasattr(partner.team_id, 'member_ids') else []
+    }
+
+result = {
+    'name': partner.name,
+    'is_company': partner.is_company,
+    'parent_company': partner.parent_id.name if partner.parent_id else '',
+    'contact': {
+        'email': partner.email or '',
+        'phone': partner.phone or '',
+        'mobile': partner.mobile or '',
+        'website': partner.website or '',
+        'address': partner.contact_address if hasattr(partner, 'contact_address') else '',
+    },
+    'user': partner.user_id.name if partner.user_id else '',
+    'category_ids': [cat.name for cat in partner.category_id],
+    'customer_since': partner.create_date.strftime('%Y-%m-%d') if partner.create_date else '',
+    'opportunity_count': len(opportunities) + len(won_opportunities) + len(lost_opportunities),
+    'opportunities': {
+        'open': open_opportunities,
+        'won': won_opportunities_data,
+        'lost': lost_opportunities_data
+    },
+    'activities': activities[:10],  # Die 10 neuesten Aktivitäten
+    'meetings': meetings
+}
+
+# Optionale Felder hinzufügen, wenn verfügbar
+if sales_data:
+    result['sales'] = sales_data
+
+if surveys:
+    result['surveys'] = surveys
+
+if team:
+    result['team'] = team
+
+return result
+            </field>
+        </record>
+        
+        <record id="context_generator_crm_team" model="mcp.context">
+            <field name="name">Vertriebsteam-Kontext</field>
+            <field name="code">crm_team</field>
+            <field name="description">Extrahiert Informationen über ein Vertriebsteam</field>
+            <field name="model_id" ref="sales_team.model_crm_team"/>
+            <field name="active">true</field>
+            <field name="sequence">820</field>
+            <field name="generate_method">python</field>
+            <field name="python_code">
+# Vertriebsteamdaten abrufen
+if not record or not record._name == 'crm.team':
+    return {'error': 'Kein gültiges Vertriebsteam ausgewählt'}
+
+team = record
+company = team.company_id
+
+# Aktuelle Pipeline-Daten
+pipeline_total = 0
+pipeline_by_stage = {}
+
+current_opportunities = env['crm.lead'].search([
+    ('team_id', '=', team.id),
+    ('type', '=', 'opportunity'),
+    ('active', '=', True),
+    ('probability', '<', 100),
+    ('probability', '>', 0)
+])
+
+for opportunity in current_opportunities:
+    pipeline_total += opportunity.expected_revenue
+    stage_name = opportunity.stage_id.name if opportunity.stage_id else 'Ohne Phase'
+    
+    if stage_name not in pipeline_by_stage:
+        pipeline_by_stage[stage_name] = {
+            'count': 0,
+            'amount': 0
+        }
+    
+    pipeline_by_stage[stage_name]['count'] += 1
+    pipeline_by_stage[stage_name]['amount'] += opportunity.expected_revenue
+
+# Pipeline in Liste umwandeln
+pipeline_stages = []
+for stage_name, data in pipeline_by_stage.items():
+    pipeline_stages.append({
+        'name': stage_name,
+        'count': data['count'],
+        'amount': data['amount'],
+        'percentage': (data['amount'] / pipeline_total * 100) if pipeline_total > 0 else 0
+    })
+
+# Gewonnene und verlorene Opportunities der letzten 30 Tage
+date_30_days_ago = fields.Date.to_string(fields.Date.today() - timedelta(days=30))
+
+won_opportunities = env['crm.lead'].search([
+    ('team_id', '=', team.id),
+    ('type', '=', 'opportunity'),
+    ('probability', '=', 100),
+    ('date_closed', '>=', date_30_days_ago)
+])
+
+lost_opportunities = env['crm.lead'].search([
+    ('team_id', '=', team.id),
+    ('type', '=', 'opportunity'),
+    ('active', '=', False),
+    ('probability', '=', 0),
+    ('date_closed', '>=', date_30_days_ago)
+])
+
+won_amount = sum(opp.expected_revenue for opp in won_opportunities)
+lost_amount = sum(opp.expected_revenue for opp in lost_opportunities)
+win_ratio = len(won_opportunities) / (len(won_opportunities) + len(lost_opportunities)) * 100 if (len(won_opportunities) + len(lost_opportunities)) > 0 else 0
+
+# Teammitglieder mit Performance
+members_data = []
+for member in team.member_ids:
+    member_opportunities = env['crm.lead'].search([
+        ('team_id', '=', team.id),
+        ('user_id', '=', member.id),
+        ('type', '=', 'opportunity'),
+        ('active', '=', True),
+        ('probability', '<', 100),
+        ('probability', '>', 0)
+    ])
+    
+    member_won = env['crm.lead'].search([
+        ('team_id', '=', team.id),
+        ('user_id', '=', member.id),
+        ('type', '=', 'opportunity'),
+        ('probability', '=', 100),
+        ('date_closed', '>=', date_30_days_ago)
+    ])
+    
+    member_data = {
+        'name': member.name,
+        'email': member.email,
+        'phone': member.phone or '',
+        'pipeline': {
+            'count': len(member_opportunities),
+            'amount': sum(opp.expected_revenue for opp in member_opportunities)
+        },
+        'won_last_30_days': {
+            'count': len(member_won),
+            'amount': sum(opp.expected_revenue for opp in member_won)
+        }
+    }
+    
+    members_data.append(member_data)
+
+# Top-Opportunities
+top_opportunities = current_opportunities.sorted(key=lambda r: r.expected_revenue, reverse=True)[:5]
+top_opportunities_data = [{
+    'name': opp.name,
+    'partner': opp.partner_id.name if opp.partner_id else opp.contact_name or '',
+    'stage': opp.stage_id.name if opp.stage_id else '',
+    'expected_revenue': opp.expected_revenue,
+    'probability': opp.probability,
+    'user': opp.user_id.name if opp.user_id else ''
+} for opp in top_opportunities]
+
+# Neueste Verkäufe
+recent_sales = []
+if hasattr(env, 'sale.order'):
+    sales = env['sale.order'].search([
+        ('team_id', '=', team.id),
+        ('state', 'in', ['sale', 'done'])
+    ], order='date_order desc', limit=5)
+    
+    recent_sales = [{
+        'name': sale.name,
+        'customer': sale.partner_id.name,
+        'date': sale.date_order.strftime('%Y-%m-%d') if sale.date_order else '',
+        'amount': sale.amount_total,
+        'salesperson': sale.user_id.name if sale.user_id else ''
+    } for sale in sales]
+
+result = {
+    'name': team.name,
+    'leader': team.user_id.name if team.user_id else '',
+    'company': company.name,
+    'use_opportunities': team.use_opportunities if hasattr(team, 'use_opportunities') else True,
+    'use_leads': team.use_leads if hasattr(team, 'use_leads') else False,
+    'pipeline': {
+        'total_amount': pipeline_total,
+        'opportunity_count': len(current_opportunities),
+        'average_size': pipeline_total / len(current_opportunities) if current_opportunities else 0,
+        'stages': pipeline_stages
+    },
+    'performance_30_days': {
+        'won_count': len(won_opportunities),
+        'won_amount': won_amount,
+        'lost_count': len(lost_opportunities),
+        'lost_amount': lost_amount,
+        'win_ratio': win_ratio
+    },
+    'members': members_data,
+    'top_opportunities': top_opportunities_data
+}
+
+# Optionale Felder hinzufügen, wenn verfügbar
+if recent_sales:
+    result['recent_sales'] = recent_sales
+
+return result
+            </field>
+        </record>
+    </data>
+</odoo> 

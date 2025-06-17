@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_farm_farm_user,farm.farm.user,model_farm_farm,group_farm_user,1,0,0,0
+access_farm_farm_manager,farm.farm.manager,model_farm_farm,group_farm_manager,1,1,1,1
+access_farm_field_user,farm.field.user,model_farm_field,group_farm_user,1,0,0,0
+access_farm_field_manager,farm.field.manager,model_farm_field,group_farm_manager,1,1,1,1
+access_farm_crop_user,farm.crop.user,model_farm_crop,group_farm_user,1,0,0,0
+access_farm_crop_manager,farm.crop.manager,model_farm_crop,group_farm_manager,1,1,1,1
+access_farm_enni_export_user,farm.enni.export.user,model_farm_enni_export,group_farm_user,1,1,1,1
+access_farm_enni_export_manager,farm.enni.export.manager,model_farm_enni_export,group_farm_manager,1,1,1,1
+access_farm_enni_import_user,farm.enni.import.user,model_farm_enni_import,group_farm_user,1,1,1,1
+access_farm_enni_import_manager,farm.enni.import.manager,model_farm_enni_import,group_farm_manager,1,1,1,1 

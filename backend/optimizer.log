@@ -1,0 +1,19 @@
+2025-05-27 06:17:27,820 [INFO] Konfiguration geladen aus: observer_config.json
+2025-05-27 06:17:27,820 [INFO] ObserverService initialisiert mit Server-URL: http://localhost:8000
+2025-05-27 06:17:27,820 [INFO] Überwachungsintervall: 60 Sekunden
+2025-05-27 06:17:27,820 [INFO] Observer-Service gestartet
+2025-05-27 06:17:27,820 [INFO] Observer gestartet in separatem Thread
+2025-05-27 06:17:27,820 [INFO] Keine Metriken für die Diagrammerstellung verfügbar
+2025-05-27 06:17:27,820 [INFO] Optimizer ist deaktiviert
+2025-05-27 06:17:27,938 [INFO] Observer-Dashboard wird gestartet auf http://localhost:8010
+2025-05-27 06:17:27,938 [INFO] Microservice-Registrierung verfügbar unter: http://localhost:8010/register
+2025-05-27 06:23:33,809 [INFO] Konfiguration geladen aus: observer_config.json
+2025-05-27 06:23:33,826 [INFO] ObserverService initialisiert mit Server-URL: http://localhost:8000
+2025-05-27 06:23:33,826 [INFO] Überwachungsintervall: 60 Sekunden
+2025-05-27 06:23:33,826 [INFO] Observer-Service gestartet
+2025-05-27 06:23:33,826 [INFO] Observer gestartet in separatem Thread
+2025-05-27 06:23:33,826 [INFO] Keine Metriken für die Diagrammerstellung verfügbar
+2025-05-27 06:23:33,826 [INFO] Optimizer ist deaktiviert
+2025-05-27 06:23:33,976 [INFO] Observer-Dashboard wird gestartet auf http://localhost:8010
+2025-05-27 06:23:33,976 [INFO] Microservice-Registrierung verfügbar unter: http://localhost:8010/register
+2025-05-27 06:27:31,691 [INFO] Neuer Service registriert: finance-service (DESKTOP-P2FLPUS:8007)

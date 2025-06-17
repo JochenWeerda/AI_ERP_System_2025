@@ -1,0 +1,285 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reporting-service
+  namespace: erp-system
+spec:
+  template:
+    metadata:
+      annotations:
+        # Prometheus-Annotationen für Metrik-Scraping
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8060"
+        prometheus.io/path: "/metrics"
+        # Jaeger-Annotationen für Tracing
+        jaeger.erp-system.svc.cluster.local/inject: "true"
+        jaeger.erp-system.svc.cluster.local/service-name: "reporting-service"
+    spec:
+      containers:
+      - name: reporting-service
+        env:
+        # Umgebungsvariablen für Metriken
+        - name: ENABLE_METRICS
+          value: "true"
+        - name: METRICS_PATH
+          value: "/metrics"
+        - name: METRICS_PORT
+          value: "8060"
+        # Umgebungsvariablen für Jaeger Tracing
+        - name: JAEGER_AGENT_HOST
+          value: "erp-jaeger-agent.erp-system.svc.cluster.local"
+        - name: JAEGER_AGENT_PORT
+          value: "6831"
+        - name: JAEGER_SAMPLER_TYPE
+          value: "const"
+        - name: JAEGER_SAMPLER_PARAM
+          value: "1"
+        - name: JAEGER_SERVICE_NAME
+          value: "reporting-service"
+        - name: ENABLE_TRACING
+          value: "true"
+        # Umgebungsvariablen für strukturiertes Logging
+        - name: LOG_LEVEL
+          value: "info"
+        - name: LOG_FORMAT
+          value: "json"
+        - name: ELASTICSEARCH_HOST
+          value: "elasticsearch.erp-system.svc.cluster.local:9200"
+        - name: USE_ELASTICSEARCH
+          value: "true"
+        # Spezifische Umgebungsvariablen für den Reporting-Service
+        - name: REPORT_DATA_SOURCE
+          value: "reporting-db.erp-system.svc.cluster.local:5432"
+        - name: REPORT_CACHE_ENABLED
+          value: "true"
+        - name: REPORT_CACHE_TTL
+          value: "300"
+        volumeMounts:
+        # Volume für Metriken-Konfiguration
+        - name: metrics-config
+          mountPath: /app/config/metrics
+          readOnly: true
+        # Volume für Tracing-Konfiguration
+        - name: tracing-config
+          mountPath: /app/config/tracing
+          readOnly: true
+        # Volume für Report-Templates
+        - name: report-templates
+          mountPath: /app/templates
+          readOnly: true
+        # Health Probes für Kubernetes
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8060
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8060
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8060
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 20
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      # ConfigMap für Metriken
+      - name: metrics-config
+        configMap:
+          name: reporting-service-metrics-config
+      # ConfigMap für Tracing
+      - name: tracing-config
+        configMap:
+          name: reporting-service-tracing-config
+      # ConfigMap für Report-Templates
+      - name: report-templates
+        configMap:
+          name: reporting-service-templates
+---
+# ConfigMap für Metriken-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reporting-service-metrics-config
+  namespace: erp-system
+data:
+  metrics.yml: |
+    # Metriken-Konfiguration für Reporting-Service
+    metrics:
+      enabled: true
+      endpoint: /metrics
+      port: 8060
+      collectors:
+        - type: counter
+          name: report_generation_total
+          help: "Gesamtzahl der generierten Berichte"
+          labels:
+            - report_type
+            - status
+        - type: histogram
+          name: report_generation_duration_seconds
+          help: "Dauer der Berichtsgenerierung in Sekunden"
+          labels:
+            - report_type
+          buckets: [0.1, 0.5, 1, 2.5, 5, 10, 30, 60, 120, 300]
+        - type: gauge
+          name: report_queue_size
+          help: "Anzahl der Berichte in der Warteschlange"
+          labels:
+            - report_type
+            - priority
+        - type: counter
+          name: report_data_size_bytes
+          help: "Größe der für Berichte abgerufenen Daten in Bytes"
+          labels:
+            - report_type
+            - data_source
+        - type: gauge
+          name: report_last_status
+          help: "Status des letzten generierten Berichts"
+          labels:
+            - report_type
+            - user_id
+            - status
+---
+# ConfigMap für Tracing-Konfiguration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reporting-service-tracing-config
+  namespace: erp-system
+data:
+  tracing.yml: |
+    # Tracing-Konfiguration für Reporting-Service
+    tracing:
+      enabled: true
+      service_name: reporting-service
+      jaeger:
+        agent_host: erp-jaeger-agent.erp-system.svc.cluster.local
+        agent_port: 6831
+        sampler_type: const
+        sampler_param: 1
+      # Operation-Tags für bessere Kategorisierung der Traces
+      operation_tags:
+        - key: report_type
+          tag_as: report.type
+        - key: user_id
+          tag_as: user.id
+        - key: report_id
+          tag_as: report.id
+      # Optionen für detaillierte Tracing-Spans
+      span_options:
+        include_request_headers:
+          - content-type
+          - authorization
+          - x-request-id
+        include_response_headers:
+          - content-type
+          - content-length
+        include_payload: false
+        include_metadata: true
+---
+# ConfigMap für Report-Templates (Beispiel)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reporting-service-templates
+  namespace: erp-system
+data:
+  invoice-report.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Rechnungsbericht</title>
+      <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+      </style>
+    </head>
+    <body>
+      <h1>Rechnungsbericht</h1>
+      <p>Erstellt am: {{generated_at}}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Rechnungsnummer</th>
+            <th>Kunde</th>
+            <th>Datum</th>
+            <th>Betrag</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each invoices}}
+          <tr>
+            <td>{{invoice_number}}</td>
+            <td>{{customer_name}}</td>
+            <td>{{invoice_date}}</td>
+            <td>{{amount}} {{currency}}</td>
+            <td>{{status}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  
+  inventory-report.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Lagerbestandsbericht</title>
+      <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .low-stock { background-color: #ffcccc; }
+      </style>
+    </head>
+    <body>
+      <h1>Lagerbestandsbericht</h1>
+      <p>Erstellt am: {{generated_at}}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Artikelnummer</th>
+            <th>Bezeichnung</th>
+            <th>Lagerort</th>
+            <th>Aktueller Bestand</th>
+            <th>Minimaler Bestand</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each items}}
+          <tr {{#if low_stock}}class="low-stock"{{/if}}>
+            <td>{{item_number}}</td>
+            <td>{{description}}</td>
+            <td>{{location}}</td>
+            <td>{{current_stock}} {{unit}}</td>
+            <td>{{min_stock}} {{unit}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </body>
+    </html> 

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Erweiterung der Produktformularansicht (Template) -->
+    <record id="product_template_form_view_inherited" model="ir.ui.view">
+        <field name="name">product.template.form.inherited</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Tab für Chargen-Konfiguration hinzufügen -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Chargenverwaltung" name="lot_management"
+                      attrs="{'invisible': [('tracking', '=', 'none')]}">
+                    <group>
+                        <group string="Chargenkonfiguration">
+                            <field name="default_lot_account_id" 
+                                   attrs="{'invisible': [('tracking', '=', 'none')]}"/>
+                            <field name="charge_validation_required"
+                                   attrs="{'invisible': [('tracking', '=', 'none')]}"/>
+                            <field name="auto_generate_lots"
+                                   attrs="{'invisible': [('tracking', '=', 'none')]}"/>
+                            <field name="lot_number_prefix"
+                                   attrs="{'invisible': ['|', ('tracking', '=', 'none'), ('auto_generate_lots', '=', False)]}"/>
+                        </group>
+                        <group string="Chargenstatistik">
+                            <field name="lot_count" widget="statinfo"/>
+                            <button name="action_view_lots" type="object" 
+                                    string="Chargen anzeigen" class="btn-link" 
+                                    attrs="{'invisible': [('lot_count', '=', 0)]}"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            
+            <!-- Button für Chargenliste hinzufügen -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" name="action_view_lots" type="object" icon="fa-list-ol"
+                        attrs="{'invisible': ['|', ('tracking', '=', 'none'), ('lot_count', '=', 0)]}">
+                    <field name="lot_count" string="Chargen" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Produktvarianten-Formularansicht -->
+    <record id="product_normal_form_view_inherited" model="ir.ui.view">
+        <field name="name">product.product.form.inherited</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Button für Chargenliste hinzufügen -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" name="action_view_lots" type="object" icon="fa-list-ol"
+                        attrs="{'invisible': ['|', ('tracking', '=', 'none'), ('lot_count', '=', 0)]}">
+                    <field name="lot_count" string="Chargen" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Produktlistenansicht -->
+    <record id="product_template_tree_view_inherited" model="ir.ui.view">
+        <field name="name">product.template.tree.inherited</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tracking']" position="after">
+                <field name="lot_count" optional="show" 
+                       attrs="{'invisible': [('tracking', '=', 'none')]}"/>
+                <field name="default_lot_account_id" optional="hide" 
+                       attrs="{'invisible': [('tracking', '=', 'none')]}"/>
+                <field name="auto_generate_lots" optional="hide" 
+                       attrs="{'invisible': [('tracking', '=', 'none')]}"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Erweiterung der Produktsuchansicht -->
+    <record id="product_template_search_view_inherited" model="ir.ui.view">
+        <field name="name">product.template.search.inherited</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='services']" position="after">
+                <separator/>
+                <filter string="Mit Chargen" name="has_lots" domain="[('lot_count', '>', 0)]"/>
+                <filter string="Mit Artikelkonto" name="has_lot_account" domain="[('default_lot_account_id', '!=', False)]"/>
+                <filter string="Auto-Chargenerstellung" name="auto_lot" domain="[('auto_generate_lots', '=', True)]"/>
+                <filter string="Chargenprüfung" name="lot_validation" domain="[('charge_validation_required', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Spezielle Aktion für Produkte mit Chargen -->
+    <record id="action_product_with_lots" model="ir.actions.act_window">
+        <field name="name">Produkte mit Chargen</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="context">{'search_default_has_lots': 1}</field>
+        <field name="domain">[('tracking', 'in', ['lot', 'serial'])]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keine Produkte mit Chargen gefunden
+            </p>
+            <p>
+                Hier werden Produkte angezeigt, die Chargen verwenden und im Bestand verfügbar sind.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menüpunkt für Produkte mit Chargen -->
+    <menuitem id="menu_product_with_lots" name="Chargenprodukte" 
+              action="action_product_with_lots" 
+              parent="stock.menu_stock_inventory_control" 
+              sequence="100"/>
+</odoo> 

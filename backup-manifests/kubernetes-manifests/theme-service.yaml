@@ -1,0 +1,136 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: theme-service
+  namespace: erp-system
+  labels:
+    app: theme-service
+    component: ui-services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: theme-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: theme-service
+        component: ui-services
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: theme-service
+        image: nginx:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "80"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: DOCUMENT_SERVICE_URL
+          value: "http://document-service:80"
+        - name: FINANCE_SERVICE_URL
+          value: "http://finance-service:80"
+        - name: BELEG_SERVICE_URL
+          value: "http://beleg-service:8020"
+        - name: REDIS_URL
+          value: "redis://redis:6379"
+        volumeMounts:
+        - name: theme-config
+          mountPath: /etc/nginx/conf.d
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: theme-config
+        configMap:
+          name: theme-service-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: theme-service
+  namespace: erp-system
+  labels:
+    app: theme-service
+spec:
+  selector:
+    app: theme-service
+  ports:
+  - port: 5001
+    targetPort: 80
+    name: http
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: theme-service-config
+  namespace: erp-system
+  labels:
+    app: theme-service
+data:
+  default.conf: |
+    server {
+      listen 80;
+      server_name localhost;
+
+      # Root-Route
+      location / {
+        default_type application/json;
+        return 200 '{"service":"theme-service","status":"running","version":"1.0.0"}';
+      }
+
+      # Themes-API
+      location /api/themes {
+        default_type application/json;
+        return 200 '{"themes":[{"id":"default","name":"Standard"},{"id":"dark","name":"Dunkel"},{"id":"light","name":"Hell"},{"id":"high-contrast","name":"Hoher Kontrast"}]}';
+      }
+
+      # Einzelnes Theme
+      location ~ ^/api/themes/([a-z0-9-]+)$ {
+        default_type application/json;
+        return 200 '{"id":"$1","name":"Theme $1","colors":{"primary":"#1976d2","secondary":"#424242","accent":"#82b1ff","error":"#ff5252","info":"#2196f3","success":"#4caf50","warning":"#fb8c00"},"fonts":{"primary":"Roboto","secondary":"Helvetica"}}';
+      }
+
+      # Gesundheits-Check-Endpunkt
+      location /health {
+        access_log off;
+        return 200 "Theme Service is healthy\n";
+      }
+
+      # Metriken-Endpunkt
+      location /metrics {
+        default_type text/plain;
+        return 200 "# HELP theme_service_requests_total\n# TYPE theme_service_requests_total counter\ntheme_service_requests_total{status=\"success\"} 100\ntheme_service_requests_total{status=\"error\"} 5\n";
+      }
+    } 

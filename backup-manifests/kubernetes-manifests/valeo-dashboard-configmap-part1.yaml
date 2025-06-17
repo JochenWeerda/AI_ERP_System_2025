@@ -1,0 +1,255 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: valeo-dashboard-html-part1
+  namespace: erp-system
+data:
+  index-part1.html: |-
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>VALEO NeuroERP</title>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+      <style>
+        :root {
+          --primary-color: #2c3e50;
+          --secondary-color: #3498db;
+          --accent-color: #714B67;
+          --text-color: #333;
+          --border-color: #dee2e6;
+          --background-light: #f8f9fa;
+          --background-main: #f5f5f5;
+          --shadow-color: rgba(0,0,0,0.1);
+          --card-finance: #2ecc71;
+          --card-inventory: #e74c3c;
+          --card-crm: #f39c12;
+          --card-settings: #6c757d;
+        }
+
+        body {
+          font-family: 'Roboto', 'Noto Sans', Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          background-color: var(--background-main);
+          color: var(--text-color);
+          position: relative;
+          overflow-x: hidden;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        /* Header Styles */
+        header {
+          background-color: #fff;
+          border-bottom: 1px solid var(--border-color);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0 24px;
+          height: 64px;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .logo {
+          display: flex;
+          align-items: center;
+        }
+
+        .logo img {
+          height: 40px;
+          margin-right: 12px;
+        }
+
+        .logo h1 {
+          font-size: 20px;
+          color: var(--primary-color);
+          margin: 0;
+          font-weight: 600;
+        }
+
+        /* Header Search */
+        .header-search {
+          flex: 1;
+          max-width: 600px;
+          margin: 0 20px;
+          position: relative;
+        }
+
+        .header-search-input {
+          width: 100%;
+          padding: 8px 16px;
+          padding-right: 40px;
+          border: 1px solid var(--border-color);
+          border-radius: 20px;
+          font-size: 14px;
+          outline: none;
+          transition: all 0.3s;
+        }
+
+        .header-search-input:focus {
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 2px rgba(113, 75, 103, 0.1);
+        }
+
+        .header-search-btn {
+          position: absolute;
+          right: 4px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: var(--primary-color);
+          font-size: 16px;
+          cursor: pointer;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          transition: all 0.3s;
+        }
+
+        .header-search-btn:hover {
+          background-color: var(--background-light);
+        }
+
+        .header-icons {
+          display: flex;
+          gap: 16px;
+          align-items: center;
+        }
+
+        .header-icon {
+          color: #6c757d;
+          font-size: 18px;
+          cursor: pointer;
+          transition: all 0.3s;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          position: relative;
+        }
+
+        .header-icon:hover {
+          color: var(--accent-color);
+          background-color: var(--background-light);
+        }
+
+        .badge {
+          position: absolute;
+          top: -4px;
+          right: -4px;
+          background-color: #e74c3c;
+          color: white;
+          font-size: 10px;
+          font-weight: bold;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        /* User Profile */
+        .user-profile {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+          padding: 5px 10px;
+          border-radius: 20px;
+          transition: all 0.3s;
+        }
+
+        .user-profile:hover {
+          background-color: var(--background-light);
+        }
+
+        .user-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          overflow: hidden;
+        }
+
+        .user-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .user-info {
+          display: none;
+        }
+
+        @media (min-width: 768px) {
+          .user-info {
+            display: block;
+          }
+        }
+
+        .user-name {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--primary-color);
+        }
+
+        .user-status {
+          font-size: 12px;
+          color: #6c757d;
+        }
+      </style>
+    </head>
+    <body>
+      <header>
+        <div class="logo">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzcxNEI2NyIgZD0iTTE4IDM2QzggMzYgMCAyOCAwIDE4UzggMCAxOCAwczE4IDggMTggMTgtOCA4LTE4IDh6Ii8+PHBhdGggZmlsbD0iI0ZGRiIgZD0iTTExLjI3OCAyMy4yMTRsLjUzMi01LjUzNWMuMTUyLTEuNTQ5IDEuNDktMi42OTMgMy4wNDctMi42OTNoNi4yODhjMS41NTcgMCAyLjg5NSAxLjE0NCAzLjA0NyAyLjY5M2wuNTMyIDUuNTM1Yy4wNjUgMi4wMDItMS41MzggMy42NTgtMy41NDUgMy42NThoLTYuMzU2Yy0yLjAwOCAwLTMuNjEtMS42NTYtMy41NDUtMy42NTh6TTkgMTEuODg0YzAtLjQ5LjQtLjg4Ny44OTUtLjg4N2gxNi4yMWMuNDk1IDAgLjg5NS4zOTcuODk1Ljg4N3YuMjI5YzAgLjQ5LS40Ljg4Ny0uODk1Ljg4N2gtMTYuMjFjLS40OTUgMC0uODk1LS4zOTctLjg5NS0uODg3di0uMjI5eiIvPjwvc3ZnPg==" alt="VALEO Logo">
+          <h1>VALEO NeuroERP</h1>
+        </div>
+        
+        <!-- Globale Suche im Header -->
+        <div class="header-search">
+          <input type="text" placeholder="Globale Suche (Artikel, Kunden, Belege, ...)" class="header-search-input">
+          <button class="header-search-btn">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+        
+        <div class="header-icons">
+          <div class="header-icon" id="notifications-toggle" title="Benachrichtigungen">
+            <i class="fas fa-bell"></i>
+            <span class="badge">3</span>
+          </div>
+          
+          <div class="header-icon" id="sidebar-toggle" title="Chat öffnen">
+            <i class="fas fa-comments"></i>
+            <span class="badge">5</span>
+          </div>
+          
+          <div class="user-profile" id="user-profile">
+            <div class="user-avatar">
+              <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiI+PHBhdGggZmlsbD0iIzI5QjZGNiIgZD0iTTE4IDM2QzggMzYgMCAyOCAwIDE4UzggMCAxOCAwczE4IDggMTggMTgtOCA4LTE4IDh6Ii8+PHBhdGggZmlsbD0iI0ZGRiIgZD0iTTI0IDE2di0zYzAtMy4zLTIuNy02LTYtcy02IDIuNy02IDZ2M2MtMS43IDAtMyAxLjMtMyAzdjhjMCAxLjcgMS4zIDMgMyAzaDEyYzEuNyAwIDMtMS4zIDMtM3YtOGMwLTEuNy0xLjMtMyAtMy0zem0tNSAxMWgtMmwtMS0xVjIwaC00di03YzAtMS4xLjktMiAyLTJoNmMxLjEgMCAyIC45IDIgMnY3aC00djZsLTEgMXoiLz48L3N2Zz4=" alt="Benutzer">
+            </div>
+            <div class="user-info">
+              <div class="user-name">Max Mustermann</div>
+              <div class="user-status">Angemeldet seit 08:45</div>
+            </div>
+          </div>
+        </div>
+      </header>
+    </body>
+    </html> 

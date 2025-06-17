@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Hauptmenü für MCP (bereits in mcp_views.xml definiert) -->
+        
+        <!-- Zusätzliche Untermenüs für Prompt-Verwaltung -->
+        <menuitem id="menu_mcp_prompts" name="Prompts" parent="menu_mcp_root" sequence="20"/>
+        <menuitem id="menu_mcp_prompt_templates" name="Prompt-Vorlagen" parent="menu_mcp_prompts" action="action_mcp_prompt_template" sequence="10"/>
+        <menuitem id="menu_mcp_prompt_categories" name="Kategorien" parent="menu_mcp_prompts" action="action_mcp_prompt_category" sequence="20"/>
+        <menuitem id="menu_mcp_prompt_designer" name="Prompt-Designer" parent="menu_mcp_prompts" action="action_mcp_prompt_designer" sequence="30"/>
+        
+        <!-- Untermenüs für Kontext-Verwaltung -->
+        <menuitem id="menu_mcp_context" name="Kontext" parent="menu_mcp_root" sequence="30"/>
+        <menuitem id="menu_mcp_context_generators" name="Kontextgeneratoren" parent="menu_mcp_context" action="action_mcp_context" sequence="10"/>
+        <menuitem id="menu_mcp_context_preview" name="Kontext-Vorschau" parent="menu_mcp_context" action="action_mcp_context_preview" sequence="20"/>
+        
+        <!-- Untermenüs für Analysen -->
+        <menuitem id="menu_mcp_analytics" name="Analysen" parent="menu_mcp_root" sequence="40"/>
+        <menuitem id="menu_mcp_interaction_logs" name="Interaktionsprotokolle" parent="menu_mcp_analytics" action="action_mcp_interaction_log" sequence="10"/>
+        <menuitem id="menu_mcp_interaction_summary" name="Zusammenfassung" parent="menu_mcp_analytics" action="action_mcp_interaction_summary" sequence="20"/>
+        <menuitem id="menu_mcp_interaction_dashboard" name="Dashboard" parent="menu_mcp_analytics" action="action_mcp_dashboard" sequence="30"/>
+        
+        <!-- Aktionen für die Menüs (diese müssen in entsprechenden XML-Dateien definiert werden) -->
+        <record id="action_mcp_prompt_template" model="ir.actions.act_window">
+            <field name="name">Prompt-Vorlagen</field>
+            <field name="res_model">mcp.prompt.template</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        
+        <record id="action_mcp_prompt_category" model="ir.actions.act_window">
+            <field name="name">Prompt-Kategorien</field>
+            <field name="res_model">mcp.prompt.category</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        
+        <record id="action_mcp_prompt_designer" model="ir.actions.act_window">
+            <field name="name">Prompt-Designer</field>
+            <field name="type">ir.actions.client</field>
+            <field name="tag">mcp_prompt_designer</field>
+        </record>
+        
+        <record id="action_mcp_context" model="ir.actions.act_window">
+            <field name="name">Kontextgeneratoren</field>
+            <field name="res_model">mcp.context</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        
+        <record id="action_mcp_context_preview" model="ir.actions.act_window">
+            <field name="name">Kontext-Vorschau</field>
+            <field name="type">ir.actions.client</field>
+            <field name="tag">mcp_context_preview</field>
+        </record>
+        
+        <record id="action_mcp_interaction_log" model="ir.actions.act_window">
+            <field name="name">Interaktionsprotokolle</field>
+            <field name="res_model">mcp.interaction.log</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        
+        <record id="action_mcp_interaction_summary" model="ir.actions.act_window">
+            <field name="name">Zusammenfassung</field>
+            <field name="res_model">mcp.interaction.summary</field>
+            <field name="view_mode">tree,graph</field>
+        </record>
+        
+        <record id="action_mcp_dashboard" model="ir.actions.client">
+            <field name="name">Dashboard</field>
+            <field name="tag">mcp_dashboard</field>
+        </record>
+    </data>
+</odoo> 

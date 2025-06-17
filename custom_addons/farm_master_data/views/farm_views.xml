@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Formularansicht für Betriebe -->
+        <record id="view_farm_form" model="ir.ui.view">
+            <field name="name">farm.farm.form</field>
+            <field name="model">farm.farm</field>
+            <field name="arch" type="xml">
+                <form string="Betrieb">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                                <field name="active" widget="boolean_button" options="{'terminology': 'archive'}"/>
+                            </button>
+                            <button name="action_view_fields" type="object" class="oe_stat_button" icon="fa-map-o">
+                                <field name="total_field_area" widget="statinfo" string="Felder (ha)"/>
+                            </button>
+                        </div>
+                        <field name="image" widget="image" class="oe_avatar"/>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Betriebsname"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="partner_id"/>
+                                <field name="manager_id"/>
+                                <field name="address"/>
+                                <field name="farm_code"/>
+                                <field name="tax_id"/>
+                            </group>
+                            <group>
+                                <field name="farm_type"/>
+                                <field name="size" widget="float"/>
+                                <field name="latitude"/>
+                                <field name="longitude"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Felder">
+                                <field name="field_ids">
+                                    <tree>
+                                        <field name="name"/>
+                                        <field name="area"/>
+                                        <field name="soil_type"/>
+                                        <field name="location"/>
+                                        <field name="current_crop_id"/>
+                                        <field name="state"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Mitarbeiter">
+                                <field name="employee_ids"/>
+                            </page>
+                            <page string="Notizen">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+        
+        <!-- Baumansicht für Betriebe -->
+        <record id="view_farm_tree" model="ir.ui.view">
+            <field name="name">farm.farm.tree</field>
+            <field name="model">farm.farm</field>
+            <field name="arch" type="xml">
+                <tree string="Betriebe">
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="farm_type"/>
+                    <field name="size"/>
+                    <field name="total_field_area"/>
+                    <field name="manager_id"/>
+                </tree>
+            </field>
+        </record>
+        
+        <!-- Kanban-Ansicht für Betriebe -->
+        <record id="view_farm_kanban" model="ir.ui.view">
+            <field name="name">farm.farm.kanban</field>
+            <field name="model">farm.farm</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile">
+                    <field name="id"/>
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="farm_type"/>
+                    <field name="size"/>
+                    <field name="total_field_area"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_global_click">
+                                <div class="oe_kanban_details">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <div class="o_kanban_tags_section">
+                                        <span class="badge badge-pill badge-primary"><field name="farm_type"/></span>
+                                    </div>
+                                    <ul>
+                                        <li>Partner: <field name="partner_id"/></li>
+                                        <li>Größe: <field name="size"/> ha</li>
+                                        <li>Felder: <field name="total_field_area"/> ha</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+        
+        <!-- Suchansicht für Betriebe -->
+        <record id="view_farm_search" model="ir.ui.view">
+            <field name="name">farm.farm.search</field>
+            <field name="model">farm.farm</field>
+            <field name="arch" type="xml">
+                <search string="Betriebe">
+                    <field name="name" string="Betrieb"/>
+                    <field name="partner_id"/>
+                    <field name="farm_code"/>
+                    <field name="manager_id"/>
+                    <filter string="Ackerbau" name="crop" domain="[('farm_type','=','crop')]"/>
+                    <filter string="Tierhaltung" name="livestock" domain="[('farm_type','=','livestock')]"/>
+                    <filter string="Gemischt" name="mixed" domain="[('farm_type','=','mixed')]"/>
+                    <filter string="Sonderkulturen" name="special" domain="[('farm_type','=','special')]"/>
+                    <separator/>
+                    <filter string="Archiviert" name="inactive" domain="[('active','=',False)]"/>
+                    <group expand="0" string="Gruppieren nach">
+                        <filter string="Partner" name="partner" domain="[]" context="{'group_by':'partner_id'}"/>
+                        <filter string="Betriebstyp" name="farm_type" domain="[]" context="{'group_by':'farm_type'}"/>
+                        <filter string="Unternehmen" name="company" domain="[]" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+        
+        <!-- Aktionen -->
+        <record id="action_farm" model="ir.actions.act_window">
+            <field name="name">Betriebe</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">farm.farm</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="search_view_id" ref="view_farm_search"/>
+            <field name="context">{'search_default_farm_type': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Erstellen Sie Ihren ersten landwirtschaftlichen Betrieb
+                </p><p>
+                    Verwalten Sie alle Ihre landwirtschaftlichen Betriebe, Felder und Kulturen.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo> 

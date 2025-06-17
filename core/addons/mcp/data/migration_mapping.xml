@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Konfiguration für das Mapping zwischen L3-Export und Odoo-Datenmodellen -->
+        <record id="l3_artikel_mapping" model="mcp.migration.mapping">
+            <field name="name">Artikelstammdaten-Mapping</field>
+            <field name="source_type">artikel-stammdaten</field>
+            <field name="target_model">product.template</field>
+            <field name="active">true</field>
+            <field name="field_mappings">{
+                "artikelNr": "default_code",
+                "bezeichnung": "name",
+                "beschreibung": "description",
+                "artikelGruppe": "categ_id.name",
+                "einheit": "uom_id.name",
+                "zusatzEinheiten": "_convert_zusatzeinheiten",
+                "preise.verkaufspreis": "list_price",
+                "preise.einkaufspreis": "standard_price",
+                "preise.waehrung": "_convert_currency",
+                "bestand.aktuell": "_convert_bestand",
+                "bestand.mindestBestand": "_convert_mindestbestand",
+                "bestand.maximalBestand": "_convert_maximalbestand",
+                "lieferanten": "_convert_lieferanten",
+                "eanCodes": "_convert_barcodes",
+                "status": "_convert_status",
+                "attribute": "_convert_attributes"
+            }</field>
+            <field name="conversion_functions">
+def _convert_zusatzeinheiten(self, record, value):
+    """Konvertiert zusätzliche Einheiten zu Odoo-UoM-Konvertierungsregeln"""
+    if not value:
+        return {}
+        
+    result = {}
+    for zusatz in value:
+        # Überprüfen, ob die Einheit bereits existiert
+        uom = self.env['uom.uom'].search([('name', '=', zusatz['einheit'])], limit=1)
+        if not uom:
+            # Kategorie der Basiseinheit ermitteln
+            base_uom = self.env['uom.uom'].search([('name', '=', record['einheit'])], limit=1)
+            if not base_uom:
+                # Standardkategorie verwenden, wenn Basiseinheit nicht gefunden wurde
+                category = self.env.ref('uom.product_uom_categ_unit')
+            else:
+                category = base_uom.category_id
+                
+            # Neue Einheit erstellen
+            uom = self.env['uom.uom'].create({
+                'name': zusatz['einheit'],
+                'category_id': category.id,
+                'uom_type': 'bigger' if zusatz['umrechnungsFaktor'] < 1 else 'smaller',
+                'factor': zusatz['umrechnungsFaktor'] if zusatz['umrechnungsFaktor'] > 1 else 1/zusatz['umrechnungsFaktor'],
+                'rounding': 0.01
+            })
+        
+        # UoM-Einheit der Produktvariante zuordnen
+        result['uom_po_id'] = uom.id
+    
+    return result
+
+def _convert_currency(self, record, value):
+    """Konvertiert Währungscode in Währungs-ID"""
+    if not value:
+        return {'currency_id': self.env.company.currency_id.id}
+    
+    currency = self.env['res.currency'].search([('name', '=', value)], limit=1)
+    if not currency:
+        return {'currency_id': self.env.company.currency_id.id}
+    
+    return {'currency_id': currency.id}
+
+def _convert_bestand(self, record, value):
+    """Bestandsmengen werden in Odoo durch separate Module verwaltet"""
+    # In Odoo wird der Bestand in separaten Tabellen verwaltet und nicht direkt im Produkt
+    # Hier können wir einen Initialbestand für das Inventarmodul vorbereiten
+    return {'qty_available': value}
+
+def _convert_mindestbestand(self, record, value):
+    """Mindestbestand für Nachbestellungen"""
+    return {'reordering_min_qty': value}
+
+def _convert_maximalbestand(self, record, value):
+    """Maximalbestand für Nachbestellungen"""
+    return {'reordering_max_qty': value}
+
+def _convert_lieferanten(self, record, value):
+    """Konvertiert Lieferantendaten zu Odoo-Lieferantendatensätzen"""
+    if not value:
+        return {}
+    
+    lieferanten_liste = []
+    for lieferant in value:
+        # Lieferanten suchen oder anlegen
+        partner = self.env['res.partner'].search([
+            ('ref', '=', lieferant['lieferantenId']),
+            ('supplier_rank', '>', 0)
+        ], limit=1)
+        
+        if not partner:
+            # Wenn Lieferant nicht gefunden, überspringen
+            continue
+            
+        lieferanten_liste.append((0, 0, {
+            'name': partner.id,
+            'product_code': lieferant['lieferantenArtikelNr'],
+            'min_qty': lieferant.get('mindestBestellmenge', 0),
+            'price': 0.0,  # Preis muss separat importiert werden
+            'delay': lieferant.get('lieferzeit', 1)
+        }))
+    
+    return {'seller_ids': lieferanten_liste}
+
+def _convert_barcodes(self, record, value):
+    """Konvertiert EAN-Codes zu Odoo-Barcodes"""
+    if not value or not value[0]:
+        return {}
+    
+    # Der erste EAN-Code wird als Hauptbarcode verwendet, 
+    # weitere müssen über Produktverpackungen abgebildet werden
+    barcode = value[0]
+    
+    # Weitere Barcodes als Produktverpackungen
+    packaging_list = []
+    for ean in value[1:]:
+        packaging_list.append((0, 0, {
+            'name': f"EAN {ean}",
+            'barcode': ean
+        }))
+    
+    result = {'barcode': barcode}
+    if packaging_list:
+        result['packaging_ids'] = packaging_list
+    
+    return result
+
+def _convert_status(self, record, value):
+    """Konvertiert Status-Werte zu Odoo-Aktivitäts-Status"""
+    status_mapping = {
+        'aktiv': True,
+        'auslaufend': True,
+        'inaktiv': False,
+        'gelöscht': False
+    }
+    
+    return {'active': status_mapping.get(value, True)}
+
+def _convert_attributes(self, record, value):
+    """Konvertiert benutzerdefinierte Attribute zu Odoo-Produktattributen"""
+    if not value:
+        return {}
+    
+    # Attribute müssen in Odoo als separate Modelle definiert werden
+    # Hier sammeln wir Attributwerte für eine spätere Verarbeitung
+    attribute_values = []
+    
+    for attr_name, attr_value in value.items():
+        # Attribut suchen oder erstellen
+        attribute = self.env['product.attribute'].search([('name', '=', attr_name)], limit=1)
+        if not attribute:
+            attribute = self.env['product.attribute'].create({
+                'name': attr_name,
+                'create_variant': 'no_variant'
+            })
+        
+        # Attributwert suchen oder erstellen
+        attr_value_obj = self.env['product.attribute.value'].search([
+            ('attribute_id', '=', attribute.id),
+            ('name', '=', str(attr_value))
+        ], limit=1)
+        
+        if not attr_value_obj:
+            attr_value_obj = self.env['product.attribute.value'].create({
+                'attribute_id': attribute.id,
+                'name': str(attr_value)
+            })
+        
+        # Attributlinie für das Produkt vorbereiten
+        attribute_values.append({
+            'attribute_id': attribute.id,
+            'value_ids': [(4, attr_value_obj.id)]
+        })
+    
+    if not attribute_values:
+        return {}
+    
+    return {'attribute_line_ids': [(0, 0, av) for av in attribute_values]}
+            </field>
+        </record>
+        
+        <record id="l3_einheiten_mapping" model="mcp.migration.mapping">
+            <field name="name">Einheiten-Mapping</field>
+            <field name="source_type">einheiten-service</field>
+            <field name="target_model">uom.uom</field>
+            <field name="active">true</field>
+            <field name="field_mappings">{
+                "id": "_convert_id",
+                "name": "name",
+                "kurzname": "_convert_kurzname",
+                "symbol": "name",
+                "typ": "_convert_category",
+                "basiseinheit": "_convert_uom_type"
+            }</field>
+            <field name="conversion_functions">
+def _convert_id(self, record, value):
+    """Externe ID wird nicht direkt übernommen"""
+    return {}
+
+def _convert_kurzname(self, record, value):
+    """Kurzname wird als Notiz verwendet"""
+    return {'display_name': value}
+
+def _convert_category(self, record, value):
+    """Konvertiert Typ zu UoM-Kategorie"""
+    category_mapping = {
+        'Länge': 'uom.product_uom_categ_length',
+        'Masse': 'uom.product_uom_categ_kgm',
+        'Volumen': 'uom.product_uom_categ_vol',
+        'Zeit': 'uom.product_uom_categ_wtime',
+        'Stückzahl': 'uom.product_uom_categ_unit',
+        'Andere': 'uom.product_uom_categ_unit'
+    }
+    
+    category_xml_id = category_mapping.get(value, 'uom.product_uom_categ_unit')
+    category = self.env.ref(category_xml_id)
+    
+    return {'category_id': category.id}
+
+def _convert_uom_type(self, record, value):
+    """Konvertiert Basiseinheit-Flag zu UoM-Typ"""
+    if value:
+        return {'uom_type': 'reference', 'factor': 1.0}
+    else:
+        return {'uom_type': 'smaller', 'factor': 1.0}
+            </field>
+        </record>
+        
+        <record id="l3_umrechnung_mapping" model="mcp.migration.mapping">
+            <field name="name">Einheiten-Umrechnung-Mapping</field>
+            <field name="source_type">einheiten-umrechnung</field>
+            <field name="target_model">uom.uom</field>
+            <field name="active">true</field>
+            <field name="field_mappings">{
+                "id": "_skip_field",
+                "vonEinheitId": "_convert_von_einheit",
+                "nachEinheitId": "_convert_nach_einheit",
+                "faktor": "_convert_faktor",
+                "offset": "_skip_field"
+            }</field>
+            <field name="conversion_functions">
+def _skip_field(self, record, value):
+    """Feld wird übersprungen"""
+    return {}
+
+def _convert_von_einheit(self, record, value):
+    """Quelleinheit der Umrechnung"""
+    return {'von_einheit_id': value}
+
+def _convert_nach_einheit(self, record, value):
+    """Zieleinheit der Umrechnung wird als Haupteinheit verwendet"""
+    uom = self.env['uom.uom'].browse(int(value))
+    if not uom.exists():
+        return {}
+    
+    return {'name': uom.name}
+
+def _convert_faktor(self, record, value):
+    """Umrechnungsfaktor"""
+    von_einheit = self.env['uom.uom'].browse(int(record.get('vonEinheitId', 0)))
+    nach_einheit = self.env['uom.uom'].browse(int(record.get('nachEinheitId', 0)))
+    
+    if not von_einheit.exists() or not nach_einheit.exists():
+        return {'factor': 1.0}
+    
+    # Umrechnungsfaktor in Odoo-Format konvertieren
+    if von_einheit.uom_type == 'reference':
+        return {'factor': value}
+    else:
+        # Bei Umrechnung zwischen Nicht-Referenzeinheiten ist Konvertierung komplexer
+        return {'factor': value}
+            </field>
+        </record>
+
+        <!-- Stammdatenimport-Prozessor -->
+        <record id="l3_import_processor" model="mcp.migration.processor">
+            <field name="name">L3-Stammdaten-Importer</field>
+            <field name="code">l3_stammdaten_import</field>
+            <field name="description">Importiert Artikel- und Einheiten-Stammdaten aus L3-Export-Dateien</field>
+            <field name="processor_type">python</field>
+            <field name="active">true</field>
+            <field name="python_code">
+# L3-Stammdaten-Import-Prozessor
+import csv
+import base64
+import io
+import json
+import logging
+
+_logger = logging.getLogger(__name__)
+
+def process_import(self, import_file=None, file_type=None, params=None):
+    """
+    Importiert Daten aus der L3-Export-CSV-Datei in Odoo-Datenmodelle
+    
+    Args:
+        import_file: Binäre CSV-Datei mit L3-Exportdaten
+        file_type: Typ der Importdatei ('artikel', 'einheiten', etc.)
+        params: Zusätzliche Parameter für den Import
+    
+    Returns:
+        dict: Ergebnis des Imports mit Statistiken
+    """
+    if not import_file or not file_type:
+        return {'error': 'Keine Datei oder kein Dateityp angegeben'}
+    
+    # Datei dekodieren
+    try:
+        file_content = base64.b64decode(import_file)
+        file_stream = io.StringIO(file_content.decode('utf-8-sig'))
+    except Exception as e:
+        return {'error': f'Fehler beim Dekodieren der Datei: {str(e)}'}
+    
+    # CSV-Datei lesen
+    try:
+        # Trennzeichen und Quotierung erkennen
+        dialect = csv.Sniffer().sniff(file_stream.read(1024))
+        file_stream.seek(0)
+        
+        reader = csv.DictReader(file_stream, dialect=dialect)
+        rows = list(reader)
+    except Exception as e:
+        return {'error': f'Fehler beim Lesen der CSV-Datei: {str(e)}'}
+    
+    # Mapping für den jeweiligen Dateityp abrufen
+    mapping = None
+    if file_type == 'artikel':
+        mapping = self.env['mcp.migration.mapping'].search([('source_type', '=', 'artikel-stammdaten')], limit=1)
+    elif file_type == 'einheiten':
+        mapping = self.env['mcp.migration.mapping'].search([('source_type', '=', 'einheiten-service')], limit=1)
+    
+    if not mapping:
+        return {'error': f'Kein Mapping für den Dateityp {file_type} gefunden'}
+    
+    # Import durchführen
+    stats = {
+        'total': len(rows),
+        'created': 0,
+        'updated': 0,
+        'skipped': 0,
+        'errors': 0,
+        'error_details': []
+    }
+    
+    target_model = self.env[mapping.target_model]
+    field_mappings = json.loads(mapping.field_mappings)
+    
+    # Mappingfunktionen aus Konfiguration laden
+    mapping_funcs = {}
+    if mapping.conversion_functions:
+        # Funktionen kompilieren und im lokalen Namespace verfügbar machen
+        exec(mapping.conversion_functions, globals(), mapping_funcs)
+    
+    for row in rows:
+        try:
+            # Zielfelder für Odoo vorbereiten
+            target_values = {}
+            
+            # Feld-Mappings durchlaufen
+            for source_field, target_field in field_mappings.items():
+                # Verschachtelte Quellfelder unterstützen (z.B. 'preise.verkaufspreis')
+                value = row
+                for key in source_field.split('.'):
+                    if key in value:
+                        value = value[key]
+                    else:
+                        value = None
+                        break
+                
+                # Wenn Zielfeldmapping eine Funktion ist
+                if target_field.startswith('_convert_'):
+                    if target_field in mapping_funcs:
+                        # Konvertierungsfunktion aufrufen
+                        converted = mapping_funcs[target_field](self, row, value)
+                        target_values.update(converted)
+                    else:
+                        _logger.warning(f'Konvertierungsfunktion {target_field} nicht gefunden')
+                else:
+                    # Direktes Mapping
+                    target_values[target_field] = value
+            
+            # Prüfen, ob Datensatz bereits existiert
+            existing = None
+            if file_type == 'artikel' and 'default_code' in target_values:
+                existing = target_model.search([('default_code', '=', target_values['default_code'])], limit=1)
+            elif file_type == 'einheiten' and 'name' in target_values:
+                existing = target_model.search([('name', '=', target_values['name'])], limit=1)
+            
+            if existing:
+                # Datensatz aktualisieren
+                existing.write(target_values)
+                stats['updated'] += 1
+            else:
+                # Neuen Datensatz erstellen
+                target_model.create(target_values)
+                stats['created'] += 1
+                
+        except Exception as e:
+            stats['errors'] += 1
+            stats['error_details'].append({
+                'row': row,
+                'error': str(e)
+            })
+            _logger.error(f'Fehler beim Import: {str(e)}')
+    
+    return stats
+            </field>
+        </record>
+    </data>
+</odoo> 

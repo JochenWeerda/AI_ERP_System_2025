@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Prompt-Kategorien -->
+        <record id="prompt_category_sales" model="mcp.prompt.category">
+            <field name="name">Vertrieb</field>
+            <field name="code">sales</field>
+            <field name="description">Prompt-Vorlagen für Vertriebsprozesse</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="prompt_category_purchase" model="mcp.prompt.category">
+            <field name="name">Einkauf</field>
+            <field name="code">purchase</field>
+            <field name="description">Prompt-Vorlagen für Einkaufsprozesse</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="prompt_category_inventory" model="mcp.prompt.category">
+            <field name="name">Lager</field>
+            <field name="code">inventory</field>
+            <field name="description">Prompt-Vorlagen für Lagerverwaltung</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="prompt_category_accounting" model="mcp.prompt.category">
+            <field name="name">Buchhaltung</field>
+            <field name="code">accounting</field>
+            <field name="description">Prompt-Vorlagen für Buchhaltungsprozesse</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="prompt_category_manufacturing" model="mcp.prompt.category">
+            <field name="name">Fertigung</field>
+            <field name="code">manufacturing</field>
+            <field name="description">Prompt-Vorlagen für Fertigungsprozesse</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="prompt_category_crm" model="mcp.prompt.category">
+            <field name="name">CRM</field>
+            <field name="code">crm</field>
+            <field name="description">Prompt-Vorlagen für Kundenbeziehungsmanagement</field>
+            <field name="sequence">60</field>
+        </record>
+
+        <record id="prompt_category_project" model="mcp.prompt.category">
+            <field name="name">Projekte</field>
+            <field name="code">project</field>
+            <field name="description">Prompt-Vorlagen für Projektmanagement</field>
+            <field name="sequence">70</field>
+        </record>
+
+        <record id="prompt_category_hr" model="mcp.prompt.category">
+            <field name="name">Personal</field>
+            <field name="code">hr</field>
+            <field name="description">Prompt-Vorlagen für Personalmanagement</field>
+            <field name="sequence">80</field>
+        </record>
+
+        <record id="prompt_category_general" model="mcp.prompt.category">
+            <field name="name">Allgemein</field>
+            <field name="code">general</field>
+            <field name="description">Allgemeine Prompt-Vorlagen</field>
+            <field name="sequence">90</field>
+        </record>
+
+        <!-- Vertriebsvorlagen -->
+        <record id="prompt_template_sales_opportunity_analysis" model="mcp.prompt.template">
+            <field name="name">Verkaufschancenanalyse</field>
+            <field name="code">sales_opportunity_analysis</field>
+            <field name="category_id" ref="prompt_category_sales"/>
+            <field name="description">Analysiert Verkaufschancen und gibt Empfehlungen zur Steigerung der Erfolgswahrscheinlichkeit</field>
+            <field name="template_content">Führe eine Analyse der folgenden Verkaufschance durch:
+
+Kunde: {customer_name}
+Produktinteresse: {product_interest}
+Wert: {opportunity_value} €
+Aktuelle Phase: {current_stage}
+Letzte Interaktion: {last_interaction}
+Bisherige Kommunikation: {communication_history}
+
+Bitte analysiere:
+1. Stärken und Schwächen dieser Verkaufschance
+2. Konkrete Schritte, um die Verkaufswahrscheinlichkeit zu erhöhen
+3. Potenzielle Einwände des Kunden und wie man sie überwinden kann
+4. Vorschläge für die nächsten Kontaktpunkte
+5. Empfehlungen für Cross-Selling oder Upselling-Möglichkeiten
+
+Halte die Analyse präzise und auf den Kontext bezogen.</field>
+            <field name="default_max_tokens">1200</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <record id="param_customer_name" model="mcp.prompt.parameter">
+            <field name="name">Kundenname</field>
+            <field name="code">customer_name</field>
+            <field name="template_id" ref="prompt_template_sales_opportunity_analysis"/>
+            <field name="data_type">string</field>
+            <field name="required">true</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="param_product_interest" model="mcp.prompt.parameter">
+            <field name="name">Produktinteresse</field>
+            <field name="code">product_interest</field>
+            <field name="template_id" ref="prompt_template_sales_opportunity_analysis"/>
+            <field name="data_type">string</field>
+            <field name="required">true</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="param_opportunity_value" model="mcp.prompt.parameter">
+            <field name="name">Wert der Verkaufschance</field>
+            <field name="code">opportunity_value</field>
+            <field name="template_id" ref="prompt_template_sales_opportunity_analysis"/>
+            <field name="data_type">float</field>
+            <field name="required">true</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="param_current_stage" model="mcp.prompt.parameter">
+            <field name="name">Aktuelle Phase</field>
+            <field name="code">current_stage</field>
+            <field name="template_id" ref="prompt_template_sales_opportunity_analysis"/>
+            <field name="data_type">string</field>
+            <field name="required">true</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="param_last_interaction" model="mcp.prompt.parameter">
+            <field name="name">Letzte Interaktion</field>
+            <field name="code">last_interaction</field>
+            <field name="template_id" ref="prompt_template_sales_opportunity_analysis"/>
+            <field name="data_type">string</field>
+            <field name="required">true</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="param_communication_history" model="mcp.prompt.parameter">
+            <field name="name">Kommunikationsverlauf</field>
+            <field name="code">communication_history</field>
+            <field name="template_id" ref="prompt_template_sales_opportunity_analysis"/>
+            <field name="data_type">string</field>
+            <field name="required">false</field>
+            <field name="sequence">60</field>
+        </record>
+
+        <record id="prompt_template_sales_email_draft" model="mcp.prompt.template">
+            <field name="name">Verkaufs-E-Mail-Entwurf</field>
+            <field name="code">sales_email_draft</field>
+            <field name="category_id" ref="prompt_category_sales"/>
+            <field name="description">Erstellt einen personalisierten E-Mail-Entwurf für Kunden</field>
+            <field name="template_content">Erstelle einen professionellen E-Mail-Entwurf für einen Kunden mit folgenden Details:
+
+Kundenname: {customer_name}
+Ansprechpartner: {contact_person}
+E-Mail-Zweck: {email_purpose}
+Produkte/Dienstleistungen: {products_services}
+Besondere Anforderungen: {special_requirements}
+Bisherige Kommunikation: {previous_communication}
+Tonalität: {tone}
+
+Bitte erstelle eine prägnante, professionelle E-Mail mit:
+- Passender Betreffzeile
+- Personalisierter Anrede
+- Klarem Hauptteil mit allen relevanten Informationen
+- Konkretem Call-to-Action
+- Professioneller Schlussformel
+
+Die E-Mail sollte höflich sein, auf frühere Kommunikation Bezug nehmen und den Kunden mit Namen ansprechen.</field>
+            <field name="default_max_tokens">1000</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <!-- Einkaufsvorlagen -->
+        <record id="prompt_template_purchase_supplier_evaluation" model="mcp.prompt.template">
+            <field name="name">Lieferantenbewertung</field>
+            <field name="code">purchase_supplier_evaluation</field>
+            <field name="category_id" ref="prompt_category_purchase"/>
+            <field name="description">Bewertet Lieferanten basierend auf historischen Daten und gibt Optimierungsvorschläge</field>
+            <field name="template_content">Führe eine Bewertung des folgenden Lieferanten basierend auf den gegebenen Daten durch:
+
+Lieferant: {supplier_name}
+Produkte/Dienstleistungen: {products_services}
+Lieferantendaten:
+- Pünktlichkeit: {on_time_delivery_rate}% pünktliche Lieferungen
+- Qualität: {quality_rate}% fehlerfreie Lieferungen
+- Preisgestaltung: {pricing_comparison} (im Vergleich zum Marktdurchschnitt)
+- Reaktionszeit: {response_time} (durchschnittliche Reaktionszeit)
+- Zahlungsbedingungen: {payment_terms}
+- Lieferzeit: {lead_time} Tage
+- Zusammenarbeit seit: {collaboration_since}
+
+Historische Probleme: {historical_issues}
+
+Bitte analysiere:
+1. Stärken und Schwächen des Lieferanten
+2. Risikobewertung und Abhängigkeitsgrad
+3. Empfehlungen zur Verbesserung der Zusammenarbeit
+4. Potenzial für Nachverhandlungen oder verbesserte Konditionen
+5. Vergleich mit Branchenstandards (sofern erkennbar)
+6. Gesamtbewertung und Handlungsempfehlung
+
+Die Analyse sollte faktenbasiert und neutral sein.</field>
+            <field name="default_max_tokens">1500</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <!-- Lagervorlagen -->
+        <record id="prompt_template_inventory_optimization" model="mcp.prompt.template">
+            <field name="name">Lagerbestandsoptimierung</field>
+            <field name="code">inventory_optimization</field>
+            <field name="category_id" ref="prompt_category_inventory"/>
+            <field name="description">Analysiert Lagerbestände und gibt Optimierungsempfehlungen</field>
+            <field name="template_content">Analysiere die folgenden Lagerbestandsdaten und gib Optimierungsempfehlungen:
+
+Produkt: {product_name}
+Kategorie: {product_category}
+Aktueller Bestand: {current_stock} Einheiten
+Durchschnittlicher Verbrauch: {average_consumption} Einheiten pro {time_period}
+Mindestbestand: {minimum_stock} Einheiten
+Bestellpunkt: {reorder_point} Einheiten
+Optimale Bestellmenge: {optimal_order_quantity} Einheiten
+Lieferzeit: {lead_time} Tage
+Lagerkosten pro Einheit: {storage_cost_per_unit} € pro {storage_time_unit}
+Bestellkosten: {ordering_cost} € pro Bestellung
+Saisonalität: {seasonality}
+Historische Nachfrage: {historical_demand}
+
+Bitte analysiere:
+1. Ist der aktuelle Bestand optimal? (Überbestand oder Unterbestand)
+2. Sind Mindestbestand und Bestellpunkt korrekt eingestellt?
+3. Ist die optimale Bestellmenge wirtschaftlich?
+4. Wie kann die Bestandsführung verbessert werden?
+5. Gibt es Potenzial zur Reduzierung von Lagerkosten?
+6. Empfehlungen zur Optimierung unter Berücksichtigung der Saisonalität
+7. Konkrete Handlungsempfehlungen mit erwarteten Einsparungen/Verbesserungen
+
+Die Analyse sollte datenbasiert sein und konkrete Maßnahmen vorschlagen.</field>
+            <field name="default_max_tokens">1500</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <!-- Buchhaltungsvorlagen -->
+        <record id="prompt_template_financial_analysis" model="mcp.prompt.template">
+            <field name="name">Finanzanalyse</field>
+            <field name="code">financial_analysis</field>
+            <field name="category_id" ref="prompt_category_accounting"/>
+            <field name="description">Analysiert Finanzkennzahlen und gibt Einblicke in die finanzielle Gesundheit</field>
+            <field name="template_content">Führe eine Analyse der folgenden Finanzkennzahlen durch:
+
+Unternehmen: {company_name}
+Zeitraum: {time_period}
+
+Umsatz: {revenue} €
+Bruttogewinn: {gross_profit} €
+EBITDA: {ebitda} €
+Nettogewinn: {net_profit} €
+Cashflow aus Geschäftstätigkeit: {operating_cash_flow} €
+
+Liquidität:
+- Liquidität 1. Grades: {cash_ratio}
+- Liquidität 2. Grades: {quick_ratio}
+- Liquidität 3. Grades: {current_ratio}
+
+Rentabilität:
+- Umsatzrendite: {profit_margin}%
+- Eigenkapitalrendite (ROE): {roe}%
+- Gesamtkapitalrendite (ROA): {roa}%
+
+Verschuldung:
+- Eigenkapitalquote: {equity_ratio}%
+- Verschuldungsgrad: {debt_to_equity}
+- Zinsdeckungsgrad: {interest_coverage}
+
+Effizienz:
+- Lagerumschlag: {inventory_turnover}
+- Debitorenlaufzeit: {dso} Tage
+- Kreditorenlaufzeit: {dpo} Tage
+
+Benchmarks (Branchendurchschnitt):
+- Umsatzrendite: {industry_profit_margin}%
+- Eigenkapitalrendite: {industry_roe}%
+- Liquidität 3. Grades: {industry_current_ratio}
+
+Bitte führe eine umfassende Analyse durch:
+1. Beurteilung der finanziellen Gesundheit des Unternehmens
+2. Stärken und Schwächen der Finanzstruktur
+3. Vergleich mit Branchenbenchmarks
+4. Identifikation von Verbesserungspotenzialen
+5. Konkrete Handlungsempfehlungen zur Optimierung der Finanzkennzahlen
+6. Risiken und Chancen in der aktuellen Finanzsituation
+
+Die Analyse sollte faktenbasiert, präzise und für Nicht-Finanzexperten verständlich sein.</field>
+            <field name="default_max_tokens">2000</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <!-- Fertigungsvorlagen -->
+        <record id="prompt_template_production_efficiency" model="mcp.prompt.template">
+            <field name="name">Produktionseffizienzanalyse</field>
+            <field name="code">production_efficiency</field>
+            <field name="category_id" ref="prompt_category_manufacturing"/>
+            <field name="description">Analysiert Produktionsdaten und gibt Verbesserungsvorschläge</field>
+            <field name="template_content">Analysiere die folgenden Produktionsdaten und entwickle Verbesserungsvorschläge:
+
+Produkt: {product_name}
+Produktionslinie: {production_line}
+Analysezeitraum: {analysis_period}
+
+Produktionsmengen:
+- Geplante Produktion: {planned_production} Einheiten
+- Tatsächliche Produktion: {actual_production} Einheiten
+
+Effizienzmetriken:
+- OEE (Gesamtanlageneffektivität): {oee}%
+- Verfügbarkeit: {availability}%
+- Leistung: {performance}%
+- Qualität: {quality}%
+
+Ausfallzeiten:
+- Gesamtausfallzeit: {total_downtime} Stunden
+- Hauptgründe für Ausfallzeiten: {downtime_reasons}
+
+Qualitätsdaten:
+- Ausschussrate: {scrap_rate}%
+- Nacharbeitsrate: {rework_rate}%
+- Häufigste Qualitätsprobleme: {quality_issues}
+
+Ressourcenverbrauch:
+- Materialausnutzung: {material_utilization}%
+- Energieverbrauch: {energy_consumption} kWh pro Einheit
+- Arbeitsaufwand: {labor_hours} Stunden pro Einheit
+
+Durchlaufzeiten:
+- Durchschnittliche Durchlaufzeit: {lead_time} Stunden
+- Rüstzeit: {setup_time} Stunden pro Umrüstung
+- Anzahl Rüstvorgänge: {setup_count}
+
+Bitte analysiere:
+1. Hauptprobleme und Engpässe in der Produktion
+2. Ursachenanalyse für Ineffizienzen
+3. Verbesserungspotenzial bei OEE, Qualität und Ressourcenverbrauch
+4. Konkrete Maßnahmen zur Effizienzsteigerung
+5. Priorisierung der Maßnahmen nach Aufwand/Nutzen
+6. Geschätzte Einsparungen/Verbesserungen durch die vorgeschlagenen Maßnahmen
+
+Die Analyse sollte datenbasiert sein und praktisch umsetzbare Vorschläge enthalten.</field>
+            <field name="default_max_tokens">1800</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <!-- CRM-Vorlagen -->
+        <record id="prompt_template_customer_segmentation" model="mcp.prompt.template">
+            <field name="name">Kundensegmentierung</field>
+            <field name="code">customer_segmentation</field>
+            <field name="category_id" ref="prompt_category_crm"/>
+            <field name="description">Analysiert Kundendaten und erstellt eine sinnvolle Segmentierung</field>
+            <field name="template_content">Analysiere die folgenden Kundendaten und entwickle eine sinnvolle Segmentierung:
+
+Kundendatensatz:
+{customer_data}
+
+Verfügbare Merkmale:
+- Umsatz pro Kunde
+- Produktkategorien
+- Kaufhäufigkeit
+- Letzter Kauf
+- Durchschnittlicher Bestellwert
+- Kundenalter (seit erster Bestellung)
+- Branche
+- Unternehmensgröße
+- Standort
+- Kommunikationskanäle
+- Support-Anfragen
+- Zahlungsverhalten
+
+Segmentierungsziele:
+{segmentation_goals}
+
+Bitte entwickle:
+1. Eine logische Kundensegmentierung basierend auf den verfügbaren Daten
+2. Klare Definitionen und Merkmale für jedes Segment
+3. Relative Größe und Bedeutung jedes Segments
+4. Spezifische Handlungsempfehlungen für jedes Segment (Marketingansatz, Servicelevel, Angebote)
+5. Metriken zur Bewertung der Segmenteffektivität
+6. Potenzielle Cross-Selling- oder Upselling-Möglichkeiten pro Segment
+7. Strategien zur Wertmaximierung für jedes Segment
+
+Die Segmentierung sollte geschäftlich relevant, praktisch anwendbar und auf die angegebenen Ziele ausgerichtet sein.</field>
+            <field name="default_max_tokens">2000</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <!-- Projektvorlagen -->
+        <record id="prompt_template_project_risk_assessment" model="mcp.prompt.template">
+            <field name="name">Projektrisikobewertung</field>
+            <field name="code">project_risk_assessment</field>
+            <field name="category_id" ref="prompt_category_project"/>
+            <field name="description">Bewertet Projektrisiken und gibt Mitigationsstrategien</field>
+            <field name="template_content">Führe eine Risikobewertung für das folgende Projekt durch:
+
+Projektname: {project_name}
+Projektbeschreibung: {project_description}
+Projektart: {project_type}
+Budget: {budget} €
+Zeitrahmen: {timeline}
+Projektteam: {project_team}
+Stakeholder: {stakeholders}
+Projektziele: {project_objectives}
+Kritische Erfolgsfaktoren: {critical_success_factors}
+Bekannte Herausforderungen: {known_challenges}
+
+Bitte erstelle eine umfassende Risikobewertung mit:
+1. Identifikation der wichtigsten Projektrisiken (intern und extern)
+2. Bewertung jedes Risikos nach Eintrittswahrscheinlichkeit und Auswirkung
+3. Risikopriorisierung
+4. Konkrete Präventionsmaßnahmen für jedes Risiko
+5. Reaktionsstrategien bei Risikoeintritt
+6. Frühwarnindikatoren für jedes Risiko
+7. Verantwortlichkeiten für das Risikomanagement
+8. Empfohlene Notfallpläne für kritische Risiken
+
+Die Bewertung sollte praktisch, umsetzbar und auf das spezifische Projekt zugeschnitten sein.</field>
+            <field name="default_max_tokens">1800</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <!-- Personalvorlagen -->
+        <record id="prompt_template_performance_review" model="mcp.prompt.template">
+            <field name="name">Leistungsbeurteilung</field>
+            <field name="code">performance_review</field>
+            <field name="category_id" ref="prompt_category_hr"/>
+            <field name="description">Unterstützt bei der Erstellung ausgewogener Leistungsbeurteilungen</field>
+            <field name="template_content">Unterstütze bei der Erstellung einer ausgewogenen Leistungsbeurteilung für den folgenden Mitarbeiter:
+
+Mitarbeitername: {employee_name}
+Position: {position}
+Abteilung: {department}
+Beurteilungszeitraum: {review_period}
+
+Leistungsdaten:
+- Zielerreichung: {goal_achievement}
+- Stärken: {strengths}
+- Verbesserungsbereiche: {areas_for_improvement}
+- Schlüsselleistungen: {key_achievements}
+- Herausforderungen: {challenges}
+- Feedback von Kollegen: {peer_feedback}
+- Selbsteinschätzung des Mitarbeiters: {self_assessment}
+- Vorherige Entwicklungsziele: {previous_development_goals}
+
+Bitte erstelle eine ausgewogene, konstruktive Leistungsbeurteilung mit folgenden Elementen:
+1. Zusammenfassung der Gesamtleistung
+2. Detaillierte Bewertung der Leistung anhand der Schlüsselverantwortlichkeiten und Ziele
+3. Anerkennung der Stärken und positiven Beiträge mit konkreten Beispielen
+4. Konstruktives Feedback zu Verbesserungsbereichen mit spezifischen Beispielen
+5. Empfehlungen für die berufliche Entwicklung
+6. Vorschläge für konkrete, messbare Ziele für den nächsten Beurteilungszeitraum
+7. Empfehlungen für Schulungs- oder Entwicklungsmaßnahmen
+
+Die Beurteilung sollte fair, spezifisch, konstruktiv und wachstumsorientiert sein. Vermeide allgemeine Aussagen und konzentriere dich auf beobachtbares Verhalten und messbare Ergebnisse.</field>
+            <field name="default_max_tokens">1800</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <!-- Allgemeine Vorlagen -->
+        <record id="prompt_template_business_report" model="mcp.prompt.template">
+            <field name="name">Geschäftsbericht</field>
+            <field name="code">business_report</field>
+            <field name="category_id" ref="prompt_category_general"/>
+            <field name="description">Erstellt strukturierte Geschäftsberichte basierend auf Rohdaten</field>
+            <field name="template_content">Erstelle einen strukturierten Geschäftsbericht auf Basis der folgenden Daten:
+
+Berichtsthema: {report_topic}
+Zeitraum: {time_period}
+Zielgruppe: {target_audience}
+Berichtszweck: {report_purpose}
+
+Rohdaten:
+{raw_data}
+
+Zusätzliche Informationen:
+{additional_information}
+
+Bitte erstelle einen professionellen, klar strukturierten Bericht mit folgenden Elementen:
+1. Zusammenfassung der wichtigsten Erkenntnisse (Executive Summary)
+2. Einleitung mit Hintergrundinformationen und Berichtszweck
+3. Methodik und Datenquellen
+4. Hauptteil mit logisch strukturierter Analyse der Daten
+5. Visuelle Darstellungsempfehlungen (welche Diagramme/Grafiken erstellt werden sollten)
+6. Schlussfolgerungen und Erkenntnisse
+7. Handlungsempfehlungen
+8. Anhang mit zusätzlichen Daten (falls relevant)
+
+Der Bericht sollte:
+- Klar, präzise und faktenbasiert sein
+- Die Daten in einen sinnvollen Kontext stellen
+- Trends, Muster und Abweichungen hervorheben
+- Der Zielgruppe und dem Berichtszweck angemessen sein
+- Konkrete, umsetzbare Handlungsempfehlungen enthalten
+
+Bitte verwende eine professionelle Sprache und stelle sicher, dass der Bericht leicht verständlich ist.</field>
+            <field name="default_max_tokens">2000</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+
+        <record id="prompt_template_decision_support" model="mcp.prompt.template">
+            <field name="name">Entscheidungsunterstützung</field>
+            <field name="code">decision_support</field>
+            <field name="category_id" ref="prompt_category_general"/>
+            <field name="description">Unterstützt bei Geschäftsentscheidungen durch strukturierte Analyse</field>
+            <field name="template_content">Unterstütze bei der folgenden Geschäftsentscheidung durch eine strukturierte Analyse:
+
+Entscheidungsfrage: {decision_question}
+Kontext: {context}
+Verfügbare Optionen:
+{available_options}
+
+Entscheidungskriterien:
+{decision_criteria}
+
+Relevante Daten:
+{relevant_data}
+
+Einschränkungen/Randbedingungen:
+{constraints}
+
+Stakeholder und deren Interessen:
+{stakeholders}
+
+Bitte erstelle eine strukturierte Entscheidungsanalyse mit:
+1. Zusammenfassung der Entscheidungssituation
+2. Detaillierte Bewertung jeder Option anhand der Kriterien
+3. Vor- und Nachteile jeder Option
+4. Risikobewertung für jede Option
+5. Potenzielle Auswirkungen auf verschiedene Stakeholder
+6. Empfehlung mit Begründung
+7. Implementierungsüberlegungen für die empfohlene Option
+8. Mögliche Maßnahmen zur Risikominderung
+
+Die Analyse sollte objektiv, faktenbasiert und ausgewogen sein. Stelle sicher, dass alle relevanten Faktoren berücksichtigt werden und die Empfehlung nachvollziehbar begründet ist.</field>
+            <field name="default_max_tokens">2000</field>
+            <field name="default_temperature">0.7</field>
+        </record>
+    </data>
+</odoo> 

@@ -1,0 +1,67 @@
+.o_valeo_dashboard {
+    background-color: #f9f9f9;
+    padding: 16px;
+
+    .valeo-dashboard-header {
+        margin-bottom: 24px;
+
+        h1 {
+            color: #4c4c4c;
+            font-size: 24px;
+            font-weight: 500;
+        }
+    }
+
+    .valeo-dashboard-content {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .valeo-dashboard-tile {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        flex: 1 1 300px;
+        min-height: 180px;
+        padding: 20px;
+        transition: all 0.2s ease;
+
+        &:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .tile-icon {
+            background-color: #875A7B;
+            border-radius: 50%;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            width: 48px;
+            margin-bottom: 12px;
+        }
+
+        .tile-title {
+            color: #4c4c4c;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .tile-value {
+            color: #875A7B;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .tile-subtitle {
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+    }
+} 

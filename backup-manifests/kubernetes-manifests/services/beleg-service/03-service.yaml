@@ -1,0 +1,19 @@
+# Service für den Beleg-Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: beleg-service
+  namespace: erp-system
+  labels:
+    app: beleg-service
+spec:
+  selector:
+    app: beleg-service
+  ports:
+  - name: http
+    port: 8020
+    targetPort: 80
+  - name: metrics
+    port: 8021
+    targetPort: 8021
+  type: ClusterIP 

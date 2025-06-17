@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Dashboard-Template für die MCP-Übersicht -->
+        <template id="dashboard_template" name="MCP Dashboard">
+            <t t-call="web.layout">
+                <t t-set="title">MCP Dashboard</t>
+                <t t-set="head">
+                    <link rel="stylesheet" href="/mcp/static/src/scss/dashboard.scss"/>
+                    <script type="text/javascript" src="/mcp/static/src/js/dashboard.js"/>
+                    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"/>
+                </t>
+                <div class="o_mcp_dashboard">
+                    <div class="container pt-3">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h1 class="mb-3">Model Context Protocol Dashboard</h1>
+                                <p class="text-muted">Übersicht über die KI-Nutzung im System</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Statistik-Karten -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Interaktionen</h5>
+                                        <p class="card-text display-4"><t t-esc="interaction_count"/></p>
+                                        <p class="text-muted">Letzte 30 Tage</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Token-Nutzung</h5>
+                                        <p class="card-text display-4"><t t-esc="token_sum"/></p>
+                                        <p class="text-muted">Gesamt</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Erfolgsrate</h5>
+                                        <p class="card-text display-4"><t t-esc="success_rate"/>%</p>
+                                        <p class="text-muted">Erfolgreiche Anfragen</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Provider</h5>
+                                        <p class="card-text display-4"><t t-esc="len(providers)"/></p>
+                                        <p class="text-muted">Aktive KI-Provider</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Diagramme -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        Modell-Nutzung
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="modelUsageChart" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        Letzte Interaktionen
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Typ</th>
+                                                    <th>Modell</th>
+                                                    <th>Status</th>
+                                                    <th>Datum</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="recent_interactions" t-as="interaction">
+                                                    <tr>
+                                                        <td><t t-esc="interaction['request_type']"/></td>
+                                                        <td><t t-esc="interaction['model_id'] and interaction['model_id'][1] or ''"/></td>
+                                                        <td>
+                                                            <span t-attf-class="badge badge-#{interaction['status'] == 'success' and 'success' or 'danger'}">
+                                                                <t t-esc="interaction['status']"/>
+                                                            </span>
+                                                        </td>
+                                                        <td><t t-esc="interaction['create_date']"/></td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- JavaScript für Diagramme -->
+                        <script type="text/javascript">
+                            document.addEventListener('DOMContentLoaded', function() {
+                                // Modell-Nutzungs-Diagramm
+                                var ctx = document.getElementById('modelUsageChart').getContext('2d');
+                                var modelData = <t t-raw="model_data"/>;
+                                
+                                var labels = modelData.map(function(item) { return item.name; });
+                                var counts = modelData.map(function(item) { return item.count; });
+                                
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            label: 'Anzahl Interaktionen',
+                                            data: counts,
+                                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                            borderColor: 'rgba(54, 162, 235, 1)',
+                                            borderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+            </t>
+        </template>
+        
+        <!-- Client-Action für das Dashboard -->
+        <record id="action_mcp_dashboard" model="ir.actions.client">
+            <field name="name">MCP Dashboard</field>
+            <field name="tag">mcp_dashboard</field>
+            <field name="target">main</field>
+        </record>
+    </data>
+</odoo> 
