@@ -34,7 +34,11 @@ try:
 except ImportError:
     # Dummy-Service
     class EmergencyService:
-        def __init__(self): pass import EmergencyService
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __getattr__(self, item):
+            raise NotImplementedError("EmergencyService is not available")
 from backend.db.database import get_db
 
 router = APIRouter(
