@@ -56,7 +56,7 @@ Das System nutzt folgende Microservices:
 - **ai-service**: KI-Funktionen und Vorhersagemodelle
 - **core-service**: Zentrale Geschäftslogik und Datenverarbeitung
 
-Details siehe [MICROSERVICES.md](MICROSERVICES.md)
+Details siehe [Microservice-Architektur](memory-bank/microservices-architecture.md)
 
 ## Hibernation Recovery System
 
