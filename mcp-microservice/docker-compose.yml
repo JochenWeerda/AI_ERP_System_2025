@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  mcp-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-microservice:latest
+    container_name: mcp-service
+    restart: unless-stopped
+    ports:
+      - "8015:8015"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OBSERVER_SERVICE_URL=${OBSERVER_SERVICE_URL:-http://observer-service:8010/register}
