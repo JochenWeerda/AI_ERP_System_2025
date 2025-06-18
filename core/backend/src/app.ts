@@ -31,7 +31,7 @@ app.use(metricsMiddleware);
 app.get('/metrics', metricsEndpoint);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'healthy' });
 });
 

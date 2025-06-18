@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 import { redis } from '../config/database';
 import { logger } from '../utils/logger';
 
@@ -14,7 +15,7 @@ export const authenticate = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-) => {
+): Promise<Response | void> => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
 
@@ -34,7 +35,7 @@ export const authenticate = async (
     };
 
     req.user = decoded;
-    next();
+    return next();
   } catch (error) {
     logger.error('Authentication error:', error);
     return res.status(401).json({ message: 'Ungültiger Token' });
@@ -42,7 +43,7 @@ export const authenticate = async (
 };
 
 export const authorize = (...roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): Response | void => {
     if (!req.user) {
       return res.status(401).json({ message: 'Nicht authentifiziert' });
     }
@@ -53,15 +54,24 @@ export const authorize = (...roles: string[]) => {
       });
     }
 
-    next();
+    return next();
   };
 };
 
-export const generateToken = (user: { id: string; role: string }) => {
+export interface TokenPayload {
+  id: string;
+  role: string;
+  type?: string;
+}
+
+export const generateToken = (user: TokenPayload): string => {
+  const options: jwt.SignOptions = {
+    expiresIn: (process.env.JWT_EXPIRATION as StringValue | undefined) || '24h',
+  };
   return jwt.sign(
-    { id: user.id, role: user.role },
+    { id: user.id, role: user.role, type: user.type },
     process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+    options
   );
 };
 
