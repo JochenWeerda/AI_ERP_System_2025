@@ -24,7 +24,7 @@ describe('Auth Endpoints', () => {
   describe('POST /api/v1/auth/login', () => {
     it('sollte einen Token für gültige Anmeldedaten zurückgeben', async () => {
       // Testbenutzer erstellen
-      const user = await User.create({
+      await User.create({
         username: 'testuser',
         password: 'password123',
         email: 'test@example.com',

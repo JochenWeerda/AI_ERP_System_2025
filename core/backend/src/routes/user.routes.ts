@@ -1,52 +1,62 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { authorize } from '../middleware/auth';
 import { logger } from '../utils/logger';
+import { User } from '../models/User';
+import { redis } from '../config/database';
+
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    role: string;
+  };
+}
 
 const router = Router();
 
 // Benutzer auflisten (nur für Admins)
-router.get('/', authorize('admin'), async (req, res) => {
+router.get('/', authorize('admin'), async (_req, res) => {
   try {
-    // TODO: Implementiere Benutzerabfrage aus der Datenbank
-    const users = [
-      { id: '1', username: 'admin', role: 'admin' },
-      { id: '2', username: 'user', role: 'user' },
-    ];
-    res.json(users);
+    const users = await User.find().select('-password');
+    return res.json(users);
   } catch (error) {
     logger.error('Error fetching users:', error);
-    res.status(500).json({ message: 'Interner Server-Fehler' });
+    return res.status(500).json({ message: 'Interner Server-Fehler' });
   }
 });
 
 // Benutzer erstellen (nur für Admins)
 router.post('/', authorize('admin'), async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password, email, role } = req.body;
 
-    // TODO: Implementiere Benutzervalidierung und -erstellung
-    if (!username || !password || !role) {
+    if (!username || !password || !email || !role) {
       return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
     }
 
-    const newUser = {
-      id: Date.now().toString(),
-      username,
-      role,
-    };
+    const existing = await User.findOne({ username });
+    if (existing) {
+      return res.status(400).json({ message: 'Benutzer existiert bereits' });
+    }
 
-    res.status(201).json(newUser);
+    const user = await User.create({ username, password, email, role });
+
+    return res.status(201).json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    });
   } catch (error) {
     logger.error('Error creating user:', error);
-    res.status(500).json({ message: 'Interner Server-Fehler' });
+    return res.status(500).json({ message: 'Interner Server-Fehler' });
   }
 });
 
 // Benutzer aktualisieren (Admin oder eigener Account)
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
-    const { username, role } = req.body;
+    const { username, role, email, password } = req.body;
     const requestingUser = req.user;
 
     if (!requestingUser) {
@@ -60,17 +70,29 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    // TODO: Implementiere Benutzeraktualisierung
-    const updatedUser = {
-      id,
-      username,
-      role: requestingUser.role === 'admin' ? role : 'user',
-    };
+    const updateData: any = {};
+    if (username) updateData.username = username;
+    if (email) updateData.email = email;
+    if (requestingUser.role === 'admin' && role) updateData.role = role;
+    if (password) updateData.password = password;
 
-    res.json(updatedUser);
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Benutzer nicht gefunden' });
+    }
+
+    Object.assign(user, updateData);
+    await user.save();
+
+    return res.json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    });
   } catch (error) {
     logger.error('Error updating user:', error);
-    res.status(500).json({ message: 'Interner Server-Fehler' });
+    return res.status(500).json({ message: 'Interner Server-Fehler' });
   }
 });
 
@@ -79,11 +101,17 @@ router.delete('/:id', authorize('admin'), async (req, res) => {
   try {
     const { id } = req.params;
 
-    // TODO: Implementiere Benutzerlöschung
-    res.json({ message: `Benutzer ${id} erfolgreich gelöscht` });
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Benutzer nicht gefunden' });
+    }
+
+    await redis.del(`rt_${id}`);
+
+    return res.json({ message: `Benutzer ${id} erfolgreich gelöscht` });
   } catch (error) {
     logger.error('Error deleting user:', error);
-    res.status(500).json({ message: 'Interner Server-Fehler' });
+    return res.status(500).json({ message: 'Interner Server-Fehler' });
   }
 });
 
